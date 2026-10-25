@@ -27,3 +27,5 @@ Local evidence includes `build/reports/standalone/` and `build/reports/devices/`
 - Authenticated host-app flows and a full manual TalkBack audit remain unexercised. This extraction does not make claims about other consumer toolchains beyond the documented tested baseline.
 
 The first cloud device run exhausted hosted-runner disk space before either emulator booted; no native tests from that run are counted as passes. Device CI now frees only unused toolchains on disposable GitHub-hosted runners before boot. Local SDK 24/36 evidence above remains independent.
+
+Cloud API 24 passed after runner-space cleanup. Cloud API 36 correctly failed its explicit navigation prerequisite on the image's bundled WebView 133; those event tests were not silently skipped. The next CI revision pins an official, checksum-verified Chromium provider solely for that disposable API 36 emulator.

@@ -36,7 +36,9 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: python3 scripts/device_tests.py --serial emulator-5554 --api ${{ matrix.api }}
+          script: |
+            if [ "${{ matrix.api }}" = "36" ]; then python3 scripts/install_ci_webview.py --serial emulator-5554; fi
+            python3 scripts/device_tests.py --serial emulator-5554 --api ${{ matrix.api }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
