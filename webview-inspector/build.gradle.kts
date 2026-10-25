@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.visit.webviewinspector"
     compileSdk = 36
-    defaultConfig { minSdk = 23; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+    defaultConfig { minSdk = 24; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
     testOptions { targetSdk = 35; animationsDisabled = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true }

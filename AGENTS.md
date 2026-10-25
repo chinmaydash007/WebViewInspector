@@ -3,7 +3,7 @@
 Read README.md, docs/RELEASING.md, VALIDATION.md and the implementation architecture before changes. User instructions take precedence.
 
 - This repository MUST remain private. Never change visibility, create a public GitHub Pages site, or publish GitHub releases/assets outside this private repository. Central publication is explicitly public, including sources and documentation.
-- Keep the five Java/Kotlin facade methods and full/no-op parity. Runtime implementation belongs to internal responsibility packages; preserve API 23, instance identity, exact raw copying, lifecycle cleanup, focus and scroll-before-dismiss.
+- Keep the five Java/Kotlin facade methods and full/no-op parity. Runtime implementation belongs to internal responsibility packages; preserve API 24, instance identity, exact raw copying, lifecycle cleanup, focus and scroll-before-dismiss.
 - No host-screen changes, client/settings/bridge replacement, JavaScript injection, header capture, URL logging/persistence/upload, or analytics.
 - Use the self-contained version catalog. No dependency on another checkout, private Maven repository, app/helper module, or local absolute path. Preserve the strictly constrained WebKit 1.15.0 dependency.
 - Build using JDK 17 and the committed wrapper. `bash scripts/verify.sh` is the default non-publishing gate. Run device tests only against explicitly selected emulators and restore settings.

@@ -51,6 +51,9 @@ def validate_publication(folder, artifact, version, signed=False):
         if any('InspectorHost' in name or 'sample/' in name or '/test/' in name for name in names):
             raise ValueError('Test/sample class leaked into AAR')
         manifest = aar.read('AndroidManifest.xml').decode()
+        uses_sdk = ET.fromstring(manifest).find('uses-sdk')
+        if uses_sdk is None or uses_sdk.get('{http://schemas.android.com/apk/res/android}minSdkVersion') != '24':
+            raise ValueError('Published AAR must declare minimum SDK 24')
         if '<activity' in manifest or '<provider' in manifest or 'INTERNET' in manifest:
             raise ValueError('Test/sample manifest leaked into AAR')
     for suffix in ['-sources.jar', '-javadoc.jar']:

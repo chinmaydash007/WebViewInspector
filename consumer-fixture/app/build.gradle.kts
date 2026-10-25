@@ -2,7 +2,7 @@ plugins { id("com.android.application") }
 android {
     namespace = "example.consumer"
     compileSdk = 36
-    defaultConfig { applicationId = "example.webviewinspector.consumer"; minSdk = 23; targetSdk = 35; versionCode = 1; versionName = "1" }
+    defaultConfig { applicationId = "example.webviewinspector.consumer"; minSdk = 24; targetSdk = 35; versionCode = 1; versionName = "1" }
     buildTypes {
         release {
             isMinifyEnabled = true

@@ -15,7 +15,7 @@ Local tooling dependencies are not consumer dependencies. Use `python3 -m venv .
 ## Before a release
 
 - Keep `GROUP` and `VERSION_NAME` in gradle.properties as the single coordinate source. Both modules always share a version. Do not use SNAPSHOT versions for releases.
-- Update CHANGELOG and compatibility notes. Run `bash scripts/verify.sh`, then native API 36/API 23 gates. API 36's provider must expose NAVIGATION_LISTENER_V1. An unsupported provider fails the prerequisite rather than producing a misleading event-test pass.
+- Update CHANGELOG and compatibility notes. Run `bash scripts/verify.sh`, then native API 36/API 24 gates. API 36's provider must expose NAVIGATION_LISTENER_V1. An unsupported provider fails the prerequisite rather than producing a misleading event-test pass.
 - Check the independent Java consumer, including its minified diagnostic variant, with no Compose/Kotlin Gradle plugin. Check no-op resource/dependency isolation and exact clipboard contents on an emulator.
 - Push the tested source to private main. Run **Signed Maven Central release → Run workflow** for a signed dry run. Manual dispatch only signs/stages/verifies; it never uploads to Central.
 - Native workflow evidence is private. If a CI system image has an older WebView, update that emulator's official provider before releasing and rerun; never disable or weaken the prerequisite to obtain green CI.

@@ -20,7 +20,7 @@ NARROW += [PREFIX + 'BottomSheetGestureTest', PREFIX + 'NavigationHistoryTest#ex
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', required=True)
-    parser.add_argument('--api', type=int, choices=[23, 36], required=True)
+    parser.add_argument('--api', type=int, choices=[24, 36], required=True)
     parser.add_argument('--skip-normal', action='store_true', help='Continue a previously completed normal suite with only the presentation matrix.')
     args = parser.parse_args()
     if not args.serial.startswith('emulator-'):

@@ -40,8 +40,8 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 
 ## Compatibility and privacy
 
-- Android API 23+. Tested build baseline: JDK 17, Gradle 8.13, AGP 8.12.0, Kotlin 2.2.0 and compile SDK 36. Older consumer toolchains are not claimed as tested.
-- WebKit is strictly pinned to 1.15.0 to retain API 23. A consumer requiring another WebKit version must resolve that compatibility constraint before integration; do not silently force an unsupported version.
+- Android API 24+. Tested build baseline: JDK 17, Gradle 8.13, AGP 8.12.0, Kotlin 2.2.0 and compile SDK 36. Older consumer toolchains are not claimed as tested.
+- WebKit is strictly pinned to the validated experimental adapter version 1.15.0. A consumer requiring another WebKit version must resolve that compatibility constraint before integration; do not silently force an unsupported version.
 - Runtime feature detection selects experimental `NAVIGATION_LISTENER_V1` events or labelled 500 ms observed-URL sampling. Initial discovery cannot recover earlier redirects; sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
 - Scope is visible native WebViews in the active Activity hierarchy. Separate popup/dialog windows, external browsers/UPI apps and iframe URLs are excluded.
 - URLs remain in memory until explicitly copied. No logging, persistence, upload, analytics, headers, cookies or request bodies. Query decoding is display-only; clipboard text remains exact.
@@ -59,7 +59,7 @@ Run native tests only on an explicitly selected emulator:
 
 ```sh
 python3 scripts/device_tests.py --serial emulator-5554 --api 36
-python3 scripts/device_tests.py --serial emulator-5556 --api 23
+python3 scripts/device_tests.py --serial emulator-5556 --api 24
 ```
 
 API 36 requires an installed provider supporting navigation events; the prerequisite fails instead of silently skipping event tests. The script restores font, density, night mode and animation settings. It rejects physical devices. The sample's debug/diagnostic variants use the full inspector; its minified release uses no-op. Sample pages and real HTTP redirects use loopback, with cleartext exceptions confined to sample/test manifests.
