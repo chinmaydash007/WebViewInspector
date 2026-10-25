@@ -13,6 +13,11 @@ jobs:
         api: [24, 36]
     steps:
       - uses: actions/checkout@v4
+      - name: Free space for emulator userdata on the disposable hosted runner
+        run: |
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          df -h /
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
