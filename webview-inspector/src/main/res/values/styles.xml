@@ -1,0 +1,30 @@
+<resources>
+    <!-- A complete theme, not an overlay requiring the host to already have Material attributes. -->
+    <style name="WviTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/wvi_primary</item>
+        <item name="colorOnPrimary">@color/wvi_on_primary</item>
+        <item name="colorSecondary">@color/wvi_primary</item>
+        <item name="colorSurface">@color/wvi_surface</item>
+        <item name="colorOnSurface">@color/wvi_text</item>
+        <item name="android:colorBackground">@color/wvi_surface</item>
+        <item name="bottomSheetDialogTheme">@style/WviBottomSheetTheme</item>
+    </style>
+    <style name="WviBottomSheetTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="colorPrimary">@color/wvi_primary</item>
+        <item name="colorOnPrimary">@color/wvi_on_primary</item>
+        <item name="colorSecondary">@color/wvi_primary</item>
+        <item name="colorSurface">@color/wvi_surface</item>
+        <item name="colorOnSurface">@color/wvi_text</item>
+        <item name="android:colorBackground">@color/wvi_surface</item>
+        <item name="bottomSheetStyle">@style/WviBottomSheetStyle</item>
+    </style>
+    <style name="WviBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/wvi_surface</item>
+        <item name="shapeAppearanceOverlay">@style/WviSheetShape</item>
+    </style>
+    <style name="WviSheetShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+    </style>
+</resources>

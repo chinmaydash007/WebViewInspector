@@ -1,0 +1,8 @@
+<resources>
+    <style name="WviTestPlatformTheme" parent="android:style/Theme.Material.Light.NoActionBar" />
+    <style name="WviTestAppCompatTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <item name="wvi_test_webview" type="id" />
+    <item name="wvi_test_container" type="id" />
+    <item name="wvi_test_touch" type="id" />
+    <item name="wvi_test_edit" type="id" />
+</resources>

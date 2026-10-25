@@ -1,0 +1,28 @@
+<resources>
+    <item name="wvi_overlay" type="id" />
+    <item name="wvi_control" type="id" />
+    <item name="wvi_open" type="id" />
+    <item name="wvi_quick_copy" type="id" />
+    <item name="wvi_sheet" type="id" />
+    <item name="wvi_targets" type="id" />
+    <item name="wvi_current_url" type="id" />
+    <item name="wvi_copy_url" type="id" />
+    <item name="wvi_locate" type="id" />
+    <item name="wvi_enabled" type="id" />
+    <item name="wvi_current_tab" type="id" />
+    <item name="wvi_history_tab" type="id" />
+    <item name="wvi_history_panel" type="id" />
+    <item name="wvi_history_entries" type="id" />
+    <item name="wvi_copy_history" type="id" />
+    <item name="wvi_clear_history" type="id" />
+    <item name="wvi_sheet_scroll" type="id" />
+    <item name="wvi_sheet_header" type="id" />
+    <item name="wvi_sheet_footer" type="id" />
+    <item name="wvi_target_picker" type="id" />
+    <item name="wvi_more" type="id" />
+    <item name="wvi_about" type="id" />
+    <item name="wvi_query_toggle" type="id" />
+    <item name="wvi_query_values" type="id" />
+    <item name="wvi_view_saved" type="id" />
+    <item name="wvi_capture_mode" type="id" />
+</resources>

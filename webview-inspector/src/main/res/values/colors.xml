@@ -1,0 +1,12 @@
+<resources>
+    <color name="wvi_primary">#7047BD</color>
+    <color name="wvi_on_primary">#FFFFFF</color>
+    <color name="wvi_surface">#FFFFFF</color>
+    <color name="wvi_background">#F7F7FA</color>
+    <color name="wvi_text">#24232D</color>
+    <color name="wvi_muted">#6C6A7B</color>
+    <color name="wvi_border">#E9E6F0</color>
+    <color name="wvi_tint">#F1EBFB</color>
+    <color name="wvi_success">#2C6B50</color>
+    <color name="wvi_warning">#906024</color>
+</resources>

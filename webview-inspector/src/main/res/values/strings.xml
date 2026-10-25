@@ -1,0 +1,31 @@
+<resources>
+    <string name="wvi_title">WebView Inspector</string>
+    <string name="wvi_developer_tools">Developer tools</string>
+    <string name="wvi_internal">INTERNAL</string>
+    <string name="wvi_enable">Enable inspector</string>
+    <string name="wvi_enabled_description">Floating control appears on pages with WebViews.</string>
+    <string name="wvi_settings_description">Full-page and embedded WebViews are detected automatically. Drag the floating control to move it out of the way.</string>
+    <string name="wvi_choose">Choose a WebView</string>
+    <string name="wvi_count">%1$d visible WebViews</string>
+    <string name="wvi_single_count">1 visible WebView</string>
+    <string name="wvi_selection">WebView %1$d of %2$d</string>
+    <string name="wvi_select_count">Select WebView · %1$d</string>
+    <string name="wvi_view_number">WebView %1$d</string>
+    <string name="wvi_current_url">Current URL · WebView %1$d</string>
+    <string name="wvi_copy_url">Copy URL · WebView %1$d</string>
+    <string name="wvi_copy">Copy selected WebView URL</string>
+    <string name="wvi_close">Close inspector</string>
+    <string name="wvi_open">Open WebView inspector</string>
+    <string name="wvi_drag">Drag URL inspector; arrow keys move it</string>
+    <string name="wvi_move_left">Move inspector left</string>
+    <string name="wvi_move_right">Move inspector right</string>
+    <string name="wvi_move_up">Move inspector up</string>
+    <string name="wvi_move_down">Move inspector down</string>
+    <string name="wvi_locate">Locate on page</string>
+    <string name="wvi_no_url">No URL yet</string>
+    <string name="wvi_unavailable">Selected WebView is no longer visible. Choose another WebView.</string>
+    <string name="wvi_parameters">Query parameters · %1$d</string>
+    <string name="wvi_copy_note">Copies the complete URL, including query parameters</string>
+    <string name="wvi_copied">Full URL copied · WebView %1$d</string>
+    <string name="wvi_located">WebView %1$d highlighted on this page</string>
+</resources>
