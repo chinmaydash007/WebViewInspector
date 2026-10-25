@@ -72,7 +72,7 @@ def main():
     finally:
         for key in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
             shell('settings', 'delete' if settings[key] == 'null' else 'put', 'global', key, *([] if settings[key] == 'null' else [settings[key]]))
-        shell('settings', 'put', 'system', 'font_scale', settings['font_scale'])
+        shell('settings', 'delete' if settings['font_scale'] == 'null' else 'put', 'system', 'font_scale', *([] if settings['font_scale'] == 'null' else [settings['font_scale']]))
         override = re.search(r'Override density: (\d+)', settings['density'])
         shell('wm', 'density', override.group(1) if override else 'reset')
         if 'night' in settings:

@@ -7,6 +7,8 @@ This record covers the independent project, not the original consuming app. Raw 
 - All **26 JVM tests passed**, covering weak target identity, history grouping/budgets, observation/subscription cleanup and local date presentation. Library `lintDebug` passed with **0 errors**; existing Kotlin/deprecation/style warnings remain.
 - All **21 existing instrumentation cases passed on the explicitly selected API 36 emulator**, with WebView 156.0.8078.47: eight inspector, five navigation-history, two gesture and six Focused cases. A separate release prerequisite confirmed NAVIGATION_LISTENER_V1 support.
 - The owner subsequently selected **minimum SDK 24** for both artifacts and all consumers/samples. The earlier eight API 23 passes are historical extraction evidence only; API 23 is no longer supported or required in CI. API 24 verification replaces that minimum-version run.
+- All **eight API 24 cases passed** on the explicitly selected task-owned ARM64 Google emulator with the new minimum-SDK declaration. These cover both native hosts, saved/returned targets, menus/cleanup, scroll restoration, presentation and sampled capture.
+- On the updated minimum-SDK build, the full **21 API 36 cases**, navigation prerequisite, **13 narrow/large-font light cases** and **six dark cases** were rerun successfully.
 - All **13 narrow/large-font light cases** and **six dark cases** passed at 320 dp / 160% font. These include all seven earlier narrow-screen regressions plus the six Focused cases. Settings are restored by the device script. Only screenshots newly produced by each test class should be treated as evidence of that presentation mode.
 - Full/no-op release facades expose the same five Java static methods. Runtime production source bytes match the extracted implementation; standalone changes are build/publishing/sample/test/documentation support.
 - Both unsigned local Maven publications validated with sources, real Dokka HTML documentation, usage guides, license, POMs and Gradle metadata. Both signed publications also staged successfully and all signatures verified against the permanent public signing key. Public-key server lookup returned the expected fingerprint.
@@ -19,7 +21,7 @@ Local evidence includes `build/reports/standalone/` and `build/reports/devices/`
 
 ## Pending external steps
 
-- GitHub CI and private draft-release status are recorded in the repository's Actions/Releases views; do not infer remote success from these local results.
+- GitHub standalone validation passed on the SDK 24 source commit: https://github.com/chinmaydash007/webview-inspector/actions/runs/40181178238. This is separate from the cloud emulator jobs and the pending signed-publishing workflow.
 - The owner deferred Central account/namespace/token setup. Maven Central has **not** been published or independently downloaded, and the downstream app has **not** migrated.
 - The private GitHub Release must remain a draft until account setup and all release gates pass. The automatic publishing workflow itself cannot be end-to-end verified against Central without those credentials.
 - Authenticated host-app flows and a full manual TalkBack audit remain unexercised. This extraction does not make claims about other consumer toolchains beyond the documented tested baseline.
