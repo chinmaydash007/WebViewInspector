@@ -252,10 +252,22 @@ class WebViewInspectorTest {
             }
             screenshot("keyboard")
             pressBack()
+            ui {
+                val editor = activity.findViewById<EditText>(TestR.id.wvi_test_edit)
+                WindowCompat.getInsetsController(activity.window, editor).hide(WindowInsetsCompat.Type.ime())
+            }
+            await { ViewCompat.getRootWindowInsets(activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == false }
             ui { activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
             Thread.sleep(1500)
             scenario.onActivity { activity = it }
             await { activity.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && header(activity).contains("of 2") }
+            ui {
+                // Recreation can restore editor/IME state; the next check targets sheet copying.
+                val editor = activity.findViewById<EditText>(TestR.id.wvi_test_edit)
+                WindowCompat.getInsetsController(activity.window, editor).hide(WindowInsetsCompat.Type.ime())
+            }
+            await { ViewCompat.getRootWindowInsets(activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == false }
+            screenshot("landscape-before-sheet")
             onView(withId(R.id.wvi_open)).perform(click())
             onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
             assertEquals(FIRST_URL, clipboard())
