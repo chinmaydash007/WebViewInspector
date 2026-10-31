@@ -7,10 +7,10 @@ Repository visibility is permanently **private** for this workflow. GitHub tags,
 1. Sign in to https://central.sonatype.com using the `chinmaydash007` GitHub identity. Verify namespace `io.github.chinmaydash007`; GitHub identity verification must not make this repository public.
 2. Generate a **publishing user token** in the Central Portal. Its token username/password differ from your sign-in credentials. Do not put them into Git, command arguments, logs or chat.
 3. Save those two fields as `username` and `password` in an owner-only JSON file outside the checkout, for example `~/.config/webview-inspector-publishing/central-credentials.json`. Set mode 600.
-4. Run `scripts/configure_central_secrets.py` in an isolated Python environment containing PyNaCl, passing only the credential file path. It verifies that GitHub remains private, encrypts the values, and configures `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` Actions secrets. It uses `GITHUB_TOKEN` or the existing Git credential helper without printing values.
+4. Add the token username/password as repository Actions secrets `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` at https://github.com/chinmaydash007/WebViewInspector/settings/secrets/actions. Alternatively, run `scripts/configure_central_secrets.py` in an isolated Python environment containing PyNaCl, passing only the protected credential file path. It verifies that GitHub remains private and encrypts both values without printing them.
 5. Signing secrets `SIGNING_KEY` and `SIGNING_PASSWORD` are configured separately. The permanent public signing key is [signing-public.asc](../signing-public.asc). Fingerprint: **B9C2F3CF6BDEC9054EA83F3FCD516702F4195002**, expiring in three years. It is distributed through keyserver.ubuntu.com, independently of private GitHub access. Protected local signing material is outside Git under `~/.config/webview-inspector-publishing/`; back it up securely. Never publish its private key or passphrase.
 
-Local tooling dependencies are not consumer dependencies. Use `python3 -m venv .tools/publishing-venv` and install `PyNaCl==1.6.2` if needed. Local signature verification uses GnuPG, or PGPy 0.6.0 in an isolated environment when GnuPG is unavailable. CI uses GnuPG. Central token setup remains pending until the owner completes steps 1–4.
+Local tooling dependencies are not consumer dependencies. Use `python3 -m venv .tools/publishing-venv` and install `PyNaCl==1.6.2` if needed. Local signature verification uses GnuPG, or PGPy 0.6.0 in an isolated environment when GnuPG is unavailable. CI uses GnuPG. The publisher reads the current repository identity from GitHub Actions, with `chinmaydash007/WebViewInspector` as its local default, so renamed-repository redirects are not required for writes.
 
 ## Before a release
 
@@ -29,6 +29,16 @@ The workflow checks the private-repository invariant and exact tag/commit/versio
 The publisher uses Vanniktech 0.35.0 for Android publication/source/POM/metadata/signing configuration. The release script handles combined bundle upload, deployment status and retry safety through the Central Portal API. No legacy OSSRH endpoint is used.
 
 Do not call global Gradle publishing tasks as part of ordinary validation. `stageRelease` publishes only to `build/validation-repository`; `scripts/verify.sh` never uploads. No consuming Android app is distributed by this workflow.
+
+## Publish an existing prepared draft
+
+When release automation needs a repair after a version was tagged, preserve that tag and its signed assets. From private `main`, run **Publish prepared Maven Central release** with `release_tag` set to the existing version, such as `v0.1.0`. This is a publishing operation, unlike the original **Signed Maven Central release** manual dry run.
+
+The prepared-release workflow checks out the immutable tag for build and API 24/36 native gates. It runs the current publisher tests on `main`, restores the draft's exact original assets, and verifies their signatures, hashes and source commit against the tag's own `gradle.properties`. Publisher HEAD may differ from artifact source HEAD; it never substitutes a newly built bundle for the existing release assets.
+
+Only after those gates pass, `--publish-draft` publishes the existing GitHub draft using the workflow's `GITHUB_TOKEN`, then uploads or resumes the one Central deployment. GitHub does not trigger a second release-event workflow for this token, avoiding a second publisher. The same public-download verification and clean Java consumer build follow. Repository privacy is checked before publication and after release updates.
+
+Draft lookup uses the authenticated release list when GitHub's published-release-by-tag endpoint returns 404. Normal `publish` calls still reject drafts unless explicitly opted in. The standard immutable-assets and ambiguous-upload protections below apply to both workflows.
 
 ## Retry and failure handling
 

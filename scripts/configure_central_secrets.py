@@ -28,7 +28,7 @@ if not token:
     token = dict(line.split('=', 1) for line in raw.splitlines() if '=' in line).get('password')
 if not token:
     raise SystemExit('GitHub authentication is required.')
-base = 'https://api.github.com/repos/chinmaydash007/webview-inspector'
+base = 'https://api.github.com/repos/chinmaydash007/WebViewInspector'
 def request(path, method='GET', body=None):
     req = urllib.request.Request(base + path, data=json.dumps(body).encode() if body is not None else None, method=method,
         headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'})

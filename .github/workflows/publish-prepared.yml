@@ -1,0 +1,80 @@
+name: Publish prepared Maven Central release
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag with a signed private release draft
+        type: string
+        required: true
+        default: v0.1.0
+permissions:
+  contents: read
+concurrency:
+  group: maven-central-${{ inputs.release_tag }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - run: bash scripts/verify.sh
+  devices:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/devices.yml
+    with:
+      source_ref: ${{ inputs.release_tag }}
+  publish:
+    needs: [validate, devices]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Test the publisher
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Restore the exact signed release assets
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/release.py restore --tag "$RELEASE_TAG"
+      - name: Publish private GitHub draft and signed Central bundle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: |
+          gpg --batch --import signing-public.asc
+          python3 scripts/release.py publish --tag "$RELEASE_TAG" --publish-draft
+      - name: Build independent Java consumer from public Central
+        run: ./gradlew --no-daemon -p consumer-fixture -PinspectorVersion="${RELEASE_TAG#v}" -g "$RUNNER_TEMP/central-consumer-gradle" :app:assembleDebug :app:assembleDiagnostic :app:assembleRelease
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prepared-publication-evidence
+          path: build/release/
+          retention-days: 30

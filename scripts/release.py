@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Private GitHub release assets -> one signed, public Maven Central deployment.
 
-No publishing on imports, ordinary builds or restore. Publication requires --publish,
+No publishing on imports, ordinary builds or restore. Publication requires the publish command,
 a matching tag/commit, valid signed bundle and explicit Central credentials.
 """
 import argparse
@@ -20,7 +20,7 @@ import zipfile
 
 from bundle import ARTIFACTS, ROOT, properties, validate_publication
 
-REPOSITORY = 'chinmaydash007/webview-inspector'
+REPOSITORY = os.environ.get('GITHUB_REPOSITORY', 'chinmaydash007/WebViewInspector')
 CENTRAL = 'https://central.sonatype.com/api/v1/publisher'
 MAVEN = 'https://repo.maven.apache.org/maven2/'
 
@@ -61,6 +61,19 @@ def validate_tag(tag, version, expected_commit):
         raise ValueError('Release tag does not identify the built commit.')
 
 
+def tagged_source(tag):
+    """Resolve artifact identity from its immutable tag, independently of publisher HEAD."""
+    if not tag.startswith('v') or any(character in tag for character in ['/', ':', '\\', '\n']):
+        raise ValueError('Expected a version tag such as v0.1.0.')
+    reference = 'refs/tags/' + tag
+    source = subprocess.check_output(['git', 'show', reference + ':gradle.properties'], cwd=ROOT, text=True)
+    tagged_properties = dict(line.split('=', 1) for line in source.splitlines() if '=' in line and not line.startswith('#'))
+    version = tagged_properties['VERSION_NAME'].strip()
+    commit = subprocess.check_output(['git', 'rev-parse', reference + '^{commit}'], cwd=ROOT, text=True).strip()
+    validate_tag(tag, version, commit)
+    return version, commit
+
+
 def require_private_repository(token):
     repo = github('/repos/' + REPOSITORY, token)
     if repo.get('private') is not True:
@@ -68,7 +81,21 @@ def require_private_repository(token):
 
 
 def release_for(tag, token):
-    return github('/repos/' + REPOSITORY + '/releases/tags/' + urllib.parse.quote(tag), token)
+    """Find published releases by tag and drafts through the authenticated release list."""
+    try:
+        return github('/repos/' + REPOSITORY + '/releases/tags/' + urllib.parse.quote(tag), token)
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise
+        page = 1
+        while True:
+            releases = github('/repos/' + REPOSITORY + '/releases?per_page=100&page=' + str(page), token)
+            matching = [release for release in releases if release['tag_name'] == tag and release['draft']]
+            if matching:
+                return matching[0]
+            if len(releases) < 100:
+                raise error
+            page += 1
 
 
 def upload_asset(release, name, data, token):
@@ -166,11 +193,9 @@ def verify_downloads(manifest, timeout=1800):
     print('All public Central publication files match the signed release bundle.')
 
 
-def publish(tag, output, token):
+def publish(tag, output, token, *, publish_draft=False):
     require_private_repository(token)
-    version = properties()['VERSION_NAME']
-    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-    validate_tag(tag, version, commit)
+    version, commit = tagged_source(tag)
     manifest, bundle = validate_saved_bundle(output, version, commit)
     username = os.environ.get('CENTRAL_USERNAME')
     password = os.environ.get('CENTRAL_PASSWORD')
@@ -178,20 +203,24 @@ def publish(tag, output, token):
         raise ValueError('Central namespace/token setup is pending. No upload was attempted.')
     credential = base64.b64encode((username + ':' + password).encode()).decode()
     release = release_for(tag, token)
-    if release['draft']:
+    if release['draft'] and not publish_draft:
         raise ValueError('Publish the private GitHub Release to trigger Central publication.')
     for name in [bundle.name, 'publication-manifest.json', 'SHA256SUMS']:
         upload_asset(release, name, (output / name).read_bytes(), token)
     deployment_file = output / 'deployment.json'
+    intent = output / 'upload-intent.json'
+    if intent.exists() and not deployment_file.exists():
+        raise ValueError('An upload was already attempted without a saved deployment ID. Inspect Central and recover deployment.json before retrying.')
     if deployment_file.exists():
         deployment = json.loads(deployment_file.read_text())
         if deployment['sha256'] != manifest['sha256']:
             raise ValueError('Existing deployment refers to another bundle.')
-    else:
+    if release['draft']:
+        # The dedicated workflow uses GITHUB_TOKEN, so this does not enqueue another release workflow.
+        release = github('/repos/' + REPOSITORY + '/releases/' + str(release['id']), token, 'PATCH', {'draft': False})
+        require_private_repository(token)
+    if not deployment_file.exists():
         # Persist intent before POST. A lost response must never cause an automatic duplicate upload.
-        intent = output / 'upload-intent.json'
-        if intent.exists():
-            raise ValueError('An upload was already attempted without a saved deployment ID. Inspect Central and recover deployment.json before retrying.')
         intent.write_text(json.dumps({'sha256': manifest['sha256'], 'version': version}, indent=2) + '\n')
         upload_asset(release, 'upload-intent.json', intent.read_bytes(), token)
         deployment_id = upload_bundle(bundle, version, credential)
@@ -210,6 +239,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['restore', 'publish'])
     parser.add_argument('--tag', required=True)
+    parser.add_argument('--publish-draft', action='store_true', help='Publish the existing private draft after validation; intended for the prepared-release workflow.')
     args = parser.parse_args()
     token = os.environ.get('GITHUB_TOKEN')
     if not token:
@@ -219,7 +249,7 @@ def main():
         if args.command == 'restore':
             restore(args.tag, output, token)
         else:
-            publish(args.tag, output, token)
+            publish(args.tag, output, token, publish_draft=args.publish_draft)
     except Exception as error:
         # Do not echo response bodies, credentials or presigned asset URLs.
         raise SystemExit(type(error).__name__ + ': ' + str(error).split('https://')[0])

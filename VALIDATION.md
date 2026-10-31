@@ -29,3 +29,11 @@ Local evidence includes `build/reports/standalone/` and `build/reports/devices/`
 The first cloud device run exhausted hosted-runner disk space before either emulator booted; no native tests from that run are counted as passes. Device CI now frees only unused toolchains on disposable GitHub-hosted runners before boot. Local SDK 24/36 evidence above remains independent.
 
 Cloud API 24 passed after runner-space cleanup. Cloud API 36 correctly failed its explicit navigation prerequisite on the image's bundled WebView 133; those event tests were not silently skipped. The next CI revision pins an official, checksum-verified Chromium provider solely for that disposable API 36 emulator.
+
+## Release preflight — 31 October 2026
+
+The earlier evidence above remains dated to its original run. Signed dry run [40184397749](https://github.com/chinmaydash007/WebViewInspector/actions/runs/40184397749) completed successfully on `43e05b8c86d43c9451735a59e4839d0917d69e88`, including build validation, eight API 24 cases, the API 36 navigation prerequisite, 21 normal cases, 13 narrow/large-font light cases, six dark cases, and verification of all ten primary publication signatures.
+
+The owner has now verified the Central namespace and added both Central secrets. Preflight confirmed the GitHub repository remains private under its current name `chinmaydash007/WebViewInspector`; the existing `v0.1.0` tag and signed bundle remain unchanged. All 15 publisher guard tests pass locally, including lookup of authenticated drafts, resolving version/source from the immutable tag, explicit draft-publication opt-in and preserving duplicate-upload protection. A prepared-release workflow reruns the original tagged build/native gates before the corrected current publisher uploads those exact signed assets.
+
+Central publication is still pending at this preflight snapshot. Successful public download and independent consumer evidence will be recorded only after the release workflow actually completes.
