@@ -12,8 +12,10 @@ import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.widget.EditText
 import android.widget.TextView
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
@@ -233,6 +235,14 @@ class WebViewInspectorTest {
                 repeat(60) { grip.dispatchKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_DPAD_DOWN)) }
             }
             onView(withId(TestR.id.wvi_test_edit)).perform(click())
+            await { activity.hasWindowFocus() }
+            ui {
+                // A tap can focus the editor without requesting the IME on a headless system image.
+                // Establish the keyboard precondition explicitly; the real inset checks stay below.
+                val editor = activity.findViewById<EditText>(TestR.id.wvi_test_edit)
+                assertTrue("The keyboard fixture must accept editor focus", editor.requestFocus())
+                WindowCompat.getInsetsController(activity.window, editor).show(WindowInsetsCompat.Type.ime())
+            }
             await { ViewCompat.getRootWindowInsets(activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true }
             ui {
                 val control = activity.window.decorView.findViewById<View>(R.id.wvi_control)

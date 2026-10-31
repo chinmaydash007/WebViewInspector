@@ -20,6 +20,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref || github.ref }}
+          fetch-depth: 0
+      - name: Apply the current keyboard test harness to unchanged tagged runtime
+        env:
+          HARNESS_REF: ${{ github.sha }}
+        run: |
+          git diff --exit-code HEAD "$HARNESS_REF" -- gradle.properties gradle/libs.versions.toml build.gradle.kts settings.gradle.kts gradle/wrapper webview-inspector/build.gradle.kts webview-inspector-no-op/build.gradle.kts webview-inspector/src/main webview-inspector-no-op/src/main
+          git show "${HARNESS_REF}:webview-inspector/src/androidTest/java/com/visit/webviewinspector/WebViewInspectorTest.kt" > webview-inspector/src/androidTest/java/com/visit/webviewinspector/WebViewInspectorTest.kt
       - name: Free space for emulator userdata on the disposable hosted runner
         run: |
           test "$RUNNER_ENVIRONMENT" = "github-hosted"
