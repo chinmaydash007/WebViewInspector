@@ -44,8 +44,17 @@ jobs:
           arch: x86_64
           disable-animations: true
           script: |
-            if [ "${{ matrix.api }}" = "36" ]; then python3 scripts/install_ci_webview.py --serial emulator-5554; fi
-            python3 scripts/device_tests.py --serial emulator-5554 --api ${{ matrix.api }}
+            mkdir -p build/reports/devices
+            if [ "${{ matrix.api }}" = "36" ]; then
+              adb -s emulator-5554 shell settings get secure show_ime_with_hard_keyboard > build/reports/devices/original-ci-keyboard-setting.txt
+              adb -s emulator-5554 shell ime list -s > build/reports/devices/available-ci-keyboards.txt
+              adb -s emulator-5554 shell settings put secure show_ime_with_hard_keyboard 1
+              python3 scripts/install_ci_webview.py --serial emulator-5554
+            fi
+            if ! python3 scripts/device_tests.py --serial emulator-5554 --api ${{ matrix.api }}; then
+              adb -s emulator-5554 shell dumpsys input_method > build/reports/devices/input-method-failure.txt
+              exit 1
+            fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
