@@ -1,8 +1,8 @@
-# Standalone validation — 25 October 2026
+# Standalone validation
 
-This record covers the independent project, not the original consuming app. Raw logs and synthetic screenshots live in ignored `build/reports/` outputs and private GitHub Actions artifacts. A signed local bundle is not evidence of Maven Central availability.
+This record covers the independent project, not the original consuming app. Raw logs and synthetic screenshots live in ignored `build/reports/` outputs and private GitHub Actions artifacts. Historical preparation evidence and the completed 31 October publication are separated below. A signed local bundle alone is not evidence of Maven Central availability.
 
-## Fresh local evidence
+## Local evidence — 25 October 2026
 
 - All **26 JVM tests passed**, covering weak target identity, history grouping/budgets, observation/subscription cleanup and local date presentation. Library `lintDebug` passed with **0 errors**; existing Kotlin/deprecation/style warnings remain.
 - All **21 existing instrumentation cases passed on the explicitly selected API 36 emulator**, with WebView 156.0.8078.47: eight inspector, five navigation-history, two gesture and six Focused cases. A separate release prerequisite confirmed NAVIGATION_LISTENER_V1 support.
@@ -19,7 +19,9 @@ This record covers the independent project, not the original consuming app. Raw 
 
 Local evidence includes `build/reports/standalone/` and `build/reports/devices/`. The original consuming application's checkout remains unchanged; its local modules remain in use until Central publication succeeds. No consuming app release, payment, backend change, token demo or header capture was performed.
 
-## Pending external steps
+## External steps pending on 25 October 2026
+
+This historical pending state is superseded by the completed publication record below.
 
 - GitHub standalone validation passed on the SDK 24 source commit: https://github.com/chinmaydash007/webview-inspector/actions/runs/40181178238. This is separate from the cloud emulator jobs and the pending signed-publishing workflow.
 - The owner deferred Central account/namespace/token setup. Maven Central has **not** been published or independently downloaded, and the downstream app has **not** migrated.
@@ -47,3 +49,26 @@ Run `41184815265` passed build validation and API 24 but reproduced the same API
 The isolated check in run `41185823077` reproduced the timeout and retained its complete input-method history. The editor established a text input connection, but the trace contained no IME show request. The test harness now explicitly requests keyboard display through `WindowCompat.getInsetsController(...).show(ime())`, following Android's documented keyboard setup. It adds an editor-focus assertion and preserves the existing real IME-visibility, control-bounds, rotation and exact-copy assertions. CI first checks that runtime sources/resources and build/dependency configuration are identical to the immutable tag, then compiles that unchanged runtime with the updated keyboard test file. Publication and all full native gates remain pending until the updated harness actually passes.
 
 In run `41186700063`, the explicit request showed the IME and the real keyboard-bounds assertion passed. The isolated case subsequently failed finding the sheet after landscape recreation; the input-method trace showed visibility restoration during that transition. The harness retains the Back action, then explicitly hides and awaits the IME both before and after recreation before opening the sheet. Its actual landscape, clipboard and keyboard-geometry assertions remain in place; preflight screenshots are retained for inspection. No runtime source or release asset changed.
+
+## Published release — 31 October 2026
+
+**Both `0.1.0` artifacts are published on Maven Central and publicly downloadable.** GitHub repository `chinmaydash007/WebViewInspector` remains private, including its published [v0.1.0 GitHub Release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.1.0).
+
+[Release run 41187806536](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41187806536) completed successfully on publisher/harness commit `77a50f7d783a2cb246a03b12b7145b76def03575`. It verified and published the original signed bundle from immutable artifact tag/source commit `43e05b8c86d43c9451735a59e4839d0917d69e88`.
+
+| Fresh check | Result |
+|---|---|
+| Tagged library JVM tests, lint and facade parity | Passed; 26 JVM tests and no lint errors |
+| Current publisher guard tests | All 15 passed |
+| API 24 native cases | All eight passed |
+| API 36 isolated keyboard/rotation case | Passed with real IME visibility, control bounds and exact clipboard assertions |
+| API 36 navigation prerequisite / normal suite | One prerequisite and all 21 normal cases passed |
+| API 36 320 dp / 160% font, light / dark | All 13 light and six dark cases passed |
+| Public Maven downloads | All ten primary files downloaded anonymously and matched the signed bundle |
+| Independent public-only Java consumer | Debug, R8-minified diagnostic and R8-minified no-op release all built successfully |
+
+Central deployment `27392699-2908-41aa-816c-fe6cea363838` reached **PUBLISHED**. The workflow verified public file hashes before building the independent consumer with a fresh Gradle user home, no local validation repository, and no Kotlin/Compose Gradle plugin. An independent local download check also verified both AARs, POMs, Gradle metadata files, sources and documentation JARs on 31 October at 15:14 IST. Its report and downloaded files are in ignored `build/reports/publication-2026-10-31/` outputs.
+
+The unchanged combined signed bundle has SHA-256 `b8d87702320c6bd1e5001f55224cd9ee54d4cdf3f0552b332492945f238bf6c2`. The tag and original three release assets were not replaced; deployment/intent receipts were added to the private Release. Both published AARs declare minimum SDK 24. Current library runtime sources/resources and build/dependency configuration still match the artifact tag; only the publisher, CI setup, test preconditions and documentation changed during release verification.
+
+Earlier minified on-device copy evidence remains dated to 25 October; it is not presented as a new runtime smoke test. Authenticated Android2 flows and a full manual TalkBack audit were not rerun. This publication task did not change or migrate the Android2 checkout.
