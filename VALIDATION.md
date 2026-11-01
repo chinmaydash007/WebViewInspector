@@ -2,10 +2,11 @@
 
 ## 0.3.0 Basic / Advanced preparation — 1 November 2026
 
-**Unreleased local preparation only.** No commits, pushes, tags, GitHub Releases or
-Central publication were performed for this feature. The latest published version is
-still 0.2.0. The consuming application checkout was preserved byte-for-byte, including
-its pending migration work. Historical release evidence below is not new 0.3.0 evidence.
+**Original unreleased preparation checkpoint.** At that checkpoint no commits, pushes,
+tags, GitHub Releases or Central publication had been performed for this feature, and
+the latest published version was 0.2.0. The consuming application checkout was preserved
+byte-for-byte, including its pending migration work. The completed 0.3.0 publication
+record below supersedes this pending status; older release evidence remains separate.
 
 Basic retains the existing discovery, sampling, navigation events, clients and settings.
 Advanced adds two synchronous load helpers and a separate app-load store/panel. It
@@ -89,6 +90,59 @@ All six App loads tests passed locally with the same 320×640 size, 160 dpi and 
 Runtime sources are unchanged by this correction. The failed cloud logs are preserved
 in ignored `build/reports/release-0.3.0/`; the corrected commit must pass a new complete
 signed dry run before tagging or publishing.
+
+## Published 0.3.0 — 1 November 2026
+
+**Both 0.3.0 artifacts are published on Maven Central.** The repository and
+[v0.3.0 GitHub Release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.3.0)
+remain private. The annotated tag identifies source commit
+`31ed1e0f52cbfd1bf678e0c559939c85c932bc1d`, including the test scrolling correction above.
+Released 0.1.0/0.2.0 tags, artifacts and assets were preserved.
+
+[Push CI 41298199478](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41298199478)
+and [signed dry run 41298218824](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41298218824)
+completed successfully. The
+[release workflow 41299612633](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41299612633)
+independently repeated all build and native gates before uploading:
+
+| Check | Fresh release result |
+|---|---|
+| JVM tests / lint | All 38 passed; zero lint errors |
+| Facade parity / no-op forwarding | Seven static methods match; both no-op helpers delegate once |
+| Publishing/content guards | All 30 passed |
+| Sample / Java consumer builds | All three variants of each passed before publication |
+| API 24 fallback | All 14 cases passed |
+| API 36 preflight / prerequisite | Actual keyboard/rotation and navigation support checks passed |
+| API 36 normal | All 27 cases passed |
+| API 36 320 dp / 160% font | All 19 light and 12 dark cases passed on the shorter CI viewport |
+| Signatures / public downloads | All ten primary files verified; anonymous Central bytes match the signed bundle |
+
+CI retained the unsupported API 24 provider and used the pinned official test-only
+WebView 158.0.8124.0 on API 36. Original emulator settings were restored. The compact
+local regression run also restored size, density and font; its test APK was removed and
+the preexisting Maestro service restored. No physical device or consuming-app data was
+modified.
+
+The Release reused the exact successful dry-run bundle, SHA-256
+`7e0ad15d3d1230a324ebe062cd4d8be9740ab30421681556ad2ed14c3758d5a7`.
+Central deployment `0a087501-fa71-470a-b9a1-7f922be330e3` reached **PUBLISHED**. The private
+Release retains its immutable upload-intent and deployment receipts; there was one
+deployment and no replacement upload. Independent anonymous verification of both AARs,
+POMs, Gradle metadata, source JARs and documentation JARs completed at 11:22 UTC. The
+downloaded files match the original signed manifest and publisher-owned namespace.
+
+The release workflow also completed its final clean public-only Java consumer build:
+debug, minified diagnostic and minified production no-op all passed with a fresh Gradle
+user home, no local validation repository and no Compose/Kotlin Gradle plugin. This is
+fresh verification of the public 0.3.0 artifacts, separate from pre-publication fixture
+builds. The complete release run finished successfully.
+
+The consuming application remains unchanged; adoption is deferred to a separate phase.
+Documentation status updates do not move the tested tag or change published bytes.
+Fresh evidence is retained in ignored `build/reports/release-0.3.0/` and private Actions
+artifacts. The earlier local minified clipboard/isolation checks above remain distinct
+from these cloud/publication checks. Manual TalkBack review, physical devices and
+authenticated host-app flows remain unexercised. No app distribution was performed.
 
 ## 0.2.0 namespace migration — local evidence, 1 November 2026
 

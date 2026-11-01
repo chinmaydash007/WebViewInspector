@@ -2,7 +2,7 @@
 
 A floating Android inspector for native WebViews. **Basic** discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally, showing current URLs and navigation history. **Advanced** adds explicit app-load URL/header snapshots when developers use the load helper. Neither replaces WebView clients or injects JavaScript.
 
-**Source version:** `0.3.0` preparation, **not published**. The latest published version is `0.2.0`, which supports Basic only. The following 0.3.0 examples require the local sample/validation repository until release; do not expect these coordinates on Central yet. Previously published versions remain unchanged. See [validation](VALIDATION.md).
+**Latest published version:** `0.3.0`. Both artifacts are available on Maven Central, and all ten primary publication files match the signed release bundle. Version 0.3.0 adds optional Advanced inspection while preserving existing Basic integrations. Previously published versions remain unchanged. See [validation](VALIDATION.md).
 
 The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
 
