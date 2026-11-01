@@ -3,6 +3,7 @@ package io.github.chinmaydash007.webviewinspector.sample
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.github.chinmaydash007.webviewinspector.WebViewInspector
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,7 +28,18 @@ class ComposeWebViewsActivity : ComponentActivity() {
             Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
                 listOf("/embedded-one", "/embedded-two").forEach { path ->
                     AndroidView(
-                        factory = { context -> WebView(context).apply { webViewClient = WebViewClient(); loadUrl(baseUrl + path); browsers.add(this) } },
+                        factory = { context ->
+                            WebView(context).apply {
+                                webViewClient = WebViewClient()
+                                if (path == "/embedded-one") {
+                                    WebViewInspector.loadUrl(this, baseUrl + path, mapOf("X-Demo-Mode" to "Advanced", "Authorization" to "Bearer synthetic-demo"))
+                                } else {
+                                    // This unmodified load deliberately demonstrates Basic alongside Advanced.
+                                    loadUrl(baseUrl + path)
+                                }
+                                browsers.add(this)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth().height(260.dp),
                     )
                 }

@@ -8,6 +8,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import io.github.chinmaydash007.webviewinspector.WebViewInspector;
 
 /** Java-only consumer: synthetic HTTPS content, without a Compose or Kotlin Gradle plugin. */
 public final class ConsumerActivity extends Activity {
@@ -21,6 +24,10 @@ public final class ConsumerActivity extends Activity {
             }
         });
         setContentView(browser);
-        browser.loadUrl("https://consumer.example/start?raw=A%2Bb&dup=1&dup=2#raw");
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Authorization", "Bearer synthetic-java");
+        headers.put("X-Raw-Example", "A+%2B");
+        WebViewInspector.loadUrl(browser, "https://consumer.example/start?raw=A%2Bb&dup=1&dup=2#raw", headers);
+        // The same helper loads normally in minified production, whose artifact records nothing.
     }
 }

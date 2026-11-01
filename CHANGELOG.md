@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — unreleased
+
+- Preserve Basic central URL/history inspection and add opt-in Advanced capture per WebView.
+- Add synchronous Java/Kotlin loadUrl helpers, with exact single delegation in full/no-op and immutable app-supplied URL/header snapshots only when inspection is installed/enabled.
+- Add App loads with full header values, saved records, exact copying and independent bounded retention, including captures before attachment. No network/redirect header inference.
+- Extend native hosts, mixed-mode XML/Compose samples and the Java-only consumer. No publishing or downstream application adoption is included in this preparation.
+
 ## 0.2.0 — 1 November 2026
 
 - Breaking namespace migration: the public facade is now `io.github.chinmaydash007.webviewinspector.WebViewInspector` in both artifacts, with no legacy alias. Update dependency versions and the facade import together.

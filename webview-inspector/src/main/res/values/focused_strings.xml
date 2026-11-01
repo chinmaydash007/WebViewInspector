@@ -22,7 +22,7 @@
     <string name="wvi_newest_first">Newest first</string>
     <string name="wvi_today">Today</string>
     <string name="wvi_yesterday">Yesterday</string>
-    <string name="wvi_more_actions">More history actions</string>
+    <string name="wvi_more_actions">More actions</string>
     <string name="wvi_about_capture">About capture</string>
     <string name="wvi_capture_details">Navigation events are reported by WebView. Committed does not mean the page finished loading.</string>
     <string name="wvi_sampled_details">Observed URLs are sampled every 500 ms. Redirects, reloads and loading outcomes are not inferred.</string>

@@ -8,6 +8,10 @@ Read this after the [module README](../README.md). This describes the native Vie
 flowchart TD
     App["Application and Developer tools"] --> API["WebViewInspector facade"]
     API --> Controller["InspectorController: process lifecycle"]
+    App --> LoadHelper["Explicit loadUrl helper: synchronous"]
+    LoadHelper --> CaptureStore["AppLoadStore: weak pending and bound inputs"]
+    LoadHelper --> WebView["Original WebView.loadUrl: exactly once"]
+    Controller --> CaptureStore
     Controller --> Session["InspectorSession: one Activity"]
     Controller --> Settings["SettingsSheet"]
     Controller --> Position["FloatingPosition: process memory"]
@@ -30,6 +34,8 @@ flowchart TD
     Sheet --> Current["CurrentUrlPanel: URL and availability states"]
     Sheet --> Footer["InspectorFooter: copy and More actions"]
     Sheet --> HistoryPanel["HistoryPanel: stable native record rows"]
+    CaptureStore --> Snapshot
+    Sheet --> LoadsPanel["AppLoadsPanel: app-supplied URLs and headers"]
     Session --> HistoryCopy["HistoryClipboardCopier: saved values"]
     Locate --> Floating
     Sheet --> Presentation["UrlPresentation: display only"]
@@ -37,7 +43,7 @@ flowchart TD
 
 Arrows describe ownership or data flow. The session constructs collaborators and supplies callbacks; UI callbacks return to the session rather than importing `core`. `ui.common` supplies native View styling and Material dialog construction to both sheets and the floating control.
 
-Only the facade is a supported public entry point. All implementation types live below `io.github.chinmaydash007.webviewinspector.internal` and are Kotlin `internal`. There are no ViewModels, repositories, injected JavaScript, or per-screen hooks.
+Only the facade is supported public API: five original methods and two synchronous loadUrl overloads. All implementation types live below `io.github.chinmaydash007.webviewinspector.internal` and are Kotlin `internal`. There are no ViewModels, repositories or injected JavaScript. Basic has no per-screen integration; Advanced explicitly opts load calls into capture.
 
 The publisher identity is configured by `INSPECTOR_PACKAGE` in the root Gradle properties.
 Both artifacts expose the same facade package; only the no-op Android resource namespace
@@ -54,14 +60,14 @@ All package names below are relative to `io.github.chinmaydash007.webviewinspect
 
 | Package | Main types | Responsibility and boundary |
 |---|---|---|
-| `core` | `InspectorController`, `InspectorSession`, `InspectorMonitor`, `NavigationHistoryObserver`, `AndroidXNavigationEventSource` | Own lifecycle, subscriptions, scheduling and coordination. Only the adapter imports experimental WebKit APIs. |
+| `core` | `InspectorController`, `InspectorSession`, `InspectorMonitor`, `NavigationHistoryObserver`, `AndroidXNavigationEventSource` | Own lifecycle, explicit-load capture, subscriptions, scheduling and coordination. Only the adapter imports experimental WebKit APIs. |
 | `detection` | `WebViewDetector` | Traverse the source Activity decor and validate visibility. No listeners, URL formatting, UI, or WebView mutations. |
-| `state` | `TargetRegistry`, `InspectorActivityState`, `NavigationHistoryStore`, history values, render/position values | Weak instance identity, Activity-scoped selection/tab preferences, immutable records and process-wide budgets. No live UI ownership. |
-| `actions` | `UrlClipboardCopier`, `HistoryClipboardCopier`, `LocateHighlighter` | Live copying/highlighting validates the selected view; historical copying reads explicit saved values. |
+| `state` | `TargetRegistry`, `InspectorActivityState`, `NavigationHistoryStore`, `AppLoadStore`, immutable records and render/position values | Weak identity, Activity-scoped preferences and separate bounded navigation/app-load records. No live UI ownership. |
+| `actions` | `UrlClipboardCopier`, `HistoryClipboardCopier`, `AppLoadClipboardCopier`, `LocateHighlighter` | Live copying/highlighting validates the selected view; saved copying reads explicit raw values. |
 | `ui.floating` | `FloatingOverlay`, `FloatingDragController` | Render the control/outline and handle movement, snapping, insets, keyboard, and accessibility movement. |
-| `ui.sheet` | `InspectorSheet`, `TargetPicker`, `CurrentUrlPanel`, `InspectorFooter`, `HistoryPanel`, `SettingsSheet` | Coordinate the Focused native UI, render immutable state and own transient child windows. Send actions through callbacks. |
+| `ui.sheet` | `InspectorSheet`, `TargetPicker`, `CurrentUrlPanel`, `InspectorFooter`, `HistoryPanel`, `AppLoadsPanel`, `SettingsSheet` | Coordinate the Focused native UI, render immutable state and own transient child windows. Send actions through callbacks. |
 | `ui.common` | `BottomSheetFactory`, `InspectorSheetLayout`, `SheetDragGuard`, `SheetScrollView`, View extensions | Construct library-themed dialog chrome, coordinate content/sheet gestures, and share View styling. No selection, polling, or URL access. |
-| `util` | `UrlPresentation`, `HistoryPresentation` | Display-only URL/query formatting and localized history labels/times. Raw URLs always come from saved values or a fresh live read. |
+| `util` | `UrlPresentation`, `HistoryPresentation`, `AppLoadsPresentation` | Display-only URL/query formatting, date labels and saved-input text formatting. Raw URL/header strings are never decoded for copying. |
 
 ## Installation, discovery, and rendering
 
@@ -107,6 +113,52 @@ The store evicts oldest whole records beyond 100 per target, 500 across the proc
 Hidden/detached targets and inactive sessions remove subscriptions and mark a gap. The same Activity can resume its saved history; a destroyed Activity loses its scope, and a new WebView gets a new identity. Disable/uninstall clears all scopes. The History tab and expanded record IDs live in Activity presentation state. Rows and step Views are updated in place; inserting new records preserves an existing visible scroll anchor rather than rebuilding focused controls every sample.
 
 ## Focused sheet composition
+
+### Advanced app-load capture
+
+`WebViewInspector.loadUrl(view, url[, headers])` snapshots inputs on the main thread
+before forwarding the original overload/arguments once on the caller thread. Loading
+stays outside inspection exception handling. Disabled, uninstalled and no-op paths
+still load normally, without retained inputs. Wrong-thread calls are not queued: they
+reach WebView's original thread/error behavior without capture.
+
+The controller owns `AppLoadStore`, independent of navigation history. Each entry weakly
+references an instance and may initially be pending. Context-wrapped Activity ownership
+allows pre-attachment cleanup; discovery binds the entry to the existing Activity scope
+and target ID without adding visible targets or altering selection. Unresolved pending
+entries remain bounded until discovery, collection or inspector cleanup. Collected
+pending entries are pruned; bound records remain available as Saved app loads.
+
+The store snapshots header entries in iteration order and owns no original maps, Views
+or Activities in records. It budgets pending and bound calls together: 100 per instance,
+500 process-wide and 2 MiB UTF-8 URL/header text, separate from navigation budgets. Whole
+oldest calls are evicted; retired empty metadata is bounded to 500 entries. Live weak
+instances retain their Advanced marker after Clear even when other records are evicted.
+Clear app loads affects only its selected instance, retaining its Advanced marker.
+Activity destruction removes that scope; disable/uninstall removes all capture state.
+
+`AppLoadsPanel` renders keyed newest-first rows and lazily creates expanded raw-input
+details. Per-target expansion, scroll anchors and offsets contain no Views. Copies use
+stored raw URL/value strings; whole headers use `Name: value` lines without normalization.
+Export includes offset-bearing timestamps, header counts and discarded-call notices.
+No navigation/redirect record inherits app-load headers; a call does not prove it sent
+a request or loaded successfully. Full values are intentionally visible to developers.
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Helper as Facade loadUrl helper
+    participant Store as AppLoadStore
+    participant WebView
+    participant Sheet as App loads panel
+    App->>Helper: view, original URL and headers
+    opt Installed, enabled and UI thread
+        Helper->>Store: immutable input snapshot and weak instance
+    end
+    Helper->>WebView: original loadUrl overload, exactly once
+    Note over Helper,WebView: Synchronous; WebView exceptions propagate
+    Store-->>Sheet: bounded snapshot after instance discovery
+```
 
 `InspectorSheet` coordinates a pinned header/selector/tabs, a single nested content scroller, and a pinned action footer. `TargetPicker` owns a focusable native popup keyed by instance ID. `CurrentUrlPanel` renders selectable original URLs, display-only decoded query values, and distinct no-selection/unavailable/no-URL states. `HistoryPanel` owns keyed path-first rows, raw redirect details and local-date headings; it no longer owns global copy/clear controls. `InspectorFooter` owns the active copy action and More menu. About uses a library-themed native Material alert dialog.
 
@@ -178,6 +230,7 @@ The highlighter holds the WebView weakly. Layout/scroll events update its outlin
 | Selected target registry | Controller, keyed weakly by Activity | Survives pause/resume of the same Activity; discarded on destruction, disabling, or uninstall. Entries weakly reference WebViews. |
 | Navigation subscriptions | `NavigationHistoryObserver` / adapter | One per visible target; removed on disappearance, focus loss, pause/stop or disposal. Queued events are invalidated. |
 | Navigation history and budget | Controller `NavigationHistoryStore` | View-free process memory; Activity scope removed on destruction, all scopes cleared on disable/uninstall. |
+| App-load inputs and pending instances | Controller `AppLoadStore` | Independent bounded records and weak references. Collected pending entries pruned; known Activity scope removed on destruction; everything cleared on disable/uninstall. |
 | Selected tab / expanded records | `InspectorActivityState` | Preserved through sheet dismissal and pause/resume, discarded with the Activity state. |
 | Floating position | Controller | Shared across sessions; reset by a fresh installation/process. |
 | Layout/scroll listeners and polling | `InspectorMonitor` | Poll only while active. Pause/stop/disabling/uninstall disposes the session and removes listeners/timers. |
@@ -186,11 +239,12 @@ The highlighter holds the WebView weakly. Layout/scroll events update its outlin
 | Target/More popups and About dialog | `InspectorSheet` and UI collaborators | Dismiss on parent dismissal or host exit; release focus callbacks with their owned windows. |
 | Per-target scroll/query preferences | `InspectorSheetState` | View-free Activity state; survives navigation/dismissal, bounded to 500 preference entries; discarded with Activity state. |
 | Pending scroll corrections | Sheet / `HistoryPanel` | One-shot pre-draw work; removed on release or View detachment. |
+| Child-dialog focus restoration | `InspectorSheet` | One-shot parent-window focus observer and posted restore; removed after focus returns, before another child opens, or on release. |
 | Settings sheet | `InspectorController` | Dismissed on owner pause/stop/destruction or uninstall. Toggle remains usable while monitoring is disabled. |
 | Locate weak reference and timeout | `LocateHighlighter` | Cleared after five seconds or session disposal. |
 | Raw URL snapshots / history | Session/UI state and history store | Memory only, bounded for history; explicit copying writes to the Android clipboard. |
 
-All runtime mutation and WebView access is on the main thread. Calls arriving from other threads are queued by the facade; `isEnabled()` returns the last applied value.
+All inspection mutation and access stay on the main thread. Original lifecycle/settings mutations queue background calls; `isEnabled()` returns the last applied value. The two load helpers deliberately do not queue or change WebView loading/thread/error semantics.
 
 A library-owned inspector or settings dialog may take window focus without pausing its Activity. `refreshVisibility()` recognizes those dialogs and keeps source monitoring active. Other focus loss hides the overlay and suspends polling. Pause/stop disposes Activity UI rather than retaining it in the background.
 
@@ -207,6 +261,8 @@ Both sheets use `SheetScrollView`, a native AndroidX `NestedScrollView`. The Foc
 | Exact copy behavior | `actions/UrlClipboardCopier` | Fresh URL and exact clipboard tests, including repeated/encoded parameters. |
 | Navigation capture | `core/NavigationHistoryObserver`, `core/AndroidXNavigationEventSource` | Real local HTTP redirects, same-document/history/reload flags, fallback and stale callbacks. |
 | History retention / grouping | `state/NavigationHistoryStore` | Instance/scope isolation, record/byte limits, clearing, eviction and observation gaps. |
+| Explicit app-load capture and retention | Facade helpers, `core/InspectorController`, `state/AppLoadStore` | Original single delegation, pending/weak identity, mutable maps, full values, independent budgets and cleanup. |
+| App-load display / copying | `ui/sheet/AppLoadsPanel`, `actions/AppLoadClipboardCopier` | Exact raw copying, Basic/Advanced empty states, saved records, focus/scroll retention and minified execution. |
 | Saved copying / History UI | `actions/HistoryClipboardCopier`, `ui/sheet/HistoryPanel` | Exact recorded strings, unavailable views, tab/expansion/focus/scroll retention. |
 | Locate timing / coordinates | `actions/LocateHighlighter` | Outline pixel assertions, expiration, scrolling and rotation. |
 | Control layout or movement | `ui/floating` | Dragging, touch passthrough, keyboard/insets, narrow screens and large fonts. |
@@ -217,6 +273,6 @@ Both sheets use `SheetScrollView`, a native AndroidX `NestedScrollView`. The Foc
 
 ## Production and inspection boundaries
 
-Debug and both diagnostic variants resolve the implementation module. Ordinary release resolves only the [no-op module](../../webview-inspector-no-op/README.md), which provides the same five facade methods and no inspector implementation or UI.
+Debug and diagnostic variants resolve full. Ordinary release resolves only [no-op](../../webview-inspector-no-op/README.md): seven matching static methods, no inspector implementation/UI/storage, and synchronous pass-through loading helpers.
 
-This is an Activity-hierarchy URL/history inspector, not a complete network trace. Separate windows, external browsers/UPI apps and iframe navigation are excluded. Events before discovery and during observation gaps cannot be reconstructed; sampling may miss intermediate redirects and failures. A committed navigation does not prove full rendering or successful payment. Never replace host clients/bridges, inject JavaScript, capture headers/bodies/cookies, or change host settings to extend coverage implicitly. URLs must not be logged, persisted, uploaded or sent to analytics.
+This is an Activity-hierarchy inspector with opt-in app-load snapshots, not a complete network trace. Separate windows, external browsers/UPI apps and iframe navigation are excluded. Events before discovery and during gaps cannot be reconstructed; sampling may miss redirects and failures. Commitment does not prove rendering or successful payment. Never replace clients/bridges, inject JavaScript or change settings to extend coverage. Only explicit helper inputs are captured: no implicit network/browser/response headers, automatic cookies or bodies. Inputs must not be logged, persisted, uploaded or sent to analytics.

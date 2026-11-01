@@ -1,5 +1,80 @@
 # Standalone validation
 
+## 0.3.0 Basic / Advanced preparation — 1 November 2026
+
+**Unreleased local preparation only.** No commits, pushes, tags, GitHub Releases or
+Central publication were performed for this feature. The latest published version is
+still 0.2.0. The consuming application checkout was preserved byte-for-byte, including
+its pending migration work. Historical release evidence below is not new 0.3.0 evidence.
+
+Basic retains the existing discovery, sampling, navigation events, clients and settings.
+Advanced adds two synchronous load helpers and a separate app-load store/panel. It
+captures app-supplied inputs only, shows full values, and never attributes headers to
+browser redirects, requests or outcomes by inference. No-op helpers still load normally.
+
+Fresh local checks:
+
+| Check | Result |
+|---|---|
+| JVM tests | 38 passed: original 26 plus 12 app-load cases |
+| Lint / API parity | Zero errors; seven matching static methods, including both helpers |
+| No-op forwarding bytecode | Only argument checks and exactly one corresponding WebView call per helper |
+| Publisher/content guards | All 30 passed; approved identities, nested archives and dependency inventories preserved |
+| Sample / Java-only consumer | All three variants of each built, including both minified profiles |
+| API 24 fallback / Advanced | All 14 native cases passed on explicitly selected emulator-5558 |
+| API 36 prerequisite / normal | Navigation support prerequisite and all 27 normal cases passed on emulator-5554 |
+| API 36 320 dp / 160% font | All 19 light and 12 dark cases passed |
+| Packaged production isolation | Both production APKs declare API 24 and have zero inspector resources, internal DEX names or implementation mappings |
+
+The API 24 test-owned emulator uses Google's checksum-verified ARM64 revision-29 image
+and WebView 53.0.2785.124, exercising real unsupported-provider fallback. API 36 uses
+WebView 156.0.8078.47. The existing API 27 emulator was left untouched. Native suites
+cover both Activity families, actual keyboard/rotation, gestures, saved targets, and
+the new pre-attachment, mutable-map, header/value copying, clearing and focus/scroll
+cases. Font, density, night mode and animations are restored by the runner. Competing
+Maestro instrumentation is stopped during native tests and restored afterward.
+
+Unit coverage includes equal recycled identifiers without instance merging, repeated
+URLs, empty headers without inheritance, scope cleanup, pending collection, saved bound
+records, exact exports, UTF-8/per-instance/process budgets and preserving Advanced after
+Clear under global eviction pressure. Record budgets include pending captures and are
+independent of navigation history. Retired empty metadata is bounded; live weak markers
+are not evicted merely because other views generated records.
+
+Independent foreground probes on minified APKs verified exact supplied headers, the
+original stored URL after real HTTP redirects, and app-load export containing the
+explicit URL/headers without manufacturing a redirect destination. The Java-only
+minified consumer also copied exact headers with a plain Activity/platform theme and
+no Compose/Kotlin Gradle plugin. Its minified production counterpart rendered the page
+through the same helper while displaying no inspector UI.
+
+Final-code smoke checks also exercised mixed Basic/Advanced Compose instances on API 24
+and a two-redirect navigation grouped under one reported event on API 36. The app-load
+export still contained only the explicit initial input. Five consecutive API 24 About
+dismissal runs verified focus restoration after the parent window regained focus.
+
+Initial failures are retained separately: a system clipboard preview intercepted a
+footer tap, and input-focus assertions needed an established focus precondition. Copy
+assertions still read the real clipboard; the affected footer action invokes the actual
+button directly to avoid that external preview. App-load clips mark Android 13+ previews
+sensitive without altering copied bytes. About dismissal now restores tab focus without
+making initial taps focus-only, waiting for parent window focus to avoid an API 24 race.
+The assertion still requires actual tab focus after that asynchronous transition.
+Screenshot review also caught a split History label at
+large font; responsive badges now stack rather than splitting that word. Required
+assertions and existing behavioral cases were retained, and the affected suites rerun.
+
+Evidence lives in ignored `build/reports/advanced-0.3.0/` and
+`build/reports/devices/api-24/`, `api-36/`, with earlier evidence preserved separately.
+Sources, guides and diagrams use the independent namespace. Both 0.3.0 publications
+are staged only in the local validation repository; those files are not evidence of
+Central availability or a signed release. Existing released tags/assets are unchanged.
+
+Unexercised: full manual TalkBack/screen-reader review, physical devices, authenticated
+host-app flows and real backend/payment traffic. These are not implied by emulator,
+fixture, compilation or clipboard evidence. Network/response headers and POST bodies
+remain intentionally outside this feature.
+
 ## 0.2.0 namespace migration — local evidence, 1 November 2026
 
 Current sources use `io.github.chinmaydash007.webviewinspector`; both artifacts retain

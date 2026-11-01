@@ -10,6 +10,10 @@ import io.github.chinmaydash007.webviewinspector.R
 import io.github.chinmaydash007.webviewinspector.internal.actions.LocateHighlighter
 import io.github.chinmaydash007.webviewinspector.internal.actions.UrlClipboardCopier
 import io.github.chinmaydash007.webviewinspector.internal.actions.HistoryClipboardCopier
+import io.github.chinmaydash007.webviewinspector.internal.actions.AppLoadClipboardCopier
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadCopyPart
+import io.github.chinmaydash007.webviewinspector.internal.util.AppLoadsPresentation
 import io.github.chinmaydash007.webviewinspector.internal.detection.WebViewDetector
 import io.github.chinmaydash007.webviewinspector.internal.state.FloatingPosition
 import io.github.chinmaydash007.webviewinspector.internal.state.InspectorState
@@ -34,6 +38,7 @@ internal class InspectorSession(
     position: FloatingPosition,
     private val activityState: InspectorActivityState,
     private val historyStore: NavigationHistoryStore,
+    private val appLoads: AppLoadStore<WebView>,
     private val settingsOwnFocus: () -> Boolean,
     navigationSource: NavigationEventSource<WebView> = AndroidXNavigationEventSource(),
 ) {
@@ -44,6 +49,7 @@ internal class InspectorSession(
     private val detector = WebViewDetector(root, overlay)
     private val clipboardCopier = UrlClipboardCopier(activity, detector::isVisible)
     private val historyCopier = HistoryClipboardCopier(activity)
+    private val appLoadCopier = AppLoadClipboardCopier(activity)
     private val highlighter = LocateHighlighter(root, overlay, detector::isVisible, overlay::highlight)
     private val monitor = InspectorMonitor(root, ::discoverTargets, ::sampleUrls, highlighter::update)
     private val historyObserver = NavigationHistoryObserver(
@@ -107,6 +113,10 @@ internal class InspectorSession(
     }
 
     private fun snapshot(): InspectorState {
+        appLoads.prune()
+        registry.targets.forEach { target ->
+            target.reference.get()?.let { appLoads.bind(it, HistoryTargetKey(activityState.scope, target.id)) }
+        }
         val targets = registry.targets.mapIndexed { index, target ->
             val rawUrl = target.reference.get()?.let { webView ->
                 runCatching { webView.url }.getOrNull()
@@ -115,8 +125,18 @@ internal class InspectorSession(
         }
         val historyTarget = registry.lastSelection
         val history = historyTarget?.let { historyStore.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
-        return InspectorState(targets, registry.selectedId, history, historyTarget?.number)
+        val loads = historyTarget?.let { appLoads.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
+        return InspectorState(
+            targets = targets,
+            selectedId = registry.selectedId,
+            history = history,
+            historyNumber = historyTarget?.number,
+            appLoads = loads,
+        )
     }
+
+    /** Explicit capture can refresh the UI immediately; regular polling remains unchanged. */
+    fun capturedLoadsChanged() = render()
 
     private fun sampleUrls() {
         historyObserver.sample()
@@ -161,6 +181,28 @@ internal class InspectorSession(
                 snapshot().history?.let { history ->
                     historyStore.clear(history.key)
                     activityState.sheet.expandedRecordIds.removeAll(history.records.map { it.id }.toSet())
+                }
+                render()
+            },
+            copyAppLoad = { recordId, part ->
+                val record = snapshot().appLoads?.records?.firstOrNull { it.id == recordId }
+                val text = record?.let {
+                    when (part) {
+                        AppLoadCopyPart.Headers -> AppLoadsPresentation.headers(it)
+                        AppLoadCopyPart.Url -> it.rawUrl
+                        is AppLoadCopyPart.HeaderValue -> it.headers.getOrNull(part.index)?.value
+                    }
+                }
+                text?.let(appLoadCopier::copy)
+            },
+            copyAppLoads = {
+                val state = snapshot()
+                state.appLoads?.let { appLoadCopier.copy(AppLoadsPresentation.export(it, state.historyNumber ?: 1)) }
+            },
+            clearAppLoads = {
+                snapshot().appLoads?.let { loads ->
+                    appLoads.clear(loads.key)
+                    activityState.sheet.target(loads.key.targetId).expandedAppLoadIds.clear()
                 }
                 render()
             },

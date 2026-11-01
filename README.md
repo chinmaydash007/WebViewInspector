@@ -1,8 +1,8 @@
 # WebView Inspector
 
-A floating Android inspector for the current URL and navigation history of native WebViews. It discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally. No per-screen integration, WebViewClient replacement, JavaScript injection, or header capture is required.
+A floating Android inspector for native WebViews. **Basic** discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally, showing current URLs and navigation history. **Advanced** adds explicit app-load URL/header snapshots when developers use the load helper. Neither replaces WebView clients or injects JavaScript.
 
-**Published version:** `0.2.0`, using a personal publisher namespace. This is a breaking package migration from `0.1.0`; see [validation](VALIDATION.md) for verified Central downloads and executed checks. Previously published versions remain unchanged.
+**Source version:** `0.3.0` preparation, **not published**. The latest published version is `0.2.0`, which supports Basic only. The following 0.3.0 examples require the local sample/validation repository until release; do not expect these coordinates on Central yet. Previously published versions remain unchanged. See [validation](VALIDATION.md).
 
 The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
 
@@ -12,8 +12,8 @@ Use `google()` and `mavenCentral()`. Select exactly one artifact per app variant
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.2.0")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.2.0")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.3.0")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.3.0")
 }
 ```
 
@@ -30,15 +30,54 @@ override fun onCreate() {
 
 Java uses `WebViewInspector.install(this);` in `Application.onCreate()`. The import is `io.github.chinmaydash007.webviewinspector.WebViewInspector` for both languages and artifacts.
 
-The five public methods are `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()` and `uninstall()`. Mutations run on the main thread; install/uninstall are idempotent. Settings, toggle and floating position are process-only. The no-op facade installs nothing and always reports disabled.
+The original five methods remain `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()` and `uninstall()`. These mutations dispatch to the main thread; install/uninstall are idempotent. Settings, toggle and floating position are process-only. The no-op facade installs nothing and always reports disabled.
+
+### Advanced: inspect app-supplied headers
+
+Replace a load call, keeping your WebView and its clients:
+
+```kotlin
+WebViewInspector.loadUrl(webView, url, headers)
+// Captures a separate call with no headers, without inheriting previous values:
+WebViewInspector.loadUrl(webView, nextUrl)
+```
+
+Java uses the same static calls. Both overloads load **exactly once**, synchronously on
+the calling WebView UI thread, with the original URL/map. They do not post loading work
+or change WebView exceptions. Capture snapshots inputs before delegation; later map
+mutation does not change saved values. Calls before installation, while disabled, or
+through no-op still load normally and retain nothing. Inspection failures never prevent
+loading. Existing users can keep all ordinary `webView.loadUrl` calls for Basic.
+
+Open **App loads** for timestamped calls, complete URLs and full header values, including
+Authorization. Copy a URL, individual value, whole header list, or all app loads. Empty
+header maps are explicitly labelled. A Basic target has no captured calls; using the
+helper marks only that instance Advanced. Clearing its app loads retains that capability
+until disable/uninstall or Activity destruction. Multiple Basic/Advanced instances coexist.
+Advanced means that at least one helper call was captured; subsequent ordinary
+`webView.loadUrl` calls still do not produce header records.
+
+These are **app-supplied inputs, not verified network headers**. WebView may override
+some headers. Browser defaults, automatic cookies, responses, subresources, subsequent
+redirect headers, POST bodies and JavaScript requests are excluded. A captured call is
+not evidence of a network request or successful loading. Navigation history remains a
+separate timeline; captured headers are never assigned to another URL by inference.
+
+Records captured before attachment remain weak and bounded until discovery associates
+their exact instance. Saved records remain copyable after live selection disappears.
+Header copying preserves names, values and captured iteration order (`Name: value`
+lines); URL/value copying is exact. Timeline export adds timestamps and capture limits.
+Android 13+ system clipboard previews are marked sensitive; the inspector still shows
+full values and the copied text is unchanged.
 
 ### Upgrade from 0.1.0
 
 Update both artifact versions together and replace the previous facade import with
 `io.github.chinmaydash007.webviewinspector.WebViewInspector`. Recompile consumers;
 there is no legacy package alias or compatibility wrapper. The five method signatures,
-native UI, runtime behavior and API 24 floor are unchanged. No individual WebView screen
-changes are needed.
+Basic URL/navigation behavior and API 24 floor remain compatible. Basic needs no
+individual screen changes. The 0.2.0 → 0.3.0 upgrade keeps the same import and adds
+optional load helpers plus App loads; existing Basic integrations remain valid.
 
 ## Use the inspector
 
@@ -52,8 +91,9 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 - WebKit is strictly pinned to the validated experimental adapter version 1.15.0. A consumer requiring another WebKit version must resolve that compatibility constraint before integration; do not silently force an unsupported version.
 - Runtime feature detection selects experimental `NAVIGATION_LISTENER_V1` events or labelled 500 ms observed-URL sampling. Initial discovery cannot recover earlier redirects; sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
 - Scope is visible native WebViews in the active Activity hierarchy. Separate popup/dialog windows, external browsers/UPI apps and iframe URLs are excluded.
-- URLs remain in memory until explicitly copied. No logging, persistence, upload, analytics, headers, cookies or request bodies. Query decoding is display-only; clipboard text remains exact.
+- URLs and explicitly supplied headers remain in memory until copied. No logging, persistence, upload or analytics. Automatic cookies and request bodies are not collected. Query decoding is display-only; clipboard text remains exact.
 - Retention is 100 records per WebView, 500 process-wide and 2 MiB of URL text. Whole oldest records are evicted without truncating URLs. Activity destruction, disabling and uninstall clear their owned records.
+- App loads have a separate budget of 100 records per WebView, 500 process-wide and 2 MiB UTF-8 URL/header text, including pending captures. Whole oldest calls are evicted with a discarded count. Collected pending instances are pruned; bound saved records last until Activity cleanup or eviction. No-op owns no capture store or inspector UI; its load helpers only delegate.
 
 ## Develop and validate
 

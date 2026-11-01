@@ -2,6 +2,8 @@ package io.github.chinmaydash007.webviewinspector.internal.core
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,9 +13,12 @@ import android.webkit.WebView
 import io.github.chinmaydash007.webviewinspector.internal.state.FloatingPosition
 import io.github.chinmaydash007.webviewinspector.internal.state.InspectorActivityState
 import io.github.chinmaydash007.webviewinspector.internal.state.NavigationHistoryStore
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.BottomSheetFactory
 import io.github.chinmaydash007.webviewinspector.internal.ui.sheet.SettingsSheet
 import java.lang.ref.WeakReference
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.WeakHashMap
 
 /**
@@ -31,6 +36,7 @@ internal class InspectorController(
     private val resumedActivities = WeakHashMap<Activity, FocusWatch>()
     private val activityStates = WeakHashMap<Activity, InspectorActivityState>()
     private val historyStore = NavigationHistoryStore()
+    private val appLoads = AppLoadStore<WebView>()
     private var nextActivityScope = 0L
     private val position = FloatingPosition()
     private var session: InspectorSession? = null
@@ -57,7 +63,30 @@ internal class InspectorController(
             session = null
             activityStates.clear()
             historyStore.clearAll()
+            appLoads.clearAll()
         }
+    }
+
+    /** Captures explicit helper inputs even before attachment; normal discovery owns selection. */
+    fun captureLoad(view: WebView, url: String, headers: Map<String, String>) {
+        if (!enabled || disposed) return
+        val owner = activityOwner(view.context)
+        if (owner?.isDestroyed == true) return
+        val scope = owner?.let { activity ->
+            activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) }.scope
+        }
+        appLoads.capture(view, rawUrl = url, headers = headers, atMillis = System.currentTimeMillis(), ownerScope = scope)
+        session?.capturedLoadsChanged()
+    }
+
+    private fun activityOwner(context: Context): Activity? {
+        var current = context
+        val visited = Collections.newSetFromMap(IdentityHashMap<Context, Boolean>())
+        while (visited.add(current)) {
+            if (current is Activity) return current
+            current = (current as? ContextWrapper)?.baseContext ?: return null
+        }
+        return null
     }
 
     fun showSettings(activity: Activity) {
@@ -90,6 +119,7 @@ internal class InspectorController(
             position = position,
             activityState = activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) },
             historyStore = historyStore,
+            appLoads = appLoads,
             settingsOwnFocus = {
                 settings?.dialog?.isShowing == true && settingsOwner?.get() === activity
             },
@@ -141,6 +171,7 @@ internal class InspectorController(
         activityStates.remove(activity)?.let { state ->
             state.registry.clear()
             historyStore.removeScope(state.scope)
+            appLoads.removeScope(state.scope)
         }
     }
 
@@ -158,6 +189,7 @@ internal class InspectorController(
         session?.dispose()
         session = null
         historyStore.clearAll()
+        appLoads.clearAll()
         settings?.dialog?.dismiss()
         settings = null
         settingsOwner = null

@@ -136,7 +136,7 @@ class FocusedInspectorTest {
         }
         ui { createSheet(requireNotNull(activity)) }
         instrumentation.waitForIdleSync()
-        assertTrue(preferences.historyTab)
+        assertEquals(io.github.chinmaydash007.webviewinspector.internal.state.InspectorTab.HISTORY, preferences.tab)
         assertEquals(firstScroll, ui { sheet.dialog.findViewById<View>(R.id.wvi_sheet_scroll)!!.scrollY })
     }
 
@@ -223,7 +223,7 @@ class FocusedInspectorTest {
             clearHistory = {
                 state = state.copy(history = state.history!!.copy(records = emptyList(), discardedCount = 0))
                 sheet.render(state)
-            })
+            }, copyAppLoad = { _, _ -> }, copyAppLoads = {}, clearAppLoads = {})
         sheet.render(state)
         val created = sheet
         created.dialog.setOnDismissListener { created.release() }

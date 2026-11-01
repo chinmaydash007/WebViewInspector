@@ -152,6 +152,7 @@ class NavigationHistoryTest {
         val session = ui {
             WebViewInspector.uninstall()
             InspectorSession(activity, FloatingPosition(), InspectorActivityState(1), store,
+                appLoads = io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore(),
                 settingsOwnFocus = { false }, navigationSource = NavigationEventSource { _, _ -> null })
                 .also { it.start() }
         }

@@ -51,7 +51,7 @@ internal data class NavigationHistorySnapshot(
 
 /** Activity-owned presentation preferences survive sheet dismissal and pause, but own no Views. */
 internal class InspectorSheetState {
-    var historyTab = false
+    var tab = InspectorTab.CURRENT_URL
     val expandedRecordIds = mutableSetOf<Long>()
     private val targets = object : LinkedHashMap<Long, TargetSheetState>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, TargetSheetState>?): Boolean =
@@ -67,10 +67,13 @@ internal class InspectorSheetState {
 
 /** Layout preferences contain only identities and offsets, never Views or another URL cache. */
 internal class TargetSheetState {
+    val expandedAppLoadIds = mutableSetOf<Long>()
     var queryExpanded = false
     var currentScrollY = 0
     var historyScrollY = 0
     var historyAnchor: HistoryScrollAnchor? = null
+    var appLoadsScrollY = 0
+    var appLoadsAnchor: HistoryScrollAnchor? = null
 }
 
 internal data class HistoryScrollAnchor(val recordId: Long, val offset: Int)

@@ -3,6 +3,7 @@ package io.github.chinmaydash007.webviewinspector.sample
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.github.chinmaydash007.webviewinspector.WebViewInspector
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -19,7 +20,8 @@ class XmlWebViewActivity : AppCompatActivity() {
         }
         browser = findViewById<WebView>(R.id.browser).apply {
             webViewClient = WebViewClient()
-            loadUrl((application as DemoApplication).server.baseUrl + "/start?raw=A%2Bb&dup=1&dup=2#fragment")
+            WebViewInspector.loadUrl(this, (application as DemoApplication).server.baseUrl + "/start?raw=A%2Bb&dup=1&dup=2#fragment",
+                linkedMapOf("Authorization" to "Bearer synthetic-demo", "X-Raw-Example" to "A+%2B"))
         }
     }
     override fun onDestroy() { browser.destroy(); super.onDestroy() }

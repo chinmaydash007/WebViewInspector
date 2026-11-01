@@ -1,0 +1,23 @@
+<resources>
+    <string name="wvi_app_loads_tab">App loads</string>
+    <string name="wvi_basic_badge">Basic</string>
+    <string name="wvi_advanced_badge">Advanced</string>
+    <string name="wvi_app_loads_boundary">App-supplied inputs. Sent headers and redirects may differ.</string>
+    <string name="wvi_app_loads_about">Advanced captures only explicit load helper calls, including calls before attachment. Full header values are shown in memory. These are inputs supplied by the app, not verified network headers. Browser defaults, automatic cookies, responses, subresources and subsequent redirect headers are not captured. Basic inspection continues independently.</string>
+    <string name="wvi_app_loads_basic_empty">No app loads captured</string>
+    <string name="wvi_app_loads_basic_help">This WebView uses Basic inspection. Integrate the load helper to inspect app-supplied URLs and headers.</string>
+    <string name="wvi_app_loads_advanced_empty">No saved app loads. Future helper calls will appear here.</string>
+    <string name="wvi_app_load_headers_count">%1$d headers supplied</string>
+    <string name="wvi_app_load_no_headers">No headers supplied</string>
+    <string name="wvi_app_load_copy_url">Copy app-supplied URL</string>
+    <string name="wvi_app_load_copy_headers">Copy headers</string>
+    <string name="wvi_app_load_copy_value">Copy value for %1$s</string>
+    <string name="wvi_copy_app_loads">Copy app loads · WebView %1$d</string>
+    <string name="wvi_copy_app_loads_generic">Copy app loads</string>
+    <string name="wvi_clear_app_loads">Clear app loads</string>
+    <string name="wvi_app_loads_discarded">%1$d earlier app loads discarded</string>
+    <string name="wvi_app_load_expand">%1$s, %2$d headers, %3$s. Expand app load</string>
+    <string name="wvi_app_load_collapse">%1$s, %2$d headers, %3$s. Collapse app load</string>
+    <string name="wvi_app_loads_saved">Saved app loads · WebView %1$d</string>
+    <string name="wvi_app_load_copied">Copied app-load inputs</string>
+</resources>

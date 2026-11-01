@@ -4,7 +4,7 @@ Read the [root guide](../README.md), [architecture](docs/ARCHITECTURE.md), and [
 
 ## Responsibilities
 
-- Keep the public `io.github.chinmaydash007.webviewinspector.WebViewInspector` facade at its existing package with the same five Java-compatible static methods. Implementation types belong under `internal` and remain Kotlin `internal`.
+- Keep `io.github.chinmaydash007.webviewinspector.WebViewInspector` with its five original Java-compatible static methods and both loadUrl helpers. Implementation types belong under `internal` and remain Kotlin `internal`.
 - `core` owns lifecycle/session orchestration, scheduling and navigation subscriptions; `detection` owns hierarchy traversal/visibility; `state` owns weak instance selection, immutable navigation records and bounded history; `actions` owns live/saved copying and highlighting.
 - `ui.floating` owns control rendering/movement; `ui.sheet` owns Focused content, picker/footer popups and About; `ui.common` owns native measurement/gesture coordination and shared themes. UI emits callbacks rather than importing `core`. Keep inspector-only styling separate from the floating/settings helpers.
 - `util` is for narrowly named presentation helpers. Do not put selection, timers, Android UI ownership, or actions there.
@@ -23,7 +23,8 @@ Read the [root guide](../README.md), [architecture](docs/ARCHITECTURE.md), and [
 - Keep WebKit strictly at 1.15.0 while supporting API 24. Isolate experimental APIs in `AndroidXNavigationEventSource`, check `NAVIGATION_LISTENER_V1`, and use labelled sampling when unsupported. Snapshot mutable Navigation values at provider dispatch before a main-thread hop.
 - Remove subscriptions on hidden/detached/inactive targets and reject stale callbacks. History survives pause/resume with gaps; destruction releases the Activity scope and disabling/uninstall releases all scopes. Store no Views or mutable Navigation objects in history.
 - Preserve 100 records per target, 500 process-wide and 2 MiB UTF-8 URL text. Discard whole oldest records, never truncate URLs. Clearing inspector history must not clear WebView browser history or re-add unchanged sampled URLs.
-- Do not change WebView clients, settings, JavaScript bridges, HTML, or individual app screens. No URL logs, disk storage, upload, or analytics.
+- Do not change WebView clients, settings, JavaScript bridges or HTML. Basic requires no individual screen changes; Advanced is opt-in through load helpers only. Snapshot raw app inputs synchronously before forwarding the original URL/map on the caller thread exactly once. Do not catch WebView's own exception. No input logs, disk storage, upload or analytics.
+- Keep app loads separate from navigation. Never infer headers for redirects, sampled URLs, browser defaults, subresources or responses. Full values are intentionally visible. Bound pending/saved captures to 100 per instance, 500 process-wide and 2 MiB UTF-8 URL/header text independently of navigation budgets. Prune collected pending entries, retain bound saved records, and clear owned scopes on destruction or everything on disable/uninstall.
 - Keep the implementation independent of `:app` and `:helper`; production must continue resolving only the no-op module. Keep resources prefixed `wvi_` / `Wvi`.
 
 ## Readability and documentation
@@ -47,6 +48,6 @@ Use JDK 17 and the committed wrapper. Set JAVA_HOME and ANDROID_HOME for your ma
 ./gradlew :sample:dependencyInsight --configuration releaseRuntimeClasspath --dependency webview-inspector
 ```
 
-Run all 21 inspector/history/gesture/Focused instrumentation cases on an explicitly selected API 36 emulator. Rerun the seven earlier narrow/large-font cases and the Focused cases at 320 dp / 160% font in light/dark modes. On an explicitly selected API 24 emulator, run the six Focused cases and the two supported fallback/isolation history cases. The optional app clipboard probes run only with explicit expected-URL arguments after copying in the minified app. Temporarily disable system animations and restore original settings afterward. Never target a connected physical device implicitly. Preserve existing app data; a version downgrade refusal is not authorization to uninstall that app.
+Run all 27 inspector/history/gesture/Focused/App loads cases on an explicitly selected supported API 36 emulator, plus its navigation prerequisite. At 320 dp / 160% font rerun the 19 light and 12 dark cases. API 24 runs 14 cases: six Focused, two fallback/isolation and six App loads. The optional app clipboard probes run only with explicit expected arguments. Temporarily disable animations and restore settings. Never implicitly target physical devices or uninstall a user app to bypass a downgrade refusal. Stop competing Maestro instrumentation for native tests and restore it afterward.
 
 Check full/no-op facade API parity, production resources/mapping isolation, and a minified-app copy action when moving implementation packages. Tests use local synthetic HTML. An authenticated live payment or backend flow is not proven by compilation or fixtures. Record unexercised scenarios in [VALIDATION.md](../VALIDATION.md).

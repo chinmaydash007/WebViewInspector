@@ -1,4 +1,8 @@
 <resources>
+    <item type="id" name="wvi_app_loads_tab" />
+    <item type="id" name="wvi_app_loads_panel" />
+    <item type="id" name="wvi_copy_app_loads" />
+    <item type="id" name="wvi_clear_app_loads" />
     <item name="wvi_overlay" type="id" />
     <item name="wvi_control" type="id" />
     <item name="wvi_open" type="id" />

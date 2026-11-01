@@ -6,6 +6,7 @@ internal data class InspectorState(
     val selectedId: Long?,
     val history: NavigationHistorySnapshot? = null,
     val historyNumber: Int? = null,
+    val appLoads: AppLoadsSnapshot? = null,
 ) {
     val selected: TargetInfo?
         get() = targets.firstOrNull { it.id == selectedId }

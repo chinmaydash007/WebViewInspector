@@ -11,6 +11,7 @@ import android.widget.PopupWindow
 import com.google.android.material.button.MaterialButton
 import io.github.chinmaydash007.webviewinspector.R
 import io.github.chinmaydash007.webviewinspector.internal.state.InspectorState
+import io.github.chinmaydash007.webviewinspector.internal.state.InspectorTab
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.color
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.dp
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.padding
@@ -22,6 +23,8 @@ internal class InspectorFooter(
     copyUrl: () -> Unit,
     copyHistory: () -> Unit,
     clearHistory: () -> Unit,
+    copyAppLoads: () -> Unit,
+    clearAppLoads: () -> Unit,
     about: () -> Unit,
 ) {
     val view = LinearLayout(context).apply {
@@ -31,6 +34,7 @@ internal class InspectorFooter(
     }
     private val copyUrlButton = primary(R.id.wvi_copy_url, copyUrl)
     private val copyHistoryButton = primary(R.id.wvi_copy_history, copyHistory)
+    private val copyAppLoadsButton = primary(R.id.wvi_copy_app_loads, copyAppLoads)
     private val more = context.focusedIcon(R.drawable.wvi_ic_more, context.getString(R.string.wvi_more_actions), ::showMenu).apply {
         id = R.id.wvi_more
         background = context.shape(context.color(R.color.wvi_surface), border = context.color(R.color.wvi_border))
@@ -47,6 +51,10 @@ internal class InspectorFooter(
         dismiss()
         clearHistory()
     }.apply { id = R.id.wvi_clear_history }
+    private val clearLoads = context.focusedButton(context.getString(R.string.wvi_clear_app_loads)) {
+        dismiss()
+        clearAppLoads()
+    }.apply { id = R.id.wvi_clear_app_loads }
     private var popup: PopupWindow? = null
 
     init {
@@ -55,23 +63,31 @@ internal class InspectorFooter(
             padding(horizontal = 20, vertical = 12)
             addView(copyUrlButton, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
             addView(copyHistoryButton, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+            addView(copyAppLoadsButton, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
             addView(more, LinearLayout.LayoutParams(context.dp(48), context.dp(48)).apply { marginStart = context.dp(10) })
         }
         view.addView(actions)
         menuContent.addView(clear)
+        menuContent.addView(clearLoads)
     }
 
-    fun render(state: InspectorState, historyTab: Boolean) {
+    fun render(state: InspectorState, tab: InspectorTab) {
         val number = state.selected?.number ?: state.historyNumber
         copyUrlButton.text = number?.let { context.getString(R.string.wvi_copy_url, it) } ?: context.getString(R.string.wvi_copy)
         copyHistoryButton.text = number?.let { context.getString(R.string.wvi_copy_history, it) } ?: context.getString(R.string.wvi_copy_history_generic)
+        copyAppLoadsButton.text = number?.let { context.getString(R.string.wvi_copy_app_loads, it) } ?: context.getString(R.string.wvi_copy_app_loads_generic)
         copyUrlButton.isEnabled = state.selected?.url != null
         copyHistoryButton.isEnabled = state.history?.records?.isNotEmpty() == true
         clear.isEnabled = copyHistoryButton.isEnabled || (state.history?.discardedCount ?: 0) > 0
-        copyUrlButton.visibility = if (historyTab) View.GONE else View.VISIBLE
-        copyHistoryButton.visibility = if (historyTab) View.VISIBLE else View.GONE
-        more.visibility = if (historyTab) View.VISIBLE else View.GONE
-        if (!historyTab) dismiss()
+        copyAppLoadsButton.isEnabled = state.appLoads?.records?.isNotEmpty() == true
+        clearLoads.isEnabled = copyAppLoadsButton.isEnabled || (state.appLoads?.discardedCount ?: 0) > 0
+        copyUrlButton.visibility = if (tab == InspectorTab.CURRENT_URL) View.VISIBLE else View.GONE
+        copyHistoryButton.visibility = if (tab == InspectorTab.HISTORY) View.VISIBLE else View.GONE
+        copyAppLoadsButton.visibility = if (tab == InspectorTab.APP_LOADS) View.VISIBLE else View.GONE
+        clear.visibility = if (tab == InspectorTab.HISTORY) View.VISIBLE else View.GONE
+        clearLoads.visibility = if (tab == InspectorTab.APP_LOADS) View.VISIBLE else View.GONE
+        more.visibility = if (tab == InspectorTab.CURRENT_URL) View.GONE else View.VISIBLE
+        if (tab == InspectorTab.CURRENT_URL) dismiss()
     }
 
     private fun primary(id: Int, action: () -> Unit): MaterialButton = context.focusedButton("", action).apply {
