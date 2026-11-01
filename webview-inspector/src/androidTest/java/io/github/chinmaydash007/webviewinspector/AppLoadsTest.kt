@@ -22,7 +22,6 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.dp
-import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.*
 import org.junit.Test
@@ -178,7 +177,7 @@ class AppLoadsTest {
         ui { WebViewInspector.loadUrl(activity.first, UPDATED_URL) }
         instrumentation.waitForIdleSync()
         ui { root.findViewById<View>(R.id.wvi_sheet_scroll).scrollTo(0, 0) }
-        onView(allOf(withTagValue(equalTo("app-load-2")), isDisplayed())).inRoot(isDialog()).perform(click())
+        onView(withTagValue(equalTo("app-load-2"))).inRoot(isDialog()).perform(scrollTo(), click())
         assertTrue(panelText().contains("No headers supplied"))
     }
 
@@ -216,7 +215,7 @@ class AppLoadsTest {
             repeat(12) { index -> WebViewInspector.loadUrl(activity.first, "$APP_URL&call=$index", mapOf("X-Long" to "header-value ".repeat(30))) }
         }
         openLoads()
-        onView(allOf(withTagValue(equalTo("app-load-13")), isDisplayed())).inRoot(isDialog()).perform(click())
+        onView(withTagValue(equalTo("app-load-13"))).inRoot(isDialog()).perform(scrollTo(), click())
         val footerTop = ui { root.findViewById<View>(R.id.wvi_sheet_footer).top }
         ui { root.findViewById<View>(R.id.wvi_sheet_scroll).scrollTo(0, 280) }
         instrumentation.waitForIdleSync()
@@ -280,7 +279,9 @@ class AppLoadsTest {
         onView(withId(R.id.wvi_app_loads_panel)).inRoot(isDialog()).check { view, _ -> root = view.rootView }
         onView(withId(R.id.wvi_app_loads_tab)).inRoot(isDialog()).perform(click())
     }
-    private fun expandFirst() = onView(allOf(withTagValue(equalTo("app-load-1")), isDisplayed())).inRoot(isDialog()).perform(click())
+    // Short viewports can initially expose only part of a row beneath the capture notice.
+    // Scroll the real nested content before tapping; retain Espresso's normal visibility constraints.
+    private fun expandFirst() = onView(withTagValue(equalTo("app-load-1"))).inRoot(isDialog()).perform(scrollTo(), click())
     private fun selectSecond() {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
         onView(withContentDescription("WebView 2, two.example, /embedded")).inRoot(isPlatformPopup()).perform(click())

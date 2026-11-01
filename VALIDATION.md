@@ -75,6 +75,21 @@ host-app flows and real backend/payment traffic. These are not implied by emulat
 fixture, compilation or clipboard evidence. Network/response headers and POST bodies
 remain intentionally outside this feature.
 
+### Release hardening — shorter CI viewport
+
+The first 0.3.0 signed dry run passed build validation, all 14 API 24 cases and API 36's
+keyboard preflight, navigation prerequisite and 27 normal cases. Its 320×640-pixel API 36
+image then exposed four App loads test failures at 160% font: the tests attempted to tap
+partially visible rows below the capture notice without scrolling them into view.
+Signing/publication was skipped; no Central upload was attempted.
+
+The test interactions now scroll the actual nested content before tapping those rows,
+retaining Espresso's default visibility constraints and every behavioral assertion.
+All six App loads tests passed locally with the same 320×640 size, 160 dpi and 160% font.
+Runtime sources are unchanged by this correction. The failed cloud logs are preserved
+in ignored `build/reports/release-0.3.0/`; the corrected commit must pass a new complete
+signed dry run before tagging or publishing.
+
 ## 0.2.0 namespace migration — local evidence, 1 November 2026
 
 Current sources use `io.github.chinmaydash007.webviewinspector`; both artifacts retain
