@@ -2,7 +2,7 @@
 
 This file applies to this module. Read [README.md](README.md) and the [full library architecture](../webview-inspector/docs/ARCHITECTURE.md). User instructions take precedence.
 
-- Preserve `com.visit.webviewinspector.WebViewInspector` and Java static signatures for `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()`, and `uninstall()`.
+- Preserve `io.github.chinmaydash007.webviewinspector.WebViewInspector` and Java static signatures for `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()`, and `uninstall()`.
 - Match facade changes in the implementation module. The duplicate package/class is deliberate because variants select exactly one module.
 - Keep methods inert and `isEnabled()` false. Add no lifecycle callbacks, observers, UI, URL access, persistence, or implementation dependencies.
 - Preserve minSdk 24 and existing managed build versions. Do not add internal architecture layers to an empty implementation.

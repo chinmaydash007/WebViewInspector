@@ -37,13 +37,20 @@ flowchart TD
 
 Arrows describe ownership or data flow. The session constructs collaborators and supplies callbacks; UI callbacks return to the session rather than importing `core`. `ui.common` supplies native View styling and Material dialog construction to both sheets and the floating control.
 
-Only the facade is a supported public entry point. All implementation types live below `com.visit.webviewinspector.internal` and are Kotlin `internal`. There are no ViewModels, repositories, injected JavaScript, or per-screen hooks.
+Only the facade is a supported public entry point. All implementation types live below `io.github.chinmaydash007.webviewinspector.internal` and are Kotlin `internal`. There are no ViewModels, repositories, injected JavaScript, or per-screen hooks.
+
+The publisher identity is configured by `INSPECTOR_PACKAGE` in the root Gradle properties.
+Both artifacts expose the same facade package; only the no-op Android resource namespace
+adds `.noop`. API checks, emulator runners and CI harness paths read that canonical value.
+Moving to 0.2.0 changes package identity only, without retaining a legacy facade alias.
+Publication guards validate nested class/source/documentation contents and dependency
+inventories before any signed bundle is uploaded.
 
 A host installs the facade once from Application.onCreate. Settings may use `showSettings(Activity)` or an app-owned toggle calling `isEnabled()` / `setEnabled()`. The host does not own discovery or restore a separate persisted value over process state.
 
 ## Package responsibilities
 
-All package names below are relative to `com.visit.webviewinspector.internal`.
+All package names below are relative to `io.github.chinmaydash007.webviewinspector.internal`.
 
 | Package | Main types | Responsibility and boundary |
 |---|---|---|

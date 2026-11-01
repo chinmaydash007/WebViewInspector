@@ -7,10 +7,13 @@ from pathlib import Path
 import re
 import subprocess
 
+from bundle import properties
+
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = 'com.visit.webviewinspector.test'
+NAMESPACE = properties()['INSPECTOR_PACKAGE']
+PACKAGE = NAMESPACE + '.test'
 RUNNER = PACKAGE + '/androidx.test.runner.AndroidJUnitRunner'
-PREFIX = 'com.visit.webviewinspector.'
+PREFIX = NAMESPACE + '.'
 NORMAL = [PREFIX + name for name in ['WebViewInspectorTest', 'NavigationHistoryTest', 'BottomSheetGestureTest', 'FocusedInspectorTest']]
 FALLBACK = [PREFIX + 'FocusedInspectorTest'] + [PREFIX + 'NavigationHistoryTest#' + name for name in ['historyIsolationClearUnavailableSelectionAndPauseResume', 'unsupportedListenerFallbackUsesTheSameNativeHistoryAndCopyActions']]
 NARROW = [PREFIX + 'WebViewInspectorTest#' + name for name in ['composeWithPlatformThemeSupportsSelectionExactCopyAndBack', 'xmlDuplicateIdsSelectionUnavailableAndCurrentUrl', 'settingsToggleTouchPassthroughRotationAndCleanup', 'dragClampsAndPositionSurvivesActivityRecreation']]

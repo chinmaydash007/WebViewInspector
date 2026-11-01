@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.dokka)
 }
 android {
-    namespace = "com.visit.webviewinspector.noop"
+    namespace = providers.gradleProperty("INSPECTOR_PACKAGE").get() + ".noop"
     compileSdk = 36
     defaultConfig { minSdk = 24 }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

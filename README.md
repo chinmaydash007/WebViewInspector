@@ -2,7 +2,7 @@
 
 A floating Android inspector for the current URL and navigation history of native WebViews. It discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally. No per-screen integration, WebViewClient replacement, JavaScript injection, or header capture is required.
 
-**Published version:** `0.1.0` on Maven Central. Both artifacts and their sources/documentation are publicly downloadable; all ten primary files were verified against the signed release bundle. See [validation](VALIDATION.md) for release evidence and tested compatibility.
+**Version in this source tree:** `0.2.0`, using a personal publisher namespace. This is a breaking package migration from `0.1.0`; see [validation](VALIDATION.md) for publication status and executed checks. Previously published versions remain unchanged.
 
 The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation become **public** when published. No public GitHub Pages site is configured.
 
@@ -12,8 +12,8 @@ Use `google()` and `mavenCentral()`. Select exactly one artifact per app variant
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.1.0")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.1.0")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.2.0")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.2.0")
 }
 ```
 
@@ -28,9 +28,17 @@ override fun onCreate() {
 }
 ```
 
-Java uses `WebViewInspector.install(this);` in `Application.onCreate()`. The import is `com.visit.webviewinspector.WebViewInspector` for both languages and artifacts.
+Java uses `WebViewInspector.install(this);` in `Application.onCreate()`. The import is `io.github.chinmaydash007.webviewinspector.WebViewInspector` for both languages and artifacts.
 
 The five public methods are `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()` and `uninstall()`. Mutations run on the main thread; install/uninstall are idempotent. Settings, toggle and floating position are process-only. The no-op facade installs nothing and always reports disabled.
+
+### Upgrade from 0.1.0
+
+Update both artifact versions together and replace the previous facade import with
+`io.github.chinmaydash007.webviewinspector.WebViewInspector`. Recompile consumers;
+there is no legacy package alias or compatibility wrapper. The five method signatures,
+native UI, runtime behavior and API 24 floor are unchanged. No individual WebView screen
+changes are needed.
 
 ## Use the inspector
 

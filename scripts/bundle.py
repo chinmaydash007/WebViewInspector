@@ -11,6 +11,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
+from publication_content import validate_classes, validate_dependencies, validate_document_archive, validate_text
+
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ('webview-inspector', 'webview-inspector-no-op')
 
@@ -20,6 +22,7 @@ def properties(root=ROOT):
 
 
 def validate_publication(folder, artifact, version, signed=False):
+    namespace = properties()['INSPECTOR_PACKAGE']
     prefix = artifact + '-' + version
     required = [prefix + suffix for suffix in ('.aar', '.pom', '.module', '-sources.jar', '-javadoc.jar')]
     for name in required:
@@ -35,33 +38,36 @@ def validate_publication(folder, artifact, version, signed=False):
         query = '/'.join('m:' + part for part in field.split('/'))
         if not pom.findtext(query, namespaces=ns):
             raise ValueError('Missing POM metadata: ' + field)
-    metadata = (folder / (prefix + '.pom')).read_text() + (folder / (prefix + '.module')).read_text()
-    for forbidden in ['com.getvisitapp', 'com.dependencies.buildsrc', 'androidx.compose', 'androidx.test', 'espresso', 'sample', 'test-host']:
-        if forbidden in metadata:
-            raise ValueError('Unshipped dependency in publication metadata: ' + forbidden)
-    if artifact.endswith('no-op'):
-        for forbidden in ['androidx.webkit', 'com.google.android.material', 'webview-inspector</artifactId>']:
-            if forbidden in metadata:
-                raise ValueError('Implementation dependency in no-op publication: ' + forbidden)
+    metadata = json.loads((folder / (prefix + '.module')).read_text())
+    validate_dependencies(pom.getroot(), metadata, artifact)
+    validate_text((folder / (prefix + '.pom')).read_text(), namespace, 'POM')
+    validate_text(json.dumps(metadata), namespace, 'Gradle metadata')
     with zipfile.ZipFile(folder / (prefix + '.aar')) as aar:
-        classes = zipfile.ZipFile(io.BytesIO(aar.read('classes.jar')))
-        names = classes.namelist()
-        if artifact.endswith('no-op') and any('/internal/' in name for name in names):
-            raise ValueError('Implementation class in no-op AAR')
-        if any('InspectorHost' in name or 'sample/' in name or '/test/' in name for name in names):
-            raise ValueError('Test/sample class leaked into AAR')
+        validate_classes(aar.read('classes.jar'), namespace, no_op=artifact.endswith('no-op'))
+        if any(name.startswith('libs/') and name.endswith('.jar') for name in aar.namelist()):
+            raise ValueError('Unexpected embedded dependency JAR in AAR')
+        if artifact.endswith('no-op') and any(name.startswith('res/') for name in aar.namelist()):
+            raise ValueError('Implementation resources in no-op AAR')
         manifest = aar.read('AndroidManifest.xml').decode()
-        uses_sdk = ET.fromstring(manifest).find('uses-sdk')
+        manifest_root = ET.fromstring(manifest)
+        expected_namespace = namespace + ('.noop' if artifact.endswith('no-op') else '')
+        if manifest_root.get('package') != expected_namespace:
+            raise ValueError('Unexpected AAR manifest namespace')
+        uses_sdk = manifest_root.find('uses-sdk')
         if uses_sdk is None or uses_sdk.get('{http://schemas.android.com/apk/res/android}minSdkVersion') != '24':
             raise ValueError('Published AAR must declare minimum SDK 24')
         if '<activity' in manifest or '<provider' in manifest or 'INTERNET' in manifest:
             raise ValueError('Test/sample manifest leaked into AAR')
+        for name in aar.namelist():
+            if name.endswith(('.xml', '.txt', '.pro', '.properties')):
+                validate_text(aar.read(name).decode('utf-8'), namespace, name)
     for suffix in ['-sources.jar', '-javadoc.jar']:
         with zipfile.ZipFile(folder / (prefix + suffix)) as jar:
             if 'README.md' not in jar.namelist() or 'LICENSE' not in jar.namelist():
                 raise ValueError('Public usage guide or license missing from ' + suffix)
             if suffix == '-javadoc.jar' and not any(name.endswith('.html') for name in jar.namelist()):
                 raise ValueError('Documentation JAR is empty')
+            validate_document_archive(jar, namespace, sources=suffix == '-sources.jar')
     if signed:
         for name in required:
             signature = folder / (name + '.asc')

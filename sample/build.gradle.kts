@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "io.github.chinmaydash007.webviewinspector.sample"
     compileSdk = 36
-    defaultConfig { applicationId = "io.github.chinmaydash007.webviewinspector.sample"; minSdk = 24; targetSdk = 35; versionCode = 1; versionName = "0.1.0" }
+    defaultConfig { applicationId = "io.github.chinmaydash007.webviewinspector.sample"; minSdk = 24; targetSdk = 35; versionCode = 1; versionName = project.version.toString() }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }
         release { isMinifyEnabled = true; signingConfig = signingConfigs.getByName("debug"); proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")) }

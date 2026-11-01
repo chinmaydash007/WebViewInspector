@@ -26,7 +26,9 @@ jobs:
           HARNESS_REF: ${{ github.sha }}
         run: |
           git diff --exit-code HEAD "$HARNESS_REF" -- gradle.properties gradle/libs.versions.toml build.gradle.kts settings.gradle.kts gradle/wrapper webview-inspector/build.gradle.kts webview-inspector-no-op/build.gradle.kts webview-inspector/src/main webview-inspector-no-op/src/main
-          git show "${HARNESS_REF}:webview-inspector/src/androidTest/java/com/visit/webviewinspector/WebViewInspectorTest.kt" > webview-inspector/src/androidTest/java/com/visit/webviewinspector/WebViewInspectorTest.kt
+          inspector_package=$(sed -n 's/^INSPECTOR_PACKAGE=//p' gradle.properties)
+          test_source="webview-inspector/src/androidTest/java/${inspector_package//.//}/WebViewInspectorTest.kt"
+          git show "${HARNESS_REF}:${test_source}" > "$test_source"
       - name: Free space for emulator userdata on the disposable hosted runner
         run: |
           test "$RUNNER_ENVIRONMENT" = "github-hosted"
@@ -51,6 +53,8 @@ jobs:
           set -euo pipefail
           test_api="$1"
           evidence=build/reports/devices
+          inspector_package=$(sed -n 's/^INSPECTOR_PACKAGE=//p' gradle.properties)
+          test_package="${inspector_package}.test"
           mkdir -p "$evidence"
           adb -s emulator-5554 shell settings get secure show_ime_with_hard_keyboard > "$evidence/original-ci-keyboard-setting.txt"
           adb -s emulator-5554 shell ime list -s > "$evidence/available-ci-keyboards.txt"
@@ -61,8 +65,8 @@ jobs:
           if [ "$test_api" = 36 ]; then
             python3 scripts/install_ci_webview.py --serial emulator-5554
             adb -s emulator-5554 install --no-incremental -r webview-inspector/build/outputs/apk/androidTest/debug/webview-inspector-debug-androidTest.apk
-            adb -s emulator-5554 shell am instrument -w -r -e class 'com.visit.webviewinspector.WebViewInspectorTest#keyboardInsetsAccessibilityAndActualRotation' com.visit.webviewinspector.test/androidx.test.runner.AndroidJUnitRunner > "$evidence/keyboard-preflight.log"
-            adb -s emulator-5554 pull /sdcard/Android/data/com.visit.webviewinspector.test/files/. "$evidence/keyboard-preflight-screenshots" >/dev/null 2>&1 || true
+            adb -s emulator-5554 shell am instrument -w -r -e class "${inspector_package}.WebViewInspectorTest#keyboardInsetsAccessibilityAndActualRotation" "${test_package}/androidx.test.runner.AndroidJUnitRunner" > "$evidence/keyboard-preflight.log"
+            adb -s emulator-5554 pull "/sdcard/Android/data/${test_package}/files/." "$evidence/keyboard-preflight-screenshots" >/dev/null 2>&1 || true
             if ! grep -q 'OK (1 test)' "$evidence/keyboard-preflight.log" || grep -Eq 'INSTRUMENTATION_STATUS_CODE: -[1234]|FAILURES!!!|INSTRUMENTATION_FAILED' "$evidence/keyboard-preflight.log"; then
               adb -s emulator-5554 shell dumpsys input_method > "$evidence/input-method-failure.txt"
               exit 1

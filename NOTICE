@@ -1,3 +1,3 @@
 WebView Inspector
 
-Extracted from the Visit Android WebView Inspector implementation with authorization for Apache 2.0 distribution. Existing implementation attribution is retained. Maven publication is maintained by chinmaydash007. Third-party AndroidX, Kotlin and Material dependencies retain their own licenses and are declared as dependencies rather than repackaged source.
+Published and maintained by chinmaydash007 under the Apache License, Version 2.0. Third-party AndroidX, Kotlin and Material dependencies retain their own licenses and are declared as dependencies rather than repackaged source.

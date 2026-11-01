@@ -1,5 +1,38 @@
 # Standalone validation
 
+## 0.2.0 namespace migration — local evidence, 1 November 2026
+
+Current sources use `io.github.chinmaydash007.webviewinspector`; both artifacts retain
+API 24 and the five facade methods, with no legacy alias. These are fresh local results:
+
+- Clean module/sample outputs rebuilt successfully. All 26 JVM tests, lint (zero errors),
+  full/no-op API parity and 30 publishing/content guard tests passed.
+- All three sample variants and all three independent Java-only consumer variants built,
+  including both R8 configurations. Every APK declares API 24; production has zero
+  inspector resources and internal mapping entries. Neither consumer requires Compose
+  or a Kotlin Gradle plugin for the inspector.
+- Both staged AAR/POM/Gradle-metadata/source/documentation publications passed nested
+  archive, namespace and dependency-inventory checks. An independent recursive scan of
+  all ten primary files found no prior host-company identities or workspace paths.
+- Source comparison confirmed that all 54 Kotlin/Java source files changed only by
+  namespace replacement; UI resources, algorithms, timing and facade signatures remain
+  unchanged. The host-specific notice prose was replaced with a neutral publication
+  notice while retaining the Apache license and third-party notices.
+- On explicitly selected `emulator-5554`, API 36 / WebView 156.0.8078.47, the navigation
+  prerequisite, all 21 normal cases, 13 narrow/large-font light cases and six dark cases
+  passed under the new test namespace. Font, density, night mode and animation settings
+  were restored; competing automation instrumentation was stopped for native testing.
+
+Evidence is retained in ignored `build/reports/company-independent-0.2.0/` and
+`build/reports/devices/api-36/`. The first archive-check run rejected a legitimate
+publisher group and a Java NIO reference; the guard was corrected, regression fixtures
+were added, and full verification then passed. That failed run is not counted as a pass.
+
+At this source checkpoint, signed CI/API 24 gates, new minified clipboard probes,
+Central publication/public-download verification and downstream adoption are still
+pending. Do not infer their completion from local staging. The historical records
+below retain their original dates and refer to 0.1.0 unless explicitly stated otherwise.
+
 This record covers the independent project, not the original consuming app. Raw logs and synthetic screenshots live in ignored `build/reports/` outputs and private GitHub Actions artifacts. Historical preparation evidence and the completed 31 October publication are separated below. A signed local bundle alone is not evidence of Maven Central availability.
 
 ## Local evidence — 25 October 2026
@@ -71,4 +104,4 @@ Central deployment `27392699-2908-41aa-816c-fe6cea363838` reached **PUBLISHED**.
 
 The unchanged combined signed bundle has SHA-256 `b8d87702320c6bd1e5001f55224cd9ee54d4cdf3f0552b332492945f238bf6c2`. The tag and original three release assets were not replaced; deployment/intent receipts were added to the private Release. Both published AARs declare minimum SDK 24. Current library runtime sources/resources and build/dependency configuration still match the artifact tag; only the publisher, CI setup, test preconditions and documentation changed during release verification.
 
-Earlier minified on-device copy evidence remains dated to 25 October; it is not presented as a new runtime smoke test. Authenticated Android2 flows and a full manual TalkBack audit were not rerun. This publication task did not change or migrate the Android2 checkout.
+Earlier minified on-device copy evidence remains dated to 25 October; it is not presented as a new runtime smoke test. Authenticated original host-app flows and a full manual TalkBack audit were not rerun. This publication task did not change or migrate the original host-app checkout.

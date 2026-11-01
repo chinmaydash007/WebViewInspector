@@ -32,14 +32,14 @@ subprojects {
             pom {
                 name.set(if (module.name.endsWith("no-op")) "WebView Inspector No-op" else "WebView Inspector")
                 description.set("An Android floating WebView URL and navigation history inspector with a matching production no-op facade.")
-                url.set("https://github.com/chinmaydash007/webview-inspector")
+                url.set("https://github.com/chinmaydash007/WebViewInspector")
                 inceptionYear.set("2026")
                 licenses { license { name.set("The Apache License, Version 2.0"); url.set("https://www.apache.org/licenses/LICENSE-2.0.txt"); distribution.set("repo") } }
                 developers { developer { id.set("chinmaydash007"); name.set("chinmaydash007"); url.set("https://github.com/chinmaydash007") } }
                 scm {
-                    url.set("https://github.com/chinmaydash007/webview-inspector")
-                    connection.set("scm:git:https://github.com/chinmaydash007/webview-inspector.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/chinmaydash007/webview-inspector.git")
+                    url.set("https://github.com/chinmaydash007/WebViewInspector")
+                    connection.set("scm:git:https://github.com/chinmaydash007/WebViewInspector.git")
+                    developerConnection.set("scm:git:ssh://git@github.com/chinmaydash007/WebViewInspector.git")
                 }
             }
         }

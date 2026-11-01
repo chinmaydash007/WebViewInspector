@@ -56,7 +56,7 @@ Missing account/token credentials block publication, not extraction or local val
 
 Confirm both AARs/POMs/sources/docs are downloadable without GitHub authentication. Update README/CHANGELOG status only after that verification passes. Consumers need `google()` and `mavenCentral()` and select exactly one full/no-op artifact per variant.
 
-Migrate a consuming application only after both coordinates work. The owner selected API 24 for both artifacts and approved raising Android2 ordinary production to API 24 during adoption (its debug/diagnostic variants already use API 24). Make that consuming-app change only after Central verification. For Android2, replace the local full/no-op dependencies with the same pinned published version, then remove the local module includes/copies and update integration docs. Preserve Application installation, the Developer tools toggle and individual WebView screens. Build all four variants and repeat minified copy/no-op isolation checks. Commit the migration separately; do not merge or distribute an app release as part of this library release.
+Migrate a consuming application only after both coordinates work. Both artifacts require API 24. Pin the full/no-op artifacts to the same version and update the facade import when moving from 0.1.0 to 0.2.0. Preserve central Application installation, developer controls and individual WebView screens. Remove any former source-module dependencies and update integration docs. Build each consumer profile and repeat minified copying and no-op isolation checks. Keep consumer changes separate from library release commits; do not distribute an app release as part of library publishing.
 
 ## Cloud test provider
 

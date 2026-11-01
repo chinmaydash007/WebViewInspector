@@ -2,11 +2,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <application android:theme="@style/WviTestPlatformTheme" android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/wvi_test_network_security">
-        <activity android:name="com.visit.webviewinspector.NavigationHistoryHost" android:exported="true" />
-        <activity android:name="com.visit.webviewinspector.ComposeInspectorHost" android:exported="true"
+        <activity android:name="io.github.chinmaydash007.webviewinspector.NavigationHistoryHost" android:exported="true" />
+        <activity android:name="io.github.chinmaydash007.webviewinspector.ComposeInspectorHost" android:exported="true"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name="com.visit.webviewinspector.XmlInspectorHost" android:exported="true"
+        <activity android:name="io.github.chinmaydash007.webviewinspector.XmlInspectorHost" android:exported="true"
             android:theme="@style/WviTestAppCompatTheme" android:windowSoftInputMode="adjustResize" />
-        <activity android:name="com.visit.webviewinspector.RecycledInspectorHost" android:exported="true" />
+        <activity android:name="io.github.chinmaydash007.webviewinspector.RecycledInspectorHost" android:exported="true" />
     </application>
 </manifest>

@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.dokka)
 }
 android {
-    namespace = "com.visit.webviewinspector"
+    namespace = providers.gradleProperty("INSPECTOR_PACKAGE").get()
     compileSdk = 36
     defaultConfig { minSdk = 24; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
     testOptions { targetSdk = 35; animationsDisabled = true }
