@@ -2,9 +2,9 @@
 
 A floating Android inspector for the current URL and navigation history of native WebViews. It discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally. No per-screen integration, WebViewClient replacement, JavaScript injection, or header capture is required.
 
-**Version in this source tree:** `0.2.0`, using a personal publisher namespace. This is a breaking package migration from `0.1.0`; see [validation](VALIDATION.md) for publication status and executed checks. Previously published versions remain unchanged.
+**Published version:** `0.2.0`, using a personal publisher namespace. This is a breaking package migration from `0.1.0`; see [validation](VALIDATION.md) for verified Central downloads and executed checks. Previously published versions remain unchanged.
 
-The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation become **public** when published. No public GitHub Pages site is configured.
+The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
 
 ## Integrate
 

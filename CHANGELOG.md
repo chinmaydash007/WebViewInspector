@@ -1,12 +1,12 @@
 # Changelog
 
-## 0.2.0 — release preparation
+## 0.2.0 — 1 November 2026
 
 - Breaking namespace migration: the public facade is now `io.github.chinmaydash007.webviewinspector.WebViewInspector` in both artifacts, with no legacy alias. Update dependency versions and the facade import together.
 - Moved implementation, tests, manifests, generated-resource references and automation to the independent publisher identity. Preserved the five methods, API 24, UI and behavior.
 - Replaced host-specific documentation and extraction wording with project-neutral guidance and notices, retaining the Apache license and third-party notices.
 - Added archive-content, namespace, dependency-inventory and documentation checks before publication, including strict WebKit pinning and no-op isolation.
-- Publication remains pending until signed release gates and anonymous Central download verification complete; see [validation](VALIDATION.md).
+- Both artifacts are published on Maven Central. All ten primary public files match the original signed bundle; the independent Java consumer builds from public repositories alone. The GitHub repository remains private. See [validation](VALIDATION.md).
 
 ## 0.1.0 — 31 October 2026
 

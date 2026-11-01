@@ -28,10 +28,76 @@ Evidence is retained in ignored `build/reports/company-independent-0.2.0/` and
 publisher group and a Java NIO reference; the guard was corrected, regression fixtures
 were added, and full verification then passed. That failed run is not counted as a pass.
 
-At this source checkpoint, signed CI/API 24 gates, new minified clipboard probes,
-Central publication/public-download verification and downstream adoption are still
-pending. Do not infer their completion from local staging. The historical records
-below retain their original dates and refer to 0.1.0 unless explicitly stated otherwise.
+At the tagged source checkpoint, signed CI/API 24 gates, new minified clipboard probes,
+Central publication/public-download verification and downstream adoption were still
+pending. That preparation snapshot is superseded by the completed 0.2.0 release record
+below; it is retained to distinguish local staging from actual publication.
+
+## Published 0.2.0 — 1 November 2026
+
+**Both 0.2.0 artifacts are published on Maven Central.** The repository and
+[v0.2.0 GitHub Release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.2.0)
+remain private. The annotated tag points to validated source commit
+`b78e8e4569b27baba4557689ab44dc69859024fb`; 0.1.0's tag and published assets were preserved.
+
+[Push CI 41278432909](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41278432909),
+[signed dry run 41278440242](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41278440242)
+and [release run 41279789794](https://github.com/chinmaydash007/WebViewInspector/actions/runs/41279789794)
+all completed successfully. These are fresh 0.2.0 checks:
+
+| Check | Result |
+|---|---|
+| JVM tests, lint and facade parity | 26 tests passed; zero lint errors; five static methods match |
+| Publisher and content guards | All 30 tests passed, including nested archives and exact dependency inventories |
+| API 24 fallback | All eight native cases passed |
+| API 36 keyboard/rotation preflight and navigation prerequisite | Both passed, including actual keyboard bounds and exact copying |
+| API 36 normal suite | All 21 cases passed |
+| API 36 320 dp / 160% font | All 13 light and six dark cases passed |
+| Both publication signatures | All ten primary file signatures verified with the permanent public key |
+| Anonymous Central downloads | All ten primary files match the signed bundle |
+| Clean public-only Java consumer | Debug, minified diagnostic and minified no-op release built successfully |
+
+CI used explicitly selected API 24 and API 36 emulators. API 24 kept its unsupported
+provider for real sampling coverage; API 36 used the pinned official test-only provider
+158.0.8124.0. The local API 36 run above used 156.0.8078.47 independently. Font, density,
+night mode and animation settings were restored by the native runner.
+
+The release reused the exact previously verified dry-run bundle, SHA-256
+`8a067c1257469f4ff3e59698c6974604cbcd5673db8e154795f999a046edbb70`.
+Central deployment `e5c5b17b-7af6-44a6-ac5f-a9265f2f5e38` reached **PUBLISHED** at
+06:41 UTC / 12:11 IST. Its immutable upload-intent and deployment receipts are attached
+to the private Release. No second deployment or replacement asset was needed.
+
+The publisher downloaded both AARs, POMs, Gradle metadata, source JARs and documentation
+JARs anonymously, checked every SHA-256, and then built the Java-only consumer with a
+fresh Gradle user home and no local validation repository or Kotlin/Compose Gradle
+plugin. An independent local download check agreed. Recursive inspection of that exact
+signed bundle found only the approved project identities and dependencies, with no
+previous host-company packages or content. Both AARs declare API 24.
+
+Five fresh foreground clipboard probes passed on the local API 36 emulator using
+minified APKs: the sample's exact initial URL, exact destination after two real HTTP
+redirects, the stored historical initial URL after overwriting the clipboard, complete
+history export, and the Java-only consumer's exact URL. Redirects remained grouped in
+one navigation record. Encoding, duplicate query parameters, `+` and fragments were
+preserved. The independent consumer uses a plain Activity and platform theme. These
+checks exercised the new package; they are separate from the dated 0.1.0 smoke checks.
+
+After public verification, a downstream application's existing integration was updated
+to 0.2.0. All four profiles built, five developer-tools unit tests and five minified
+instrumentation cases passed. Runtime graphs select full for debug and both diagnostic
+profiles, and no-op for production; all APKs require API 24. Production contains zero
+inspector resources, implementation DEX names or internal R8 mappings. The test-target
+build produced identical APK bytes. The two central imports changed; individual WebView
+screens and callbacks were preserved. Consumer changes remain uncommitted, outside this
+repository. Its authenticated routes and API 24 runtime were not rerun; the independent
+library's API 24 gate above remains separate evidence.
+
+Evidence includes ignored `build/reports/company-independent-0.2.0/` reports, private
+Actions artifacts and the immutable Release assets. Full manual TalkBack review,
+authenticated consumer flows and live payments remain unexercised. No app distribution
+was performed. The historical records below retain their original dates and refer to
+0.1.0 unless explicitly stated otherwise.
 
 This record covers the independent project, not the original consuming app. Raw logs and synthetic screenshots live in ignored `build/reports/` outputs and private GitHub Actions artifacts. Historical preparation evidence and the completed 31 October publication are separated below. A signed local bundle alone is not evidence of Maven Central availability.
 
