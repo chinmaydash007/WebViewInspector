@@ -10,12 +10,12 @@ import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
-import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
+import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -29,7 +29,10 @@ import io.github.chinmaydash007.webviewinspector.internal.state.InspectorActivit
 import io.github.chinmaydash007.webviewinspector.internal.state.NavigationHistoryStore
 import org.hamcrest.Matchers.containsString
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -50,10 +53,16 @@ class NavigationHistoryTest {
     @Before fun start() {
         server = LocalNavigationServer()
         ui { WebViewInspector.install(application) }
-        scenario = ActivityScenario.launch(Intent(application, NavigationHistoryHost::class.java)
-            .putExtra("historyBaseUrl", server.base))
+        scenario =
+            ActivityScenario.launch(
+                Intent(application, NavigationHistoryHost::class.java)
+                    .putExtra("historyBaseUrl", server.base),
+            )
         scenario.onActivity { activity = it }
-        await { activity.views.size == 2 && activity.views[0].url == server.base + "/initial" && activity.findViewById<View>(R.id.wvi_open) != null }
+        await {
+            activity.views.size == 2 && activity.views[0].url == server.base + "/initial" &&
+                activity.findViewById<View>(R.id.wvi_open) != null
+        }
         Thread.sleep(700)
         clearClipboard()
     }
@@ -74,7 +83,9 @@ class NavigationHistoryTest {
             assertSame(activity.clients[0], ui { activity.views[0].webViewClient })
         }
         onView(withText(containsString("2 redirects · Committed"))).perform(scrollTo(), click())
-        onView(withContentDescription("Copy recorded URL: " + server.base + server.middlePath)).perform(scrollTo(), click())
+        onView(
+            withContentDescription("Copy recorded URL: " + server.base + server.middlePath),
+        ).perform(scrollTo(), click())
         assertEquals(server.base + server.middlePath, clipboard())
         clearClipboard()
         onView(withId(R.id.wvi_copy_history)).inRoot(isDialog()).perform(click())
@@ -92,7 +103,10 @@ class NavigationHistoryTest {
         openHistory()
         val beforeOther = ui { activity.clients[0].finishedPages }
         ui { activity.views[0].loadUrl(server.base + "/other") }
-        await { historyText().contains("Committed") && activity.views[0].url == server.base + "/other" && activity.clients[0].finishedPages > beforeOther }
+        await {
+            historyText().contains("Committed") && activity.views[0].url == server.base + "/other" &&
+                activity.clients[0].finishedPages > beforeOther
+        }
         val beforeReload = ui { activity.clients[0].finishedPages }
         ui { activity.views[0].reload() }
         await { historyText().contains("Reload · Committed") && activity.clients[0].finishedPages > beforeReload }
@@ -149,13 +163,21 @@ class NavigationHistoryTest {
 
     @Test fun unsupportedListenerFallbackUsesTheSameNativeHistoryAndCopyActions() {
         val store = NavigationHistoryStore()
-        val session = ui {
-            WebViewInspector.uninstall()
-            InspectorSession(activity, FloatingPosition(), InspectorActivityState(1), store,
-                appLoads = io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore(),
-                settingsOwnFocus = { false }, navigationSource = NavigationEventSource { _, _ -> null })
-                .also { it.start() }
-        }
+        val session =
+            ui {
+                WebViewInspector.uninstall()
+                InspectorSession(
+                    activity,
+                    FloatingPosition(),
+                    InspectorActivityState(1),
+                    store,
+                    appLoads =
+                        io.github.chinmaydash007.webviewinspector.internal.state
+                            .AppLoadStore(),
+                    settingsOwnFocus = { false },
+                    navigationSource = NavigationEventSource { _, _ -> null },
+                ).also { it.start() }
+            }
         try {
             await { activity.findViewById<View>(R.id.wvi_open) != null }
             openHistory()
@@ -176,9 +198,12 @@ class NavigationHistoryTest {
     }
 
     private fun requireEvents() {
-        assumeTrue("Installed WebView provider does not expose NAVIGATION_LISTENER_V1", ui {
-            WebViewFeature.isFeatureSupported(WebViewFeature.NAVIGATION_LISTENER_V1)
-        })
+        assumeTrue(
+            "Installed WebView provider does not expose NAVIGATION_LISTENER_V1",
+            ui {
+                WebViewFeature.isFeatureSupported(WebViewFeature.NAVIGATION_LISTENER_V1)
+            },
+        )
     }
 
     @Test fun expandedHistoryRetainsFocusAndScrollWhileNewNavigationsArrive() {
@@ -189,7 +214,8 @@ class NavigationHistoryTest {
         onView(withText(containsString("2 redirects · Committed"))).perform(scrollTo(), click())
         var focused: View? = null
         onView(withContentDescription("Copy recorded URL: " + server.base + server.middlePath))
-            .perform(scrollTo()).check { view, error ->
+            .perform(scrollTo())
+            .check { view, error ->
                 if (error != null) throw error
                 focused = view
                 view.isFocusableInTouchMode = true
@@ -203,7 +229,10 @@ class NavigationHistoryTest {
         ui {
             assertTrue("Expanded copy action must survive an update", anchor.isAttachedToWindow && anchor.isShown)
             assertTrue("History updates must preserve focus", anchor.isFocused)
-            assertTrue("History updates must preserve the scroll anchor: before=$before, after=${screenTop(anchor)}", kotlin.math.abs(before - screenTop(anchor)) <= 3)
+            assertTrue(
+                "History updates must preserve the scroll anchor: before=$before, after=${screenTop(anchor)}",
+                kotlin.math.abs(before - screenTop(anchor)) <= 3,
+            )
         }
         screenshot("history-focus-scroll")
     }
@@ -236,24 +265,39 @@ class NavigationHistoryTest {
 
     private fun dialogView(id: Int): View = requireNotNull(sheetRoot.findViewById(id))
 
-    private fun texts(view: View): String = when (view) {
-        is TextView -> view.text.toString()
-        is ViewGroup -> (0 until view.childCount).joinToString("\n") { texts(view.getChildAt(it)) }
-        else -> ""
-    }
+    private fun texts(view: View): String =
+        when (view) {
+            is TextView -> view.text.toString()
+            is ViewGroup -> (0 until view.childCount).joinToString("\n") { texts(view.getChildAt(it)) }
+            else -> ""
+        }
 
-    private fun clipboard(): String = ui {
-        (application.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip?.getItemAt(0)?.text.toString()
-    }
+    private fun clipboard(): String =
+        ui {
+            (
+                application.getSystemService(
+                    Context.CLIPBOARD_SERVICE,
+                ) as ClipboardManager
+            ).primaryClip?.getItemAt(0)?.text.toString()
+        }
 
     private fun clearClipboard() {
         ui {
-            if (android.os.Build.VERSION.SDK_INT >= 28) (application.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).clearPrimaryClip()
+            if (android.os.Build.VERSION.SDK_INT >=
+                28
+            ) {
+                (application.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).clearPrimaryClip()
+            }
         }
         if (android.os.Build.VERSION.SDK_INT >= 33) {
-            instrumentation.uiAutomation.executeShellCommand("am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS").use {
-                android.os.ParcelFileDescriptor.AutoCloseInputStream(it).use { stream -> stream.readBytes() }
-            }
+            instrumentation.uiAutomation
+                .executeShellCommand(
+                    "am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS",
+                ).use {
+                    android.os.ParcelFileDescriptor
+                        .AutoCloseInputStream(it)
+                        .use { stream -> stream.readBytes() }
+                }
             Thread.sleep(350)
         }
     }
@@ -264,9 +308,10 @@ class NavigationHistoryTest {
             if (ui(predicate)) return
             Thread.sleep(100)
         }
-        val diagnostics = ui {
-            "url=${activity.views[0].url}, back=${activity.views[0].canGoBack()}, forward=${activity.views[0].canGoForward()}, history=${if (::sheetRoot.isInitialized) historyText() else "no sheet"}"
-        }
+        val diagnostics =
+            ui {
+                "url=${activity.views[0].url}, back=${activity.views[0].canGoBack()}, forward=${activity.views[0].canGoForward()}, history=${if (::sheetRoot.isInitialized) historyText() else "no sheet"}"
+            }
         throw AssertionError("Timed out waiting for synthetic navigation history: $diagnostics")
     }
 

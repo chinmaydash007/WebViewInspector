@@ -4,6 +4,9 @@ kotlin = "2.2.0"
 publishing = "0.35.0"
 dokka = "2.2.0"
 compose = "2026.03.01"
+spotless = "8.11.0"
+ktlint = "1.8.0"
+gjf = "1.28.0"
 
 [libraries]
 core = { module = "androidx.core:core-ktx", version = "1.13.1" }
@@ -28,3 +31,4 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 publishing = { id = "com.vanniktech.maven.publish.base", version.ref = "publishing" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

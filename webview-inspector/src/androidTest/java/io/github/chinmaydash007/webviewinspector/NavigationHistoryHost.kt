@@ -61,7 +61,11 @@ class NavigationHistoryHost : ComponentActivity() {
 
 internal class NavigationFixtureClient : WebViewClient() {
     var finishedPages = 0
-    override fun onPageFinished(view: WebView?, url: String?) {
+
+    override fun onPageFinished(
+        view: WebView?,
+        url: String?,
+    ) {
         finishedPages++
     }
 }
@@ -69,7 +73,11 @@ internal class NavigationFixtureClient : WebViewClient() {
 /** Loopback-only server generates actual HTTP 302 responses, which WebResourceResponse cannot. */
 internal class LocalNavigationServer : AutoCloseable {
     private val socket = ServerSocket(0, 8, InetAddress.getByName("127.0.0.1"))
-    private val workers = Executors.newCachedThreadPool { task -> Thread(task, "wvi-local-http").apply { isDaemon = true } }
+    private val workers =
+        Executors.newCachedThreadPool { task ->
+            Thread(task, "wvi-local-http").apply { isDaemon = true }
+        }
+
     @Volatile private var closed = false
     val base = "http://127.0.0.1:${socket.localPort}"
     val middlePath = "/redirect-two?encoded=%2f%2F&raw=one+two"
@@ -78,7 +86,12 @@ internal class LocalNavigationServer : AutoCloseable {
     init {
         workers.execute {
             while (!closed) {
-                val client = try { socket.accept() } catch (_: java.io.IOException) { break }
+                val client =
+                    try {
+                        socket.accept()
+                    } catch (_: java.io.IOException) {
+                        break
+                    }
                 workers.execute { client.use(::respond) }
             }
         }
@@ -92,18 +105,31 @@ internal class LocalNavigationServer : AutoCloseable {
             while (!reader.readLine().isNullOrEmpty()) { /* Consume protocol headers without storing them. */ }
             val path = request.substringBefore('?')
             if (path == "/broken") return
-            val destination = when (path) {
-                "/redirect-one" -> middlePath
-                "/redirect-two" -> finalPath
-                else -> null
-            }
-            val html = "<html><body><h2>Local navigation fixture</h2><a id='go' href='/redirect-one'>Continue</a></body></html>"
+            val destination =
+                when (path) {
+                    "/redirect-one" -> middlePath
+                    "/redirect-two" -> finalPath
+                    else -> null
+                }
+            val html =
+                "<html><body><h2>Local navigation fixture</h2><a id='go' href='/redirect-one'>Continue</a></body></html>"
             val body = html.toByteArray(Charsets.UTF_8)
             val output = client.getOutputStream()
-            val response = buildString {
-                append(if (destination == null) "HTTP/1.1 200 OK\r\n" else "HTTP/1.1 302 Found\r\nLocation: $destination\r\n")
-                append("Content-Type: text/html; charset=utf-8\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n")
-            }
+            val response =
+                buildString {
+                    append(
+                        if (destination ==
+                            null
+                        ) {
+                            "HTTP/1.1 200 OK\r\n"
+                        } else {
+                            "HTTP/1.1 302 Found\r\nLocation: $destination\r\n"
+                        },
+                    )
+                    append(
+                        "Content-Type: text/html; charset=utf-8\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n",
+                    )
+                }
             output.write(response.toByteArray(Charsets.US_ASCII))
             output.write(body)
             output.flush()

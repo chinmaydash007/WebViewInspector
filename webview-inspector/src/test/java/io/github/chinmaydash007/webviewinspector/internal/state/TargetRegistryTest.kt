@@ -1,6 +1,10 @@
 package io.github.chinmaydash007.webviewinspector.internal.state
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class TargetRegistryTest {
@@ -33,7 +37,9 @@ class TargetRegistryTest {
 
     @Test
     fun equalityDoesNotCollapseDistinctInstances() {
-        data class Same(val value: Int)
+        data class Same(
+            val value: Int,
+        )
         val first = Same(1)
         val second = Same(1)
         val registry = TargetRegistry<Same>()

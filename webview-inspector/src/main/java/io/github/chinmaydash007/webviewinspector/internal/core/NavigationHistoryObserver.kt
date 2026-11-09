@@ -11,7 +11,10 @@ import java.lang.ref.WeakReference
 /** The only platform-dependent boundary of the independently testable capture coordinator. */
 internal fun interface NavigationEventSource<T : Any> {
     /** Returns cleanup, or null when unsupported. Cleanup must stop future delivery. */
-    fun attach(view: T, receive: (NavigationEvent) -> Unit): (() -> Unit)?
+    fun attach(
+        view: T,
+        receive: (NavigationEvent) -> Unit,
+    ): (() -> Unit)?
 }
 
 /**
@@ -27,7 +30,10 @@ internal class NavigationHistoryObserver<T : Any>(
     private val changed: () -> Unit,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
-    private class Binding<T : Any>(val key: HistoryTargetKey, view: T) {
+    private class Binding<T : Any>(
+        val key: HistoryTargetKey,
+        view: T,
+    ) {
         val view = WeakReference(view)
         val navigationRecords = mutableMapOf<Long, Long>()
         var cleanup: (() -> Unit)? = null
@@ -48,25 +54,27 @@ internal class NavigationHistoryObserver<T : Any>(
             val binding = Binding(HistoryTargetKey(activityScope, target.id), view)
             bindings[target.id] = binding
             store.open(binding.key, binding.mode, clock())
-            binding.cleanup = source.attach(view) { event ->
-                if (!binding.active || disposed) return@attach
-                val current = binding.view.get()
-                if (current == null || !isVisible(current)) {
-                    detach(target.id)
+            binding.cleanup =
+                source.attach(view) { event ->
+                    if (!binding.active || disposed) return@attach
+                    val current = binding.view.get()
+                    if (current == null || !isVisible(current)) {
+                        detach(target.id)
+                        changed()
+                        return@attach
+                    }
+                    val recordId = binding.navigationRecords[event.navigationId]
+                    if (recordId == null) {
+                        binding.navigationRecords[event.navigationId] = store.startNavigation(binding.key, event)
+                    } else {
+                        store.updateNavigation(binding.key, recordId, event)
+                    }
+                    store.rememberUrl(binding.key, event.rawUrl)
+                    if (event.phase == NavigationPhase.COMPLETED) binding.navigationRecords.remove(event.navigationId)
                     changed()
-                    return@attach
                 }
-                val recordId = binding.navigationRecords[event.navigationId]
-                if (recordId == null) {
-                    binding.navigationRecords[event.navigationId] = store.startNavigation(binding.key, event)
-                } else {
-                    store.updateNavigation(binding.key, recordId, event)
-                }
-                store.rememberUrl(binding.key, event.rawUrl)
-                if (event.phase == NavigationPhase.COMPLETED) binding.navigationRecords.remove(event.navigationId)
-                changed()
-            }
-            binding.mode = if (binding.cleanup == null) HistoryCaptureMode.OBSERVED_URLS else HistoryCaptureMode.NAVIGATION_EVENTS
+            binding.mode =
+                if (binding.cleanup == null) HistoryCaptureMode.OBSERVED_URLS else HistoryCaptureMode.NAVIGATION_EVENTS
             store.setMode(binding.key, binding.mode)
             // Reattachment can reveal a change that happened during a documented observation gap.
             store.observe(binding.key, readUrl(view), clock(), recordChanges = true)

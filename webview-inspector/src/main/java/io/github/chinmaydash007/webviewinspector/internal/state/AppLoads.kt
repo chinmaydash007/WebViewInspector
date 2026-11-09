@@ -1,7 +1,10 @@
 package io.github.chinmaydash007.webviewinspector.internal.state
 
 /** Original application inputs, never a representation of verified network traffic. */
-internal data class AppLoadHeader(val name: String, val value: String)
+internal data class AppLoadHeader(
+    val name: String,
+    val value: String,
+)
 
 /** An immutable snapshot of one helper invocation, including repeated URLs and empty headers. */
 internal data class AppLoadRecord(
@@ -24,6 +27,10 @@ internal enum class InspectorTab { CURRENT_URL, HISTORY, APP_LOADS }
 /** Explicit saved-copy actions keep URL, whole-header and individual-value paths unambiguous. */
 internal sealed interface AppLoadCopyPart {
     data object Url : AppLoadCopyPart
+
     data object Headers : AppLoadCopyPart
-    data class HeaderValue(val index: Int) : AppLoadCopyPart
+
+    data class HeaderValue(
+        val index: Int,
+    ) : AppLoadCopyPart
 }

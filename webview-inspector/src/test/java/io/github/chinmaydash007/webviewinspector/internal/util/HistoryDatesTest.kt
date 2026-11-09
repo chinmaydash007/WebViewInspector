@@ -22,16 +22,34 @@ class HistoryDatesTest {
     }
 
     @Test fun yearBoundaryKeysAreDistinct() {
-        assertNotEquals(HistoryDates.key(time(2025, 1, 1, 12, 0), zone), HistoryDates.key(time(2026, 1, 1, 12, 0), zone))
-        assertEquals(HistoryDates.RelativeDay.YESTERDAY, HistoryDates.relative(time(2025, 12, 31, 23, 0), time(2026, 1, 1, 1, 0), zone))
+        assertNotEquals(
+            HistoryDates.key(time(2025, 1, 1, 12, 0), zone),
+            HistoryDates.key(time(2026, 1, 1, 12, 0), zone),
+        )
+        assertEquals(
+            HistoryDates.RelativeDay.YESTERDAY,
+            HistoryDates.relative(time(2025, 12, 31, 23, 0), time(2026, 1, 1, 1, 0), zone),
+        )
     }
 
     @Test fun sameLocalDayKeepsOneGroupingKey() {
-        assertEquals(HistoryDates.key(time(2026, 10, 25, 0, 1), zone), HistoryDates.key(time(2026, 10, 25, 23, 59), zone))
+        assertEquals(
+            HistoryDates.key(time(2026, 10, 25, 0, 1), zone),
+            HistoryDates.key(time(2026, 10, 25, 23, 59), zone),
+        )
     }
 
-    private fun time(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long = Calendar.getInstance(zone).apply {
-        clear()
-        set(year, month - 1, day, hour, minute)
-    }.timeInMillis
+    private fun time(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int,
+    ): Long =
+        Calendar
+            .getInstance(zone)
+            .apply {
+                clear()
+                set(year, month - 1, day, hour, minute)
+            }.timeInMillis
 }

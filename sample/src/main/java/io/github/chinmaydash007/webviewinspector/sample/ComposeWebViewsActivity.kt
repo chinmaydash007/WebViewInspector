@@ -3,7 +3,6 @@ package io.github.chinmaydash007.webviewinspector.sample
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import io.github.chinmaydash007.webviewinspector.WebViewInspector
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,9 +16,11 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import io.github.chinmaydash007.webviewinspector.WebViewInspector
 
 class ComposeWebViewsActivity : ComponentActivity() {
     private val browsers = mutableListOf<WebView>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,7 +33,14 @@ class ComposeWebViewsActivity : ComponentActivity() {
                             WebView(context).apply {
                                 webViewClient = WebViewClient()
                                 if (path == "/embedded-one") {
-                                    WebViewInspector.loadUrl(this, baseUrl + path, mapOf("X-Demo-Mode" to "Advanced", "Authorization" to "Bearer synthetic-demo"))
+                                    WebViewInspector.loadUrl(
+                                        this,
+                                        baseUrl + path,
+                                        mapOf(
+                                            "X-Demo-Mode" to "Advanced",
+                                            "Authorization" to "Bearer synthetic-demo",
+                                        ),
+                                    )
                                 } else {
                                     // This unmodified load deliberately demonstrates Basic alongside Advanced.
                                     loadUrl(baseUrl + path)
@@ -46,5 +54,9 @@ class ComposeWebViewsActivity : ComponentActivity() {
             }
         }
     }
-    override fun onDestroy() { browsers.forEach { it.destroy() }; super.onDestroy() }
+
+    override fun onDestroy() {
+        browsers.forEach { it.destroy() }
+        super.onDestroy()
+    }
 }

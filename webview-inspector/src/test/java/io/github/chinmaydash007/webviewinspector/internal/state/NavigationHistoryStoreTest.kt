@@ -1,6 +1,10 @@
 package io.github.chinmaydash007.webviewinspector.internal.state
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NavigationHistoryStoreTest {
@@ -8,12 +12,31 @@ class NavigationHistoryStoreTest {
     private val other = HistoryTargetKey(1, 2)
     private val raw = "https://example.test/%2f?x=a+b&x=%252F#raw"
 
-    private fun open(store: NavigationHistoryStore, target: HistoryTargetKey = key) {
+    private fun open(
+        store: NavigationHistoryStore,
+        target: HistoryTargetKey = key,
+    ) {
         store.open(target, HistoryCaptureMode.NAVIGATION_EVENTS, 10)
     }
 
-    private fun event(id: Long = 1, phase: NavigationPhase = NavigationPhase.STARTED, url: String = raw) =
-        NavigationEvent(id, phase, url, 20, outcome = if (phase == NavigationPhase.COMPLETED) NavigationOutcome.COMMITTED else NavigationOutcome.IN_PROGRESS)
+    private fun event(
+        id: Long = 1,
+        phase: NavigationPhase = NavigationPhase.STARTED,
+        url: String = raw,
+    ) = NavigationEvent(
+        id,
+        phase,
+        url,
+        20,
+        outcome =
+            if (phase ==
+                NavigationPhase.COMPLETED
+            ) {
+                NavigationOutcome.COMMITTED
+            } else {
+                NavigationOutcome.IN_PROGRESS
+            },
+    )
 
     @Test fun redirectStepsAreGroupedAndCompletionDoesNotDuplicateTheFinalUrl() {
         val store = NavigationHistoryStore()
@@ -45,7 +68,13 @@ class NavigationHistoryStoreTest {
         store.startNavigation(key, event())
         store.startNavigation(key, event(id = 2).copy(flags = NavigationFlags(reload = true)))
         assertEquals(2, store.snapshot(key)!!.records.size)
-        assertTrue(store.snapshot(key)!!.records.first().flags.reload)
+        assertTrue(
+            store
+                .snapshot(key)!!
+                .records
+                .first()
+                .flags.reload,
+        )
     }
 
     @Test fun observedUrlsDeduplicateSamplesButKeepRevisitsAndOriginalStrings() {
@@ -77,7 +106,10 @@ class NavigationHistoryStoreTest {
 
     @Test fun clearAffectsOnlyTheChosenView() {
         val store = NavigationHistoryStore()
-        listOf(key, other).forEach { open(store, it); store.startNavigation(it, event()) }
+        listOf(key, other).forEach {
+            open(store, it)
+            store.startNavigation(it, event())
+        }
         store.clear(key)
         assertTrue(store.snapshot(key)!!.records.isEmpty())
         assertEquals(1, store.snapshot(other)!!.records.size)
@@ -104,7 +136,14 @@ class NavigationHistoryStoreTest {
         assertEquals(1, store.snapshot(key)!!.discardedCount)
         repeat(2) { store.startNavigation(other, event(id = it.toLong())) }
         assertEquals(1, store.snapshot(key)!!.records.size)
-        assertEquals(raw, store.snapshot(other)!!.records.first().rawUrl)
+        assertEquals(
+            raw,
+            store
+                .snapshot(other)!!
+                .records
+                .first()
+                .rawUrl,
+        )
     }
 
     @Test fun byteBudgetCountsUtf8AndRejectsOversizeUrlsWithoutTruncation() {
@@ -130,7 +169,10 @@ class NavigationHistoryStoreTest {
     @Test fun joinedNavigationAndFailedCompletionAreReportedWithoutInventingAStart() {
         val store = NavigationHistoryStore()
         open(store)
-        store.startNavigation(key, event(phase = NavigationPhase.COMPLETED).copy(outcome = NavigationOutcome.NOT_COMMITTED))
+        store.startNavigation(
+            key,
+            event(phase = NavigationPhase.COMPLETED).copy(outcome = NavigationOutcome.NOT_COMMITTED),
+        )
         val record = store.snapshot(key)!!.records.single()
         assertTrue(record.joinedInProgress)
         assertEquals(NavigationOutcome.NOT_COMMITTED, record.outcome)

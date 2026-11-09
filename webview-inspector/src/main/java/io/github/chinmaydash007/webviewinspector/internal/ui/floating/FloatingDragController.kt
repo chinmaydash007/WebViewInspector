@@ -51,47 +51,57 @@ internal class FloatingDragController(
         }
     }
 
-    private fun handleTouch(view: View, event: MotionEvent): Boolean = when (event.actionMasked) {
-        MotionEvent.ACTION_DOWN -> {
-            downX = event.rawX
-            downY = event.rawY
-            startX = control.translationX
-            startY = control.translationY
-            dragging = false
-            view.parent.requestDisallowInterceptTouchEvent(true)
-            true
-        }
-        MotionEvent.ACTION_MOVE -> {
-            val deltaX = event.rawX - downX
-            val deltaY = event.rawY - downY
-            if (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop) dragging = true
-            if (dragging) {
-                updateSafeBounds()
-                move(startX + deltaX, startY + deltaY)
-                rememberPosition()
+    private fun handleTouch(
+        view: View,
+        event: MotionEvent,
+    ): Boolean =
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.rawX
+                downY = event.rawY
+                startX = control.translationX
+                startY = control.translationY
+                dragging = false
+                view.parent.requestDisallowInterceptTouchEvent(true)
+                true
             }
-            true
-        }
-        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-            if (dragging) {
-                snapToEdge()
-                rememberPosition()
-            } else if (event.actionMasked == MotionEvent.ACTION_UP) {
-                view.performClick()
+
+            MotionEvent.ACTION_MOVE -> {
+                val deltaX = event.rawX - downX
+                val deltaY = event.rawY - downY
+                if (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop) dragging = true
+                if (dragging) {
+                    updateSafeBounds()
+                    move(startX + deltaX, startY + deltaY)
+                    rememberPosition()
+                }
+                true
             }
-            view.parent.requestDisallowInterceptTouchEvent(false)
-            true
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (dragging) {
+                    snapToEdge()
+                    rememberPosition()
+                } else if (event.actionMasked == MotionEvent.ACTION_UP) {
+                    view.performClick()
+                }
+                view.parent.requestDisallowInterceptTouchEvent(false)
+                true
+            }
+
+            else -> {
+                false
+            }
         }
-        else -> false
-    }
 
     private fun installAccessibilityMovement() {
-        val actions = listOf(
-            Triple(R.string.wvi_move_left, -MOVE_STEP_DP, 0),
-            Triple(R.string.wvi_move_right, MOVE_STEP_DP, 0),
-            Triple(R.string.wvi_move_up, 0, -MOVE_STEP_DP),
-            Triple(R.string.wvi_move_down, 0, MOVE_STEP_DP),
-        )
+        val actions =
+            listOf(
+                Triple(R.string.wvi_move_left, -MOVE_STEP_DP, 0),
+                Triple(R.string.wvi_move_right, MOVE_STEP_DP, 0),
+                Triple(R.string.wvi_move_up, 0, -MOVE_STEP_DP),
+                Triple(R.string.wvi_move_down, 0, MOVE_STEP_DP),
+            )
         actions.forEach { (label, deltaX, deltaY) ->
             ViewCompat.addAccessibilityAction(grip, context.getString(label)) { _, _ ->
                 updateSafeBounds()
@@ -102,19 +112,24 @@ internal class FloatingDragController(
         }
     }
 
-    private fun handleKey(keyCode: Int, event: KeyEvent): Boolean {
+    private fun handleKey(
+        keyCode: Int,
+        event: KeyEvent,
+    ): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN) return false
         val step = context.dp(MOVE_STEP_DP).toFloat()
-        val deltaX = when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> -step
-            KeyEvent.KEYCODE_DPAD_RIGHT -> step
-            else -> 0f
-        }
-        val deltaY = when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> -step
-            KeyEvent.KEYCODE_DPAD_DOWN -> step
-            else -> 0f
-        }
+        val deltaX =
+            when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> -step
+                KeyEvent.KEYCODE_DPAD_RIGHT -> step
+                else -> 0f
+            }
+        val deltaY =
+            when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> -step
+                KeyEvent.KEYCODE_DPAD_DOWN -> step
+                else -> 0f
+            }
         if (deltaX == 0f && deltaY == 0f) return false
 
         updateSafeBounds()
@@ -126,8 +141,9 @@ internal class FloatingDragController(
     /** Restores normalized position after geometry, insets, or label size changes. */
     fun place() {
         if (overlay.width == 0 || control.width == 0) return
-        val availableLabelWidth = (overlay.width - context.dp(CONTROL_RESERVED_WIDTH_DP))
-            .coerceAtLeast(context.dp(MIN_LABEL_WIDTH_DP))
+        val availableLabelWidth =
+            (overlay.width - context.dp(CONTROL_RESERVED_WIDTH_DP))
+                .coerceAtLeast(context.dp(MIN_LABEL_WIDTH_DP))
         updateLabelMaxWidth(minOf(context.dp(MAX_LABEL_WIDTH_DP), availableLabelWidth))
         updateSafeBounds()
         move(
@@ -138,8 +154,9 @@ internal class FloatingDragController(
 
     private fun updateSafeBounds() {
         val margin = context.dp(EDGE_MARGIN_DP)
-        val insetTypes = WindowInsetsCompat.Type.systemBars() or
-            WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime()
+        val insetTypes =
+            WindowInsetsCompat.Type.systemBars() or
+                WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime()
         val insets = ViewCompat.getRootWindowInsets(overlay)?.getInsets(insetTypes)
         safeBounds.set(
             (insets?.left ?: 0) + margin.toFloat(),
@@ -155,16 +172,20 @@ internal class FloatingDragController(
         overlay.getLocationOnScreen(overlayLocation)
         if (visibleFrame.height() > 0) {
             safeBounds.top = maxOf(safeBounds.top, visibleFrame.top - overlayLocation[1] + margin.toFloat())
-            safeBounds.bottom = minOf(
-                safeBounds.bottom,
-                visibleFrame.bottom - overlayLocation[1] - margin - control.height.toFloat(),
-            )
+            safeBounds.bottom =
+                minOf(
+                    safeBounds.bottom,
+                    visibleFrame.bottom - overlayLocation[1] - margin - control.height.toFloat(),
+                )
         }
         safeBounds.right = maxOf(safeBounds.left, safeBounds.right)
         safeBounds.bottom = maxOf(safeBounds.top, safeBounds.bottom)
     }
 
-    private fun move(x: Float, y: Float) {
+    private fun move(
+        x: Float,
+        y: Float,
+    ) {
         control.translationX = x.coerceIn(safeBounds.left, safeBounds.right)
         control.translationY = y.coerceIn(safeBounds.top, safeBounds.bottom)
     }
@@ -175,16 +196,18 @@ internal class FloatingDragController(
     }
 
     private fun rememberPosition() {
-        position.x = if (safeBounds.width() > 0) {
-            (control.translationX - safeBounds.left) / safeBounds.width()
-        } else {
-            0f
-        }
-        position.y = if (safeBounds.height() > 0) {
-            (control.translationY - safeBounds.top) / safeBounds.height()
-        } else {
-            0f
-        }
+        position.x =
+            if (safeBounds.width() > 0) {
+                (control.translationX - safeBounds.left) / safeBounds.width()
+            } else {
+                0f
+            }
+        position.y =
+            if (safeBounds.height() > 0) {
+                (control.translationY - safeBounds.top) / safeBounds.height()
+            } else {
+                0f
+            }
     }
 
     private companion object {

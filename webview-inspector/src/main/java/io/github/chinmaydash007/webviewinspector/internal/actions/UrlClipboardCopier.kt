@@ -17,7 +17,10 @@ internal class UrlClipboardCopier(
     private val context: Context,
     private val isVisible: (WebView) -> Boolean,
 ) {
-    fun copy(webView: WebView, number: Int) {
+    fun copy(
+        webView: WebView,
+        number: Int,
+    ) {
         if (!isVisible(webView)) return
         val rawUrl = runCatching { webView.url }.getOrNull() ?: return
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

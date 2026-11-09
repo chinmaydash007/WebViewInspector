@@ -97,11 +97,43 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 
 ## Develop and validate
 
+Use JDK 17 and Android SDK 36. From the repository root:
+
+```sh
+./gradlew spotlessCheck   # Check formatting and Kotlin style without rewriting files
+./gradlew spotlessApply   # Format covered source and Gradle files
+```
+
+Spotless 8.11.0 uses ktlint 1.8.0 for Kotlin/Gradle Kotlin scripts and
+google-java-format 1.28.0 (AOSP style) for Java. The root `.editorconfig` defines UTF-8,
+LF endings, four-space indentation, Kotlin's official ktlint style at 120 columns,
+and Java's formatter-defined 100-column layout. Versions are pinned in the version
+catalog. These tools are build dependencies only.
+
+Formatting covers the implementation, no-op, sample, tests and independent Java
+consumer, including their Gradle Kotlin scripts. Generated sources, build outputs,
+Gradle caches, `.tools`, `.idea` and Git metadata are excluded. Python, XML, YAML,
+Markdown, JSON and properties files are outside automatic formatting.
+
+In Android Studio, select JDK 17 as the Gradle JVM and run `spotlessApply` or
+`spotlessCheck` from the Gradle tool window. EditorConfig supplies editor defaults;
+the Gradle formatter is authoritative. No IDE plugin or shared `.idea` configuration
+is required. CI checks formatting; apply fixes locally before submitting changes.
+
+Run the complete non-publishing verification gate:
+
 ```sh
 JAVA_HOME=/path/to/jdk17 ANDROID_HOME=/path/to/android-sdk bash scripts/verify.sh
 ```
 
-This runs JVM tests, lint, native test APK assembly, all three sample variants, full/no-op API checks, unsigned local publication validation, publishing-script tests, and an independent **Java-only** Maven consumer, including R8. It never uploads to Central. The consumer uses coordinates rather than project dependencies and has no Compose or Kotlin Gradle plugin.
+This checks formatting first, then runs JVM tests, Android Lint for the full/no-op
+libraries, sample and consumer, native test APK assembly, all three sample variants,
+full/no-op API checks, unsigned local publication validation, publishing-script tests,
+and an independent **Java-only** Maven consumer, including R8. Android Lint errors
+fail verification; warnings remain reported under the existing policy. It never
+uploads to Central. The consumer uses coordinates rather than project dependencies
+and has no Compose or Kotlin Gradle plugin. Root formatting tasks also cover its
+source/build files without applying a formatting plugin to the consumer build.
 
 Run native tests only on an explicitly selected emulator:
 

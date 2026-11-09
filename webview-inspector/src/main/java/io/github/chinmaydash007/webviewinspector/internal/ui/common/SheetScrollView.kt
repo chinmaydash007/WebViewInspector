@@ -18,9 +18,10 @@ internal class SheetScrollView(
 ) : NestedScrollView(context) {
     private val dragGuard = if (guardOwnGestures) SheetDragGuard(behavior) { canScrollVertically(-1) } else null
 
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        return dragGuard?.dispatch(event) { super.dispatchTouchEvent(event) } ?: super.dispatchTouchEvent(event)
-    }
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+        dragGuard?.dispatch(event) {
+            super.dispatchTouchEvent(event)
+        } ?: super.dispatchTouchEvent(event)
 
     override fun onDetachedFromWindow() {
         dragGuard?.release()

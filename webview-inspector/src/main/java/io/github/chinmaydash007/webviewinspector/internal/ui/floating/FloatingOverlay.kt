@@ -38,19 +38,21 @@ internal class FloatingOverlay(
     private val domain = context.label(size = DOMAIN_SIZE_SP, muted = true)
     private val opener = LinearLayout(context)
     private val copyButton = context.icon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy), copy)
-    private val grip = context.label("⠿", size = GRIP_SIZE_SP, muted = true).apply {
-        gravity = Gravity.CENTER
-        contentDescription = context.getString(R.string.wvi_drag)
-        isFocusable = true
-        isClickable = true
-        layoutParams = LinearLayout.LayoutParams(context.dp(GRIP_WIDTH_DP), context.dp(CONTROL_HEIGHT_DP))
-        setOnClickListener { open() }
-    }
-    private val dragController = FloatingDragController(this, control, grip, position) { maximum ->
-        // Changing maxWidth only when necessary avoids repeated layout/discovery loops.
-        if (title.maxWidth != maximum) title.maxWidth = maximum
-        if (domain.maxWidth != maximum) domain.maxWidth = maximum
-    }
+    private val grip =
+        context.label("⠿", size = GRIP_SIZE_SP, muted = true).apply {
+            gravity = Gravity.CENTER
+            contentDescription = context.getString(R.string.wvi_drag)
+            isFocusable = true
+            isClickable = true
+            layoutParams = LinearLayout.LayoutParams(context.dp(GRIP_WIDTH_DP), context.dp(CONTROL_HEIGHT_DP))
+            setOnClickListener { open() }
+        }
+    private val dragController =
+        FloatingDragController(this, control, grip, position) { maximum ->
+            // Changing maxWidth only when necessary avoids repeated layout/discovery loops.
+            if (title.maxWidth != maximum) title.maxWidth = maximum
+            if (domain.maxWidth != maximum) domain.maxWidth = maximum
+        }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var outline: RectF? = null
     private var outlineNumber = 0
@@ -71,11 +73,12 @@ internal class FloatingOverlay(
         control.orientation = LinearLayout.HORIZONTAL
         control.gravity = Gravity.CENTER_VERTICAL
         control.padding(CONTROL_PADDING_DP)
-        control.background = context.shape(
-            color = context.color(R.color.wvi_surface),
-            radius = CONTROL_RADIUS_DP,
-            border = context.color(R.color.wvi_primary),
-        )
+        control.background =
+            context.shape(
+                color = context.color(R.color.wvi_surface),
+                radius = CONTROL_RADIUS_DP,
+                border = context.color(R.color.wvi_primary),
+            )
         control.elevation = context.dp(CONTROL_ELEVATION_DP).toFloat()
         control.addView(grip)
         opener.apply {
@@ -119,12 +122,20 @@ internal class FloatingOverlay(
         } ?: context.getString(R.string.wvi_copy)
     }
 
-    override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
+    override fun onSizeChanged(
+        width: Int,
+        height: Int,
+        oldWidth: Int,
+        oldHeight: Int,
+    ) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
         dragController.place()
     }
 
-    fun highlight(bounds: Rect?, number: Int = 0) {
+    fun highlight(
+        bounds: Rect?,
+        number: Int = 0,
+    ) {
         outline = bounds?.let { RectF(it) }
         outlineNumber = number
         invalidate()
@@ -141,7 +152,10 @@ internal class FloatingOverlay(
         drawTargetBadge(canvas, bounds)
     }
 
-    private fun drawTargetBadge(canvas: Canvas, bounds: RectF) {
+    private fun drawTargetBadge(
+        canvas: Canvas,
+        bounds: RectF,
+    ) {
         paint.style = Paint.Style.FILL
         paint.textSize = context.dp(BADGE_TEXT_SIZE_DP).toFloat()
         val text = context.getString(R.string.wvi_view_number, outlineNumber)

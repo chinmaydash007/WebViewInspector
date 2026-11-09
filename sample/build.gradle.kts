@@ -6,13 +6,33 @@ plugins {
 android {
     namespace = "io.github.chinmaydash007.webviewinspector.sample"
     compileSdk = 36
-    defaultConfig { applicationId = "io.github.chinmaydash007.webviewinspector.sample"; minSdk = 24; targetSdk = 35; versionCode = 1; versionName = project.version.toString() }
+    defaultConfig {
+        applicationId = "io.github.chinmaydash007.webviewinspector.sample"
+        minSdk = 24
+        targetSdk =
+            35
+        versionCode = 1
+        versionName = project.version.toString()
+    }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }
-        release { isMinifyEnabled = true; signingConfig = signingConfigs.getByName("debug"); proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")) }
-        create("diagnostic") { initWith(getByName("release")); applicationIdSuffix = ".diagnostic"; matchingFallbacks += "release" }
+        release {
+            isMinifyEnabled = true
+            signingConfig =
+                signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
+        create("diagnostic") {
+            initWith(getByName("release"))
+            applicationIdSuffix =
+                ".diagnostic"
+            matchingFallbacks += "release"
+        }
     }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     buildFeatures { compose = true }
 }
 kotlin { jvmToolchain(17) }

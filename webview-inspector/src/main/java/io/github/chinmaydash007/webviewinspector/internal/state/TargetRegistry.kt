@@ -9,7 +9,10 @@ import java.lang.ref.WeakReference
  * and value equality never identify a target. A missing selection requires an explicit new choice.
  */
 internal class TargetRegistry<T : Any> {
-    internal class Target<T : Any>(val id: Long, view: T) {
+    internal class Target<T : Any>(
+        val id: Long,
+        view: T,
+    ) {
         val reference = WeakReference(view)
         var number = 0
     }
@@ -32,12 +35,14 @@ internal class TargetRegistry<T : Any> {
     /** Keeps identities for surviving instances; only the first discovery selects automatically. */
     fun refresh(visibleViews: List<T>) {
         knownTargets.removeAll { it.reference.get() == null }
-        targets = visibleViews.mapIndexed { index, view ->
-            val target = knownTargets.firstOrNull { it.reference.get() === view }
-                ?: Target(id = ++nextId, view = view).also(knownTargets::add)
-            target.number = index + 1
-            target
-        }
+        targets =
+            visibleViews.mapIndexed { index, view ->
+                val target =
+                    knownTargets.firstOrNull { it.reference.get() === view }
+                        ?: Target(id = ++nextId, view = view).also(knownTargets::add)
+                target.number = index + 1
+                target
+            }
 
         if (selectedId != null && targets.none { it.id == selectedId }) {
             selectedId = null

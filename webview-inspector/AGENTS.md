@@ -38,13 +38,18 @@ Read the [root guide](../README.md), [architecture](docs/ARCHITECTURE.md), and [
 ## Checks
 
 Use JDK 17 and the committed wrapper. Set JAVA_HOME and ANDROID_HOME for your machine.
+Run root `./gradlew spotlessApply` after source/build-script changes and
+`./gradlew spotlessCheck` before verification. This includes JVM and native test hosts;
+expand wildcard imports rather than suppressing their lint. Preserve test assertions,
+API names and original URL/header literals. Use the root `.editorconfig` and Gradle
+formatter in Android Studio instead of committing IDE metadata. The complete gate is
+`bash scripts/verify.sh`, including formatting and Android Lint for every Android project.
 
 ```sh
 ./gradlew :webview-inspector:testDebugUnitTest :webview-inspector:lintDebug \
   :webview-inspector:assembleDebugAndroidTest :webview-inspector-no-op:assembleRelease
 ./gradlew :sample:assembleDebug :sample:assembleRelease \
-  :sample:assembleDiagnostic \
-  :sample:assembleDebug
+  :sample:assembleDiagnostic
 ./gradlew :sample:dependencyInsight --configuration releaseRuntimeClasspath --dependency webview-inspector
 ```
 

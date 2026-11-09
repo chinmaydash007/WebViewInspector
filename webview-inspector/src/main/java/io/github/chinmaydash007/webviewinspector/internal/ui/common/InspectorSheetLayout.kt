@@ -13,11 +13,15 @@ import io.github.chinmaydash007.webviewinspector.R
  * Current URL freezes its measured height during polling; explicit UI transitions remeasure it.
  * The root gates the whole gesture stream so pinned controls cannot bypass scroll-first dismissal.
  */
-internal class InspectorSheetLayout(context: Context, behavior: BottomSheetBehavior<*>) : ViewGroup(context) {
-    val scroll = SheetScrollView(context, behavior, guardOwnGestures = false).apply {
-        id = R.id.wvi_sheet_scroll
-        isFillViewport = false
-    }
+internal class InspectorSheetLayout(
+    context: Context,
+    behavior: BottomSheetBehavior<*>,
+) : ViewGroup(context) {
+    val scroll =
+        SheetScrollView(context, behavior, guardOwnGestures = false).apply {
+            id = R.id.wvi_sheet_scroll
+            isFillViewport = false
+        }
     private val dragGuard = SheetDragGuard(behavior) { scroll.canScrollVertically(-1) }
     private var header: View? = null
     private var footer: View? = null
@@ -36,7 +40,11 @@ internal class InspectorSheetLayout(context: Context, behavior: BottomSheetBehav
         id = R.id.wvi_sheet
     }
 
-    fun setSections(header: View, content: View, footer: View) {
+    fun setSections(
+        header: View,
+        content: View,
+        footer: View,
+    ) {
         this.header = header
         this.footer = footer
         scroll.addView(content, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
@@ -59,7 +67,10 @@ internal class InspectorSheetLayout(context: Context, behavior: BottomSheetBehav
         super.onDetachedFromWindow()
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    override fun onMeasure(
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val visible = Rect().also(::getWindowVisibleDisplayFrame)
         val windowHeight = visible.height().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels
@@ -83,7 +94,13 @@ internal class InspectorSheetLayout(context: Context, behavior: BottomSheetBehav
         setMeasuredDimension(width, height)
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+    override fun onLayout(
+        changed: Boolean,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+    ) {
         val headerHeight = header?.measuredHeight ?: 0
         val footerHeight = footer?.measuredHeight ?: 0
         header?.layout(0, 0, width, headerHeight)

@@ -25,7 +25,10 @@ internal fun Context.dp(value: Int): Int = (value * resources.displayMetrics.den
 
 internal fun Context.color(resourceId: Int): Int = ContextCompat.getColor(this, resourceId)
 
-internal fun View.padding(horizontal: Int, vertical: Int = horizontal) {
+internal fun View.padding(
+    horizontal: Int,
+    vertical: Int = horizontal,
+) {
     setPadding(context.dp(horizontal), context.dp(vertical), context.dp(horizontal), context.dp(vertical))
 }
 
@@ -33,23 +36,29 @@ internal fun Context.shape(
     color: Int,
     radius: Int = DEFAULT_CORNER_RADIUS_DP,
     border: Int? = null,
-): GradientDrawable = GradientDrawable().also { drawable ->
-    drawable.setColor(color)
-    drawable.cornerRadius = dp(radius).toFloat()
-    border?.let { borderColor -> drawable.setStroke(dp(BORDER_WIDTH_DP), borderColor) }
-}
+): GradientDrawable =
+    GradientDrawable().also { drawable ->
+        drawable.setColor(color)
+        drawable.cornerRadius = dp(radius).toFloat()
+        border?.let { borderColor -> drawable.setStroke(dp(BORDER_WIDTH_DP), borderColor) }
+    }
 
 internal fun Context.label(
     text: CharSequence = "",
     size: Float = DEFAULT_TEXT_SIZE_SP,
     muted: Boolean = false,
-): TextView = TextView(this).also { label ->
-    label.text = text
-    label.textSize = size
-    label.setTextColor(color(if (muted) R.color.wvi_muted else R.color.wvi_text))
-}
+): TextView =
+    TextView(this).also { label ->
+        label.text = text
+        label.textSize = size
+        label.setTextColor(color(if (muted) R.color.wvi_muted else R.color.wvi_text))
+    }
 
-internal fun Context.icon(drawable: Int, description: String, onClick: () -> Unit): ImageButton =
+internal fun Context.icon(
+    drawable: Int,
+    description: String,
+    onClick: () -> Unit,
+): ImageButton =
     ImageButton(this).also { button ->
         button.setImageResource(drawable)
         button.imageTintList = ColorStateList.valueOf(color(R.color.wvi_primary))
@@ -60,6 +69,7 @@ internal fun Context.icon(drawable: Int, description: String, onClick: () -> Uni
         button.layoutParams = LinearLayout.LayoutParams(dp(ICON_TOUCH_SIZE_DP), dp(ICON_TOUCH_SIZE_DP))
     }
 
-internal fun TextView.bold(): TextView = apply {
-    setTypeface(typeface, Typeface.BOLD)
-}
+internal fun TextView.bold(): TextView =
+    apply {
+        setTypeface(typeface, Typeface.BOLD)
+    }

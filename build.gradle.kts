@@ -1,3 +1,4 @@
+import com.diffplug.spotless.LineEnding
 import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.gradle.api.publish.PublishingExtension
@@ -10,7 +11,46 @@ plugins {
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.publishing) apply false
     alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.spotless)
 }
+
+spotless {
+    encoding("UTF-8")
+    lineEndings = LineEnding.UNIX
+    val excludedTargets =
+        arrayOf(
+            "**/build/**",
+            "**/generated/**",
+            "**/.gradle/**",
+            "**/.kotlin/**",
+            "**/.tools/**",
+            "**/.idea/**",
+            "**/.git/**",
+        )
+
+    kotlin {
+        target("**/*.kt")
+        targetExclude(*excludedTargets)
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target("**/*.gradle.kts")
+        targetExclude(*excludedTargets)
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    java {
+        target("**/*.java")
+        targetExclude(*excludedTargets)
+        googleJavaFormat(libs.versions.gjf.get()).aosp()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
 allprojects {
     group = providers.gradleProperty("GROUP").get()
     version = providers.gradleProperty("VERSION_NAME").get()
@@ -25,17 +65,41 @@ subprojects {
     val module = this
     pluginManager.withPlugin("com.vanniktech.maven.publish.base") {
         module.extensions.configure<MavenPublishBaseExtension> {
-            configure(AndroidSingleVariantLibrary(variant = "release", sourcesJar = true, publishJavadocJar = false))
+            configure(
+                AndroidSingleVariantLibrary(
+                    variant = "release",
+                    sourcesJar = true,
+                    publishJavadocJar = false,
+                ),
+            )
             coordinates(module.group.toString(), module.name, module.version.toString())
             publishToMavenCentral()
             if (providers.gradleProperty("signingInMemoryKey").isPresent) signAllPublications()
             pom {
                 name.set(if (module.name.endsWith("no-op")) "WebView Inspector No-op" else "WebView Inspector")
-                description.set("An Android floating WebView URL and navigation history inspector with a matching production no-op facade.")
+                description.set(
+                    "An Android floating WebView URL and navigation history inspector with a matching production no-op facade.",
+                )
                 url.set("https://github.com/chinmaydash007/WebViewInspector")
                 inceptionYear.set("2026")
-                licenses { license { name.set("The Apache License, Version 2.0"); url.set("https://www.apache.org/licenses/LICENSE-2.0.txt"); distribution.set("repo") } }
-                developers { developer { id.set("chinmaydash007"); name.set("chinmaydash007"); url.set("https://github.com/chinmaydash007") } }
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                        distribution.set(
+                            "repo",
+                        )
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("chinmaydash007")
+                        name.set("chinmaydash007")
+                        url.set(
+                            "https://github.com/chinmaydash007",
+                        )
+                    }
+                }
                 scm {
                     url.set("https://github.com/chinmaydash007/WebViewInspector")
                     connection.set("scm:git:https://github.com/chinmaydash007/WebViewInspector.git")
@@ -43,23 +107,32 @@ subprojects {
                 }
             }
         }
-        val apiDocsJar = module.tasks.register<Jar>("apiDocsJar") {
-            dependsOn("dokkaGeneratePublicationHtml")
-            archiveClassifier.set("javadoc")
-            from(layout.buildDirectory.dir("dokka/html"))
-            from(rootProject.file("README.md"))
-            from(rootProject.file("LICENSE"))
-            from(rootProject.file("NOTICE"))
-            from(rootProject.file("CONTRIBUTING.md"))
-            from(rootProject.file("AGENTS.md"))
-            from(rootProject.file("VALIDATION.md"))
-            from(rootProject.file("docs")) { into("docs") }
-            from(rootProject.file("webview-inspector/docs")) { into("webview-inspector/docs") }
-            isPreserveFileTimestamps = false
-            isReproducibleFileOrder = true
-        }
+        val apiDocsJar =
+            module.tasks.register<Jar>("apiDocsJar") {
+                dependsOn("dokkaGeneratePublicationHtml")
+                archiveClassifier.set("javadoc")
+                from(layout.buildDirectory.dir("dokka/html"))
+                from(rootProject.file("README.md"))
+                from(rootProject.file("LICENSE"))
+                from(rootProject.file("NOTICE"))
+                from(rootProject.file("CONTRIBUTING.md"))
+                from(rootProject.file("AGENTS.md"))
+                from(rootProject.file("VALIDATION.md"))
+                from(rootProject.file("docs")) { into("docs") }
+                from(rootProject.file("webview-inspector/docs")) { into("webview-inspector/docs") }
+                isPreserveFileTimestamps = false
+                isReproducibleFileOrder = true
+            }
         module.extensions.configure<PublishingExtension> {
-            repositories.maven { name = "Validation"; url = rootProject.layout.buildDirectory.dir("validation-repository").get().asFile.toURI() }
+            repositories.maven {
+                name = "Validation"
+                url =
+                    rootProject.layout.buildDirectory
+                        .dir("validation-repository")
+                        .get()
+                        .asFile
+                        .toURI()
+            }
             publications.withType<MavenPublication>().configureEach { artifact(apiDocsJar) }
         }
         module.tasks.withType<Jar>().configureEach {
@@ -68,12 +141,12 @@ subprojects {
             if (name == "sourceReleaseJar" || name.contains("sources", ignoreCase = true)) {
                 from(rootProject.file("README.md"))
                 from(rootProject.file("LICENSE"))
-            from(rootProject.file("NOTICE"))
-            from(rootProject.file("CONTRIBUTING.md"))
-            from(rootProject.file("AGENTS.md"))
-            from(rootProject.file("VALIDATION.md"))
-            from(rootProject.file("docs")) { into("docs") }
-            from(rootProject.file("webview-inspector/docs")) { into("webview-inspector/docs") }
+                from(rootProject.file("NOTICE"))
+                from(rootProject.file("CONTRIBUTING.md"))
+                from(rootProject.file("AGENTS.md"))
+                from(rootProject.file("VALIDATION.md"))
+                from(rootProject.file("docs")) { into("docs") }
+                from(rootProject.file("webview-inspector/docs")) { into("webview-inspector/docs") }
             }
         }
     }

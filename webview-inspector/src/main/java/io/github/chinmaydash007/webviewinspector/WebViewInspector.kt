@@ -16,31 +16,35 @@ import io.github.chinmaydash007.webviewinspector.internal.core.InspectorControll
 object WebViewInspector {
     private val main = Handler(Looper.getMainLooper())
     private var controller: InspectorController? = null
+
     @Volatile
     private var enabled = false
 
     /** Installs once, initially enabled. Repeated calls preserve the active installation. */
     @JvmStatic
-    fun install(application: Application) = onMain {
-        if (controller == null) {
-            controller = InspectorController(application) { enabled = it }.also { it.install() }
+    fun install(application: Application) =
+        onMain {
+            if (controller == null) {
+                controller = InspectorController(application) { enabled = it }.also { it.install() }
+            }
         }
-    }
 
     /** Shows library-owned settings for either Activity family, installing first if necessary. */
     @JvmStatic
-    fun showSettings(activity: Activity) = onMain {
-        if (!activity.isFinishing && !activity.isDestroyed) {
-            install(activity.application)
-            controller?.showSettings(activity)
+    fun showSettings(activity: Activity) =
+        onMain {
+            if (!activity.isFinishing && !activity.isDestroyed) {
+                install(activity.application)
+                controller?.showSettings(activity)
+            }
         }
-    }
 
     /** Enables/disables the current installation; calls before installation have no effect. */
     @JvmStatic
-    fun setEnabled(enabled: Boolean) = onMain {
-        controller?.setEnabled(enabled)
-    }
+    fun setEnabled(enabled: Boolean) =
+        onMain {
+            controller?.setEnabled(enabled)
+        }
 
     /** Returns the last applied main-thread state, which may lag a queued background-thread call. */
     @JvmStatic
@@ -51,7 +55,10 @@ object WebViewInspector {
      * An installed, enabled inspector snapshots this call; no headers are invented.
      */
     @JvmStatic
-    fun loadUrl(webView: WebView, url: String) {
+    fun loadUrl(
+        webView: WebView,
+        url: String,
+    ) {
         captureLoad(webView, url, emptyMap())
         webView.loadUrl(url)
     }
@@ -62,12 +69,20 @@ object WebViewInspector {
      * exceptions from WebView propagate normally. Never posts or changes the caller's thread.
      */
     @JvmStatic
-    fun loadUrl(webView: WebView, url: String, headers: Map<String, String>) {
+    fun loadUrl(
+        webView: WebView,
+        url: String,
+        headers: Map<String, String>,
+    ) {
         captureLoad(webView, url, headers)
         webView.loadUrl(url, headers)
     }
 
-    private fun captureLoad(webView: WebView, url: String, headers: Map<String, String>) {
+    private fun captureLoad(
+        webView: WebView,
+        url: String,
+        headers: Map<String, String>,
+    ) {
         // Preserve WebView's own thread/error behavior rather than adding asynchronous loading.
         if (Looper.myLooper() != Looper.getMainLooper()) return
         try {
@@ -79,11 +94,12 @@ object WebViewInspector {
 
     /** Releases callbacks, timers, dialogs, and overlays. Repeated calls are safe. */
     @JvmStatic
-    fun uninstall() = onMain {
-        controller?.dispose()
-        controller = null
-        enabled = false
-    }
+    fun uninstall() =
+        onMain {
+            controller?.dispose()
+            controller = null
+            enabled = false
+        }
 
     private fun onMain(action: () -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) {

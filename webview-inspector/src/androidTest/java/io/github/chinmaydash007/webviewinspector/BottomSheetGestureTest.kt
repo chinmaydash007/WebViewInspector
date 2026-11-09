@@ -11,9 +11,9 @@ import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.GeneralSwipeAction
 import androidx.test.espresso.action.Press
 import androidx.test.espresso.action.Swipe
+import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -64,10 +64,14 @@ class BottomSheetGestureTest {
                 layout.history = true
                 scroll = layout.scroll
                 val content = context.label((1..60).joinToString("\n") { "Recorded navigation $it" })
-                val footer = context.label("Pinned footer").apply {
-                    id = R.id.wvi_sheet_footer
-                    minimumHeight = context.resources.displayMetrics.density.times(48).toInt()
-                }
+                val footer =
+                    context.label("Pinned footer").apply {
+                        id = R.id.wvi_sheet_footer
+                        minimumHeight =
+                            context.resources.displayMetrics.density
+                                .times(48)
+                                .toInt()
+                    }
                 layout.setSections(body, content, footer)
                 dialog.setContentView(layout)
                 dialog.show()
@@ -85,7 +89,10 @@ class BottomSheetGestureTest {
         instrumentation.waitForIdleSync()
         val focusDeadline = android.os.SystemClock.uptimeMillis() + 5_000
         while (!ui { dialog.window?.decorView?.hasWindowFocus() == true }) {
-            assertTrue("Fixture dialog must receive window focus", android.os.SystemClock.uptimeMillis() < focusDeadline)
+            assertTrue(
+                "Fixture dialog must receive window focus",
+                android.os.SystemClock.uptimeMillis() < focusDeadline,
+            )
             Thread.sleep(50)
         }
         for (speed in listOf(Swipe.SLOW, Swipe.FAST)) {
@@ -96,18 +103,40 @@ class BottomSheetGestureTest {
             for (region in listOf(R.id.wvi_sheet_header, R.id.wvi_sheet_footer)) {
                 val position = ui { visibleScreenRect(requireNotNull(dialog.findViewById(region))) }
                 val now = android.os.SystemClock.uptimeMillis()
-                val down = android.view.MotionEvent.obtain(now, now, android.view.MotionEvent.ACTION_DOWN,
-                    position.exactCenterX(), position.top + position.height() * 0.25f, 0)
+                val down =
+                    android.view.MotionEvent.obtain(
+                        now,
+                        now,
+                        android.view.MotionEvent.ACTION_DOWN,
+                        position.exactCenterX(),
+                        position.top + position.height() * 0.25f,
+                        0,
+                    )
                 instrumentation.sendPointerSync(down)
                 down.recycle()
-                assertFalse("Native down at $position, scrollY=${ui { scroll.scrollY }}, must reach the root gate", ui { dialog.behavior.isDraggable })
-                val cancel = android.view.MotionEvent.obtain(now, now + 10, android.view.MotionEvent.ACTION_CANCEL,
-                    position.exactCenterX(), position.top + position.height() * 0.25f, 0)
+                assertFalse(
+                    "Native down at $position, scrollY=${ui { scroll.scrollY }}, must reach the root gate",
+                    ui {
+                        dialog.behavior.isDraggable
+                    },
+                )
+                val cancel =
+                    android.view.MotionEvent.obtain(
+                        now,
+                        now + 10,
+                        android.view.MotionEvent.ACTION_CANCEL,
+                        position.exactCenterX(),
+                        position.top + position.height() * 0.25f,
+                        0,
+                    )
                 instrumentation.sendPointerSync(cancel)
                 cancel.recycle()
                 swipeDown(speed, region)
                 ui {
-                    assertTrue("Pinned-region $region ($speed) at $position must not dismiss scrolled content", dialog.isShowing)
+                    assertTrue(
+                        "Pinned-region $region ($speed) at $position must not dismiss scrolled content",
+                        dialog.isShowing,
+                    )
                     assertEquals(BottomSheetBehavior.STATE_EXPANDED, dialog.behavior.state)
                     assertTrue("Pinned-region gestures must restore dragging", dialog.behavior.isDraggable)
                 }
@@ -138,7 +167,15 @@ class BottomSheetGestureTest {
             root.dispatchTouchEvent(down)
             down.recycle()
             assertFalse("A gesture below the top must lock sheet dragging", dialog.behavior.isDraggable)
-            val cancel = android.view.MotionEvent.obtain(now, now + 10, android.view.MotionEvent.ACTION_CANCEL, 10f, 10f, 0)
+            val cancel =
+                android.view.MotionEvent.obtain(
+                    now,
+                    now + 10,
+                    android.view.MotionEvent.ACTION_CANCEL,
+                    10f,
+                    10f,
+                    0,
+                )
             root.dispatchTouchEvent(cancel)
             cancel.recycle()
             assertTrue("Cancellation must release the gesture gate", dialog.behavior.isDraggable)
@@ -149,23 +186,54 @@ class BottomSheetGestureTest {
         assertFalse("A separate downward gesture starting at the top must still dismiss", ui { dialog.isShowing })
     }
 
-    private fun swipeDown(speed: Swipe, region: Int? = null) {
-        onView(withId(R.id.wvi_sheet)).inRoot(isDialog()).perform(object : ViewAction {
-            override fun getDescription() = "$speed downward gesture through the sheet content"
-            override fun getConstraints(): Matcher<View> = isAssignableFrom(View::class.java)
-            override fun perform(uiController: UiController, view: View) {
-                val bounds = visibleScreenRect(scroll)
-                val start = if (region == null) bounds else visibleScreenRect(requireNotNull(dialog.findViewById(region)))
-                val startY = if (region == null) bounds.top + bounds.height() * 0.2f else start.top + start.height() * 0.25f
-                val endY = if (region == R.id.wvi_sheet_footer) start.bottom - 2f else bounds.top + bounds.height() * 0.85f
-                GeneralSwipeAction(
-                    speed,
-                    { floatArrayOf(bounds.exactCenterX(), startY) },
-                    { floatArrayOf(bounds.exactCenterX(), endY) },
-                    Press.FINGER,
-                ).perform(uiController, scroll)
-            }
-        })
+    private fun swipeDown(
+        speed: Swipe,
+        region: Int? = null,
+    ) {
+        onView(withId(R.id.wvi_sheet)).inRoot(isDialog()).perform(
+            object : ViewAction {
+                override fun getDescription() = "$speed downward gesture through the sheet content"
+
+                override fun getConstraints(): Matcher<View> = isAssignableFrom(View::class.java)
+
+                override fun perform(
+                    uiController: UiController,
+                    view: View,
+                ) {
+                    val bounds = visibleScreenRect(scroll)
+                    val start =
+                        if (region ==
+                            null
+                        ) {
+                            bounds
+                        } else {
+                            visibleScreenRect(requireNotNull(dialog.findViewById(region)))
+                        }
+                    val startY =
+                        if (region ==
+                            null
+                        ) {
+                            bounds.top + bounds.height() * 0.2f
+                        } else {
+                            start.top + start.height() * 0.25f
+                        }
+                    val endY =
+                        if (region ==
+                            R.id.wvi_sheet_footer
+                        ) {
+                            start.bottom - 2f
+                        } else {
+                            bounds.top + bounds.height() * 0.85f
+                        }
+                    GeneralSwipeAction(
+                        speed,
+                        { floatArrayOf(bounds.exactCenterX(), startY) },
+                        { floatArrayOf(bounds.exactCenterX(), endY) },
+                        Press.FINGER,
+                    ).perform(uiController, scroll)
+                }
+            },
+        )
     }
 
     private fun visibleScreenRect(view: View): Rect {

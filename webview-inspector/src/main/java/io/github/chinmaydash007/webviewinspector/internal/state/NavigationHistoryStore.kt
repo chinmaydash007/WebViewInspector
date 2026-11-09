@@ -24,27 +24,40 @@ internal class NavigationHistoryStore(
     private val histories = linkedMapOf<HistoryTargetKey, History>()
     private var nextRecordId = 0L
 
-    fun open(key: HistoryTargetKey, mode: HistoryCaptureMode, atMillis: Long) {
+    fun open(
+        key: HistoryTargetKey,
+        mode: HistoryCaptureMode,
+        atMillis: Long,
+    ) {
         val history = histories.getOrPut(key) { History() }
         history.mode = mode
         val pausedAt = history.pausedAt
         history.pausedAt = null
         if (pausedAt != null) {
-            append(history, NavigationRecord(
-                id = ++nextRecordId,
-                kind = HistoryRecordKind.GAP,
-                atMillis = pausedAt,
-                gapEndMillis = atMillis,
-            ))
+            append(
+                history,
+                NavigationRecord(
+                    id = ++nextRecordId,
+                    kind = HistoryRecordKind.GAP,
+                    atMillis = pausedAt,
+                    gapEndMillis = atMillis,
+                ),
+            )
         }
     }
 
-    fun setMode(key: HistoryTargetKey, mode: HistoryCaptureMode) {
+    fun setMode(
+        key: HistoryTargetKey,
+        mode: HistoryCaptureMode,
+    ) {
         histories[key]?.mode = mode
     }
 
     /** Marks a real observation gap once, without retaining any source Activity or WebView. */
-    fun pause(key: HistoryTargetKey, atMillis: Long) {
+    fun pause(
+        key: HistoryTargetKey,
+        atMillis: Long,
+    ) {
         histories[key]?.let { if (it.pausedAt == null) it.pausedAt = atMillis }
     }
 
@@ -52,7 +65,12 @@ internal class NavigationHistoryStore(
      * Seeds an honestly labelled first observation. Subsequent samples record only changes and
      * never claim a redirect or success. Fingerprints avoid retaining unbudgeted baseline URLs.
      */
-    fun observe(key: HistoryTargetKey, rawUrl: String?, atMillis: Long, recordChanges: Boolean): Boolean {
+    fun observe(
+        key: HistoryTargetKey,
+        rawUrl: String?,
+        atMillis: Long,
+        recordChanges: Boolean,
+    ): Boolean {
         if (rawUrl == null) return false
         val history = histories[key] ?: return false
         val fingerprint = fingerprint(rawUrl)
@@ -61,64 +79,92 @@ internal class NavigationHistoryStore(
         history.observed = true
         history.lastFingerprint = fingerprint
         if (!initial && !recordChanges) return false
-        append(history, NavigationRecord(
-            id = ++nextRecordId,
-            kind = if (initial) HistoryRecordKind.FIRST_OBSERVED else HistoryRecordKind.OBSERVED_CHANGE,
-            atMillis = atMillis,
-            steps = listOf(NavigationStep(phase = null, rawUrl = rawUrl, atMillis = atMillis)),
-        ))
+        append(
+            history,
+            NavigationRecord(
+                id = ++nextRecordId,
+                kind = if (initial) HistoryRecordKind.FIRST_OBSERVED else HistoryRecordKind.OBSERVED_CHANGE,
+                atMillis = atMillis,
+                steps = listOf(NavigationStep(phase = null, rawUrl = rawUrl, atMillis = atMillis)),
+            ),
+        )
         return true
     }
 
     /** Listener events update the baseline without creating sampled duplicates on the next resume. */
-    fun rememberUrl(key: HistoryTargetKey, rawUrl: String) {
+    fun rememberUrl(
+        key: HistoryTargetKey,
+        rawUrl: String,
+    ) {
         histories[key]?.let { history ->
             history.observed = true
             history.lastFingerprint = fingerprint(rawUrl)
         }
     }
 
-    fun startNavigation(key: HistoryTargetKey, event: NavigationEvent): Long {
+    fun startNavigation(
+        key: HistoryTargetKey,
+        event: NavigationEvent,
+    ): Long {
         val id = ++nextRecordId
         val history = histories[key] ?: return id
-        append(history, NavigationRecord(
-            id = id,
-            kind = HistoryRecordKind.NAVIGATION,
-            atMillis = event.atMillis,
-            steps = listOf(NavigationStep(event.phase, event.rawUrl, event.atMillis)),
-            flags = event.flags,
-            outcome = event.outcome,
-            completedAtMillis = event.atMillis.takeIf { event.phase == NavigationPhase.COMPLETED },
-            joinedInProgress = event.phase != NavigationPhase.STARTED,
-        ))
+        append(
+            history,
+            NavigationRecord(
+                id = id,
+                kind = HistoryRecordKind.NAVIGATION,
+                atMillis = event.atMillis,
+                steps = listOf(NavigationStep(event.phase, event.rawUrl, event.atMillis)),
+                flags = event.flags,
+                outcome = event.outcome,
+                completedAtMillis = event.atMillis.takeIf { event.phase == NavigationPhase.COMPLETED },
+                joinedInProgress = event.phase != NavigationPhase.STARTED,
+            ),
+        )
         return id
     }
 
     /** An evicted/cleared record cannot be resurrected by a late redirect or completion. */
-    fun updateNavigation(key: HistoryTargetKey, recordId: Long, event: NavigationEvent) {
+    fun updateNavigation(
+        key: HistoryTargetKey,
+        recordId: Long,
+        event: NavigationEvent,
+    ) {
         val history = histories[key] ?: return
         val index = history.records.indexOfFirst { it.id == recordId }
         if (index < 0) return
         val previous = history.records[index]
         val appendStep = event.phase != NavigationPhase.COMPLETED || previous.rawUrl != event.rawUrl
-        history.records[index] = previous.copy(
-            steps = if (appendStep) previous.steps + NavigationStep(event.phase, event.rawUrl, event.atMillis) else previous.steps,
-            flags = event.flags,
-            outcome = event.outcome,
-            completedAtMillis = event.atMillis.takeIf { event.phase == NavigationPhase.COMPLETED },
-        )
+        history.records[index] =
+            previous.copy(
+                steps =
+                    if (appendStep) {
+                        previous.steps +
+                            NavigationStep(
+                                event.phase,
+                                event.rawUrl,
+                                event.atMillis,
+                            )
+                    } else {
+                        previous.steps
+                    },
+                flags = event.flags,
+                outcome = event.outcome,
+                completedAtMillis = event.atMillis.takeIf { event.phase == NavigationPhase.COMPLETED },
+            )
         enforceLimits()
     }
 
-    fun snapshot(key: HistoryTargetKey): NavigationHistorySnapshot? = histories[key]?.let { history ->
-        NavigationHistorySnapshot(
-            key = key,
-            mode = history.mode,
-            records = history.records.asReversed().toList(),
-            discardedCount = history.discarded,
-            paused = history.pausedAt != null,
-        )
-    }
+    fun snapshot(key: HistoryTargetKey): NavigationHistorySnapshot? =
+        histories[key]?.let { history ->
+            NavigationHistorySnapshot(
+                key = key,
+                mode = history.mode,
+                records = history.records.asReversed().toList(),
+                discardedCount = history.discarded,
+                paused = history.pausedAt != null,
+            )
+        }
 
     /** Keeps the sampling baseline so clearing does not immediately re-add the same current URL. */
     fun clear(key: HistoryTargetKey) {
@@ -134,11 +180,15 @@ internal class NavigationHistoryStore(
 
     fun clearAll() = histories.clear()
 
-    internal fun storedUrlBytes(): Int = histories.values.sumOf { history ->
-        history.records.sumOf { record -> record.steps.sumOf { it.rawUrl.toByteArray(Charsets.UTF_8).size } }
-    }
+    internal fun storedUrlBytes(): Int =
+        histories.values.sumOf { history ->
+            history.records.sumOf { record -> record.steps.sumOf { it.rawUrl.toByteArray(Charsets.UTF_8).size } }
+        }
 
-    private fun append(history: History, record: NavigationRecord) {
+    private fun append(
+        history: History,
+        record: NavigationRecord,
+    ) {
         history.records.add(record)
         enforceLimits()
     }
@@ -148,8 +198,10 @@ internal class NavigationHistoryStore(
             while (history.records.size > perTargetLimit) discardOldest(history)
         }
         while (histories.values.sumOf { it.records.size } > processLimit || storedUrlBytes() > urlByteLimit) {
-            val oldest = histories.values.filter { it.records.isNotEmpty() }
-                .minByOrNull { it.records.first().id } ?: break
+            val oldest =
+                histories.values
+                    .filter { it.records.isNotEmpty() }
+                    .minByOrNull { it.records.first().id } ?: break
             discardOldest(oldest)
         }
         // Empty retired targets need no unbounded metadata after their records have been evicted.

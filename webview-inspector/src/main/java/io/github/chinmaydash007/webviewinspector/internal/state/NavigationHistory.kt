@@ -1,11 +1,17 @@
 package io.github.chinmaydash007.webviewinspector.internal.state
 
 /** Immutable, view-free history values. The controller confines their owner to the main thread. */
-internal data class HistoryTargetKey(val activityScope: Long, val targetId: Long)
+internal data class HistoryTargetKey(
+    val activityScope: Long,
+    val targetId: Long,
+)
 
 internal enum class HistoryCaptureMode { NAVIGATION_EVENTS, OBSERVED_URLS }
+
 internal enum class HistoryRecordKind { FIRST_OBSERVED, NAVIGATION, OBSERVED_CHANGE, GAP }
+
 internal enum class NavigationPhase { STARTED, REDIRECTED, COMPLETED }
+
 internal enum class NavigationOutcome { IN_PROGRESS, COMMITTED, NOT_COMMITTED, ERROR_PAGE }
 
 internal data class NavigationFlags(
@@ -25,7 +31,11 @@ internal data class NavigationEvent(
     val outcome: NavigationOutcome = NavigationOutcome.IN_PROGRESS,
 )
 
-internal data class NavigationStep(val phase: NavigationPhase?, val rawUrl: String, val atMillis: Long)
+internal data class NavigationStep(
+    val phase: NavigationPhase?,
+    val rawUrl: String,
+    val atMillis: Long,
+)
 
 internal data class NavigationRecord(
     val id: Long,
@@ -53,10 +63,11 @@ internal data class NavigationHistorySnapshot(
 internal class InspectorSheetState {
     var tab = InspectorTab.CURRENT_URL
     val expandedRecordIds = mutableSetOf<Long>()
-    private val targets = object : LinkedHashMap<Long, TargetSheetState>(16, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, TargetSheetState>?): Boolean =
-            size > MAX_TARGET_PREFERENCES
-    }
+    private val targets =
+        object : LinkedHashMap<Long, TargetSheetState>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, TargetSheetState>?): Boolean =
+                size > MAX_TARGET_PREFERENCES
+        }
 
     fun target(id: Long): TargetSheetState = targets.getOrPut(id) { TargetSheetState() }
 
@@ -76,4 +87,7 @@ internal class TargetSheetState {
     var appLoadsAnchor: HistoryScrollAnchor? = null
 }
 
-internal data class HistoryScrollAnchor(val recordId: Long, val offset: Int)
+internal data class HistoryScrollAnchor(
+    val recordId: Long,
+    val offset: Int,
+)

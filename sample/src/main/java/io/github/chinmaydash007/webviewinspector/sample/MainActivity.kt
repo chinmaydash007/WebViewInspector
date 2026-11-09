@@ -19,12 +19,26 @@ class MainActivity : AppCompatActivity() {
             view.setPadding(bars.left + 24, bars.top + 24, bars.right + 24, bars.bottom + 24)
             insets
         }
-        content.addView(TextView(this).apply {
-            text = "WebView Inspector sample\n\nBasic discovers URLs and navigation automatically. Advanced captures app-supplied URLs and synthetic headers through the load helper. Select App loads to inspect those inputs; navigation and redirect headers are not inferred. Release uses no-op and still loads normally. Pages use loopback."
-            textSize = 18f
-        })
-        fun action(title: String, run: () -> Unit) = content.addView(Button(this).apply { text = title; setOnClickListener { run() } })
-        action("Compose · Basic and Advanced together") { startActivity(Intent(this, ComposeWebViewsActivity::class.java)) }
+        content.addView(
+            TextView(this).apply {
+                text =
+                    "WebView Inspector sample\n\nBasic discovers URLs and navigation automatically. Advanced captures app-supplied URLs and synthetic headers through the load helper. Select App loads to inspect those inputs; navigation and redirect headers are not inferred. Release uses no-op and still loads normally. Pages use loopback."
+                textSize = 18f
+            },
+        )
+
+        fun action(
+            title: String,
+            run: () -> Unit,
+        ) = content.addView(
+            Button(this).apply {
+                text = title
+                setOnClickListener { run() }
+            },
+        )
+        action(
+            "Compose · Basic and Advanced together",
+        ) { startActivity(Intent(this, ComposeWebViewsActivity::class.java)) }
         action("XML · Advanced with real redirects") { startActivity(Intent(this, XmlWebViewActivity::class.java)) }
         action("Inspector settings") { WebViewInspector.showSettings(this) }
         setContentView(content)

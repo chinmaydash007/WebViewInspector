@@ -1,7 +1,12 @@
 package io.github.chinmaydash007.webviewinspector.internal.state
 
 import io.github.chinmaydash007.webviewinspector.internal.util.AppLoadsPresentation
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.lang.ref.WeakReference
 
@@ -10,7 +15,9 @@ class AppLoadStoreTest {
     private val second = HistoryTargetKey(1, 2)
 
     @Test fun equalRecycledIdentifiersCannotMergeDifferentInstances() {
-        data class Card(val resourceId: Int)
+        data class Card(
+            val resourceId: Int,
+        )
         val a = Card(7)
         val b = Card(7)
         assertEquals(a, b)
@@ -20,8 +27,26 @@ class AppLoadStoreTest {
         store.capture(b, "same URL", mapOf("Authorization" to "second"), 2)
         store.bind(a, first)
         store.bind(b, second)
-        assertEquals("first", store.snapshot(first)!!.records.single().headers.single().value)
-        assertEquals("second", store.snapshot(second)!!.records.single().headers.single().value)
+        assertEquals(
+            "first",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .headers
+                .single()
+                .value,
+        )
+        assertEquals(
+            "second",
+            store
+                .snapshot(second)!!
+                .records
+                .single()
+                .headers
+                .single()
+                .value,
+        )
     }
 
     @Test fun pendingCapturesBindByInstanceAndSnapshotMutableMaps() {
@@ -35,9 +60,34 @@ class AppLoadStoreTest {
         assertNull(store.snapshot(first))
         store.bind(b, second)
         store.bind(a, first)
-        assertEquals("Bearer A+%2B", store.snapshot(first)!!.records.single().headers.first().value)
-        assertEquals("x-CaSe", store.snapshot(first)!!.records.single().headers.last().name)
-        assertTrue(store.snapshot(second)!!.records.single().headers.isEmpty())
+        assertEquals(
+            "Bearer A+%2B",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .headers
+                .first()
+                .value,
+        )
+        assertEquals(
+            "x-CaSe",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .headers
+                .last()
+                .name,
+        )
+        assertTrue(
+            store
+                .snapshot(second)!!
+                .records
+                .single()
+                .headers
+                .isEmpty(),
+        )
     }
 
     @Test fun repeatedUrlsAndEmptyHeadersAreDistinctCallsWithoutInheritance() {
@@ -63,9 +113,23 @@ class AppLoadStoreTest {
         store.clear(first)
         assertNotNull(store.snapshot(first))
         assertTrue(store.snapshot(first)!!.records.isEmpty())
-        assertEquals("second", store.snapshot(second)!!.records.single().rawUrl)
+        assertEquals(
+            "second",
+            store
+                .snapshot(second)!!
+                .records
+                .single()
+                .rawUrl,
+        )
         store.capture(a, "third", emptyMap(), 3)
-        assertEquals("third", store.snapshot(first)!!.records.single().rawUrl)
+        assertEquals(
+            "third",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .rawUrl,
+        )
     }
 
     @Test fun globalEvictionCannotForgetThatAClearedLiveInstanceIsAdvanced() {
@@ -100,7 +164,14 @@ class AppLoadStoreTest {
         store.removeScope(1)
         assertNull(store.snapshot(first))
         assertEquals(1, store.recordCount())
-        assertEquals("other", store.snapshot(otherActivity)!!.records.single().rawUrl)
+        assertEquals(
+            "other",
+            store
+                .snapshot(otherActivity)!!
+                .records
+                .single()
+                .rawUrl,
+        )
         store.clearAll()
         assertEquals(0, store.recordCount())
     }
@@ -116,7 +187,14 @@ class AppLoadStoreTest {
         references.forEach { it.clear() }
         store.prune()
         assertEquals(1, store.recordCount())
-        assertEquals("saved", store.snapshot(first)!!.records.single().rawUrl)
+        assertEquals(
+            "saved",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .rawUrl,
+        )
     }
 
     @Test fun visibilityChangesAndRebindingDoNotDuplicateOrDropRecords() {
@@ -151,7 +229,16 @@ class AppLoadStoreTest {
         store.capture(view, "b", mapOf("X" to "raw"), 2)
         store.bind(view, first)
         assertEquals(5, store.storedTextBytes())
-        assertEquals("raw", store.snapshot(first)!!.records.single().headers.single().value)
+        assertEquals(
+            "raw",
+            store
+                .snapshot(first)!!
+                .records
+                .single()
+                .headers
+                .single()
+                .value,
+        )
         assertEquals(1, store.snapshot(first)!!.discardedCount)
         store.capture(view, "oversized", mapOf("X" to "must not be truncated"), 3)
         assertTrue(store.snapshot(first)!!.records.isEmpty())
@@ -167,22 +254,48 @@ class AppLoadStoreTest {
         store.capture(view, "new", emptyMap(), 2)
         store.clear(first)
         assertEquals("original", saved.records.single().rawUrl)
-        assertEquals("value", saved.records.single().headers.single().value)
+        assertEquals(
+            "value",
+            saved.records
+                .single()
+                .headers
+                .single()
+                .value,
+        )
     }
 
     @Test fun exportPreservesOriginalStringsOrderTimestampsAndDiscardNotice() {
         val view = Any()
         val store = AppLoadStore<Any>(perTargetLimit = 2)
         store.capture(view, "discard", emptyMap(), 0)
-        store.capture(view, "https://example/?raw=A%2Bb&dup=1&dup=2#raw", linkedMapOf("x-CaSe" to "  +%2B  ", "Authorization" to "Bearer secret"), 1)
+        store.capture(
+            view,
+            "https://example/?raw=A%2Bb&dup=1&dup=2#raw",
+            linkedMapOf(
+                "x-CaSe" to "  +%2B  ",
+                "Authorization" to "Bearer secret",
+            ),
+            1,
+        )
         store.capture(view, "https://example/next", emptyMap(), 2)
         store.bind(view, first)
         val snapshot = store.snapshot(first)!!
         val text = AppLoadsPresentation.export(snapshot, 2)
-        assertTrue(text.startsWith("App loads · WebView 2\nApp-supplied inputs; not verified network headers.\nDiscarded app loads: 1\n"))
-        assertTrue(text.contains("https://example/?raw=A%2Bb&dup=1&dup=2#raw\nHeaders: 2\nx-CaSe:   +%2B  \nAuthorization: Bearer secret\n"))
+        assertTrue(
+            text.startsWith(
+                "App loads · WebView 2\nApp-supplied inputs; not verified network headers.\nDiscarded app loads: 1\n",
+            ),
+        )
+        assertTrue(
+            text.contains(
+                "https://example/?raw=A%2Bb&dup=1&dup=2#raw\nHeaders: 2\nx-CaSe:   +%2B  \nAuthorization: Bearer secret\n",
+            ),
+        )
         assertTrue(text.indexOf("#raw") < text.indexOf("https://example/next"))
         assertTrue(text.contains("1970-01-01T"))
-        assertEquals("x-CaSe:   +%2B  \nAuthorization: Bearer secret", AppLoadsPresentation.headers(snapshot.records[1]))
+        assertEquals(
+            "x-CaSe:   +%2B  \nAuthorization: Bearer secret",
+            AppLoadsPresentation.headers(snapshot.records[1]),
+        )
     }
 }

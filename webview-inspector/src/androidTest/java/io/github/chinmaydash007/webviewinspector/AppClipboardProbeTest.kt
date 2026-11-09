@@ -28,13 +28,19 @@ class AppClipboardProbeTest {
         val initial = arguments.getString("wviExpectedPreviousUrl")
         val destination = arguments.getString("wviExpectedCurrentUrl")
         val headers = arguments.getString("wviExpectedInputsBase64")
-        assumeTrue("Only run after copying explicit app loads from the minified redirect sample", initial != null && destination != null && headers != null)
+        assumeTrue(
+            "Only run after copying explicit app loads from the minified redirect sample",
+            initial != null && destination != null && headers != null,
+        )
         val expectedHeaders = String(Base64.decode(requireNotNull(headers), Base64.DEFAULT), Charsets.UTF_8)
         withForegroundClipboard { actual ->
             assertTrue(actual.orEmpty().contains(requireNotNull(initial)))
             assertTrue(actual.orEmpty().contains(expectedHeaders))
             assertTrue(actual.orEmpty().contains("not verified network headers"))
-            assertTrue("Redirects must not manufacture app-load inputs", !actual.orEmpty().contains(requireNotNull(destination)))
+            assertTrue(
+                "Redirects must not manufacture app-load inputs",
+                !actual.orEmpty().contains(requireNotNull(destination)),
+            )
         }
     }
 
@@ -52,7 +58,13 @@ class AppClipboardProbeTest {
         withForegroundClipboard { actual ->
             assertTrue(actual.orEmpty().contains(requireNotNull(previous)))
             assertTrue(actual.orEmpty().contains(requireNotNull(current)))
-            assertTrue(actual.orEmpty().contains(InstrumentationRegistry.getInstrumentation().targetContext.getString(io.github.chinmaydash007.webviewinspector.R.string.wvi_navigation_events)))
+            assertTrue(
+                actual.orEmpty().contains(
+                    InstrumentationRegistry.getInstrumentation().targetContext.getString(
+                        io.github.chinmaydash007.webviewinspector.R.string.wvi_navigation_events,
+                    ),
+                ),
+            )
         }
     }
 
@@ -71,7 +83,12 @@ class AppClipboardProbeTest {
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 try {
                     assertTrue("Clipboard probe must own foreground focus", focused)
-                    assertion(clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+                    assertion(
+                        clipboard.primaryClip
+                            ?.getItemAt(0)
+                            ?.text
+                            ?.toString(),
+                    )
                 } finally {
                     WebViewInspector.uninstall()
                 }

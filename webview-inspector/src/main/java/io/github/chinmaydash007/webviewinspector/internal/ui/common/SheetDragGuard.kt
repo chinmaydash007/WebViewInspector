@@ -14,7 +14,10 @@ internal class SheetDragGuard(
     private var previousDraggable: Boolean? = null
     val isBlocking: Boolean get() = previousDraggable != null
 
-    fun dispatch(event: MotionEvent, dispatchToChildren: () -> Boolean): Boolean {
+    fun dispatch(
+        event: MotionEvent,
+        dispatchToChildren: () -> Boolean,
+    ): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             release()
             if (contentCanScrollUp()) {

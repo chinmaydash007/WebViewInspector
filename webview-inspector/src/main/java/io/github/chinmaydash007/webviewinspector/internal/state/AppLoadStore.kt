@@ -14,9 +14,15 @@ internal class AppLoadStore<T : Any>(
     private val textLimit: Long = 2L * 1024 * 1024,
     private val referenceFactory: (T) -> WeakReference<T> = { WeakReference(it) },
 ) {
-    private data class StoredRecord(val record: AppLoadRecord, val textBytes: Long)
+    private data class StoredRecord(
+        val record: AppLoadRecord,
+        val textBytes: Long,
+    )
 
-    private class Entry<T : Any>(val reference: WeakReference<T>, var ownerScope: Long?) {
+    private class Entry<T : Any>(
+        val reference: WeakReference<T>,
+        var ownerScope: Long?,
+    ) {
         var key: HistoryTargetKey? = null
         val records = mutableListOf<StoredRecord>()
         var discarded = 0
@@ -26,24 +32,39 @@ internal class AppLoadStore<T : Any>(
     private var nextRecordId = 0L
 
     /** Snapshot before delegation; no original map or view is retained in a record. */
-    fun capture(view: T, rawUrl: String, headers: Map<String, String>, atMillis: Long, ownerScope: Long? = null) {
+    fun capture(
+        view: T,
+        rawUrl: String,
+        headers: Map<String, String>,
+        atMillis: Long,
+        ownerScope: Long? = null,
+    ) {
         prune()
         val snapshot = headers.entries.map { AppLoadHeader(it.key, it.value) }
-        val entry = entries.firstOrNull { it.reference.get() === view }
-            ?: Entry(referenceFactory(view), ownerScope).also(entries::add)
+        val entry =
+            entries.firstOrNull { it.reference.get() === view }
+                ?: Entry(referenceFactory(view), ownerScope).also(entries::add)
         if (entry.ownerScope == null) entry.ownerScope = ownerScope
         val record = AppLoadRecord(++nextRecordId, atMillis, rawUrl, snapshot)
         entry.records.add(StoredRecord(record, textBytes(record)))
         while (entry.records.size > perTargetLimit) discardOldest(entry)
         while (recordCount() > processLimit || storedTextBytes() > textLimit) {
-            val oldest = entries.filter { it.records.isNotEmpty() }.minByOrNull { it.records.first().record.id } ?: break
+            val oldest =
+                entries.filter { it.records.isNotEmpty() }.minByOrNull {
+                    it.records
+                        .first()
+                        .record.id
+                } ?: break
             discardOldest(oldest)
         }
         prune()
     }
 
     /** Resolves a pending capture by exact instance; never compares URLs or resource IDs. */
-    fun bind(view: T, key: HistoryTargetKey) {
+    fun bind(
+        view: T,
+        key: HistoryTargetKey,
+    ) {
         prune()
         entries.firstOrNull { it.reference.get() === view }?.let { entry ->
             entry.key = key
@@ -82,6 +103,7 @@ internal class AppLoadStore<T : Any>(
     }
 
     internal fun recordCount(): Int = entries.sumOf { it.records.size }
+
     internal fun storedTextBytes(): Long = entries.sumOf { entry -> entry.records.sumOf(StoredRecord::textBytes) }
 
     private fun discardOldest(entry: Entry<T>) {
@@ -89,8 +111,18 @@ internal class AppLoadStore<T : Any>(
         entry.discarded++
     }
 
-    private fun textBytes(record: AppLoadRecord): Long = record.rawUrl.toByteArray(Charsets.UTF_8).size.toLong() +
-        record.headers.sumOf { it.name.toByteArray(Charsets.UTF_8).size.toLong() + it.value.toByteArray(Charsets.UTF_8).size }
+    private fun textBytes(record: AppLoadRecord): Long =
+        record.rawUrl
+            .toByteArray(Charsets.UTF_8)
+            .size
+            .toLong() +
+            record.headers.sumOf {
+                it.name
+                    .toByteArray(Charsets.UTF_8)
+                    .size
+                    .toLong() +
+                    it.value.toByteArray(Charsets.UTF_8).size
+            }
 
     private companion object {
         const val MAX_RETIRED_TARGETS = 500

@@ -22,13 +22,17 @@ internal class LocateHighlighter(
     private val main = Handler(Looper.getMainLooper())
     private var target: WeakReference<WebView>? = null
     private var targetNumber = 0
-    private val clearHighlight = Runnable {
-        target = null
-        drawHighlight(null, 0)
-    }
+    private val clearHighlight =
+        Runnable {
+            target = null
+            drawHighlight(null, 0)
+        }
 
     /** The timer survives the brief focus handoff while the inspector dialog is dismissed. */
-    fun show(webView: WebView, number: Int) {
+    fun show(
+        webView: WebView,
+        number: Int,
+    ) {
         target = WeakReference(webView)
         targetNumber = number
         main.removeCallbacks(clearHighlight)

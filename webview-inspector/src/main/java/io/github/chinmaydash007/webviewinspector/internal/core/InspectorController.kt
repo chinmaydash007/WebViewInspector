@@ -10,10 +10,10 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewTreeObserver
 import android.webkit.WebView
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
 import io.github.chinmaydash007.webviewinspector.internal.state.FloatingPosition
 import io.github.chinmaydash007.webviewinspector.internal.state.InspectorActivityState
 import io.github.chinmaydash007.webviewinspector.internal.state.NavigationHistoryStore
-import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.BottomSheetFactory
 import io.github.chinmaydash007.webviewinspector.internal.ui.sheet.SettingsSheet
 import java.lang.ref.WeakReference
@@ -54,9 +54,10 @@ internal class InspectorController(
         enabled = value
         enabledChanged(value)
         if (value) {
-            val activity = resumedActivities.keys.lastOrNull { it.hasWindowFocus() }
-                ?: settingsOwner?.get()?.takeIf { resumedActivities.containsKey(it) }
-                ?: resumedActivities.keys.lastOrNull()
+            val activity =
+                resumedActivities.keys.lastOrNull { it.hasWindowFocus() }
+                    ?: settingsOwner?.get()?.takeIf { resumedActivities.containsKey(it) }
+                    ?: resumedActivities.keys.lastOrNull()
             activity?.let(::activate)
         } else {
             session?.dispose()
@@ -68,14 +69,25 @@ internal class InspectorController(
     }
 
     /** Captures explicit helper inputs even before attachment; normal discovery owns selection. */
-    fun captureLoad(view: WebView, url: String, headers: Map<String, String>) {
+    fun captureLoad(
+        view: WebView,
+        url: String,
+        headers: Map<String, String>,
+    ) {
         if (!enabled || disposed) return
         val owner = activityOwner(view.context)
         if (owner?.isDestroyed == true) return
-        val scope = owner?.let { activity ->
-            activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) }.scope
-        }
-        appLoads.capture(view, rawUrl = url, headers = headers, atMillis = System.currentTimeMillis(), ownerScope = scope)
+        val scope =
+            owner?.let { activity ->
+                activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) }.scope
+            }
+        appLoads.capture(
+            view,
+            rawUrl = url,
+            headers = headers,
+            atMillis = System.currentTimeMillis(),
+            ownerScope = scope,
+        )
         session?.capturedLoadsChanged()
     }
 
@@ -114,16 +126,17 @@ internal class InspectorController(
         }
 
         session?.dispose()
-        session = InspectorSession(
-            activity = activity,
-            position = position,
-            activityState = activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) },
-            historyStore = historyStore,
-            appLoads = appLoads,
-            settingsOwnFocus = {
-                settings?.dialog?.isShowing == true && settingsOwner?.get() === activity
-            },
-        ).also { it.start() }
+        session =
+            InspectorSession(
+                activity = activity,
+                position = position,
+                activityState = activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) },
+                historyStore = historyStore,
+                appLoads = appLoads,
+                settingsOwnFocus = {
+                    settings?.dialog?.isShowing == true && settingsOwner?.get() === activity
+                },
+            ).also { it.start() }
     }
 
     /** Releases live UI on pause/stop while preserving weak selection for the same Activity. */
@@ -145,18 +158,21 @@ internal class InspectorController(
         resumedActivities.remove(activity)?.detach()
         val activityReference = WeakReference(activity)
         val root = activity.window.decorView
-        val listener = ViewTreeObserver.OnWindowFocusChangeListener { focused ->
-            main.post {
-                val resumedActivity = activityReference.get()
-                    ?.takeIf { resumedActivities.containsKey(it) }
-                    ?: return@post
-                if (focused) {
-                    activate(resumedActivity)
-                } else {
-                    session?.takeIf { it.belongsTo(resumedActivity) }?.refreshVisibility()
+        val listener =
+            ViewTreeObserver.OnWindowFocusChangeListener { focused ->
+                main.post {
+                    val resumedActivity =
+                        activityReference
+                            .get()
+                            ?.takeIf { resumedActivities.containsKey(it) }
+                            ?: return@post
+                    if (focused) {
+                        activate(resumedActivity)
+                    } else {
+                        session?.takeIf { it.belongsTo(resumedActivity) }?.refreshVisibility()
+                    }
                 }
             }
-        }
         root.viewTreeObserver.addOnWindowFocusChangeListener(listener)
         resumedActivities[activity] = FocusWatch(WeakReference(root), listener)
         activate(activity)
@@ -175,9 +191,17 @@ internal class InspectorController(
         }
     }
 
-    override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
+    override fun onActivityCreated(
+        activity: Activity,
+        state: Bundle?,
+    ) = Unit
+
     override fun onActivityStarted(activity: Activity) = Unit
-    override fun onActivitySaveInstanceState(activity: Activity, state: Bundle) = Unit
+
+    override fun onActivitySaveInstanceState(
+        activity: Activity,
+        state: Bundle,
+    ) = Unit
 
     fun dispose() {
         disposed = true
@@ -202,7 +226,11 @@ internal class InspectorController(
         private val listener: ViewTreeObserver.OnWindowFocusChangeListener,
     ) {
         fun detach() {
-            root.get()?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnWindowFocusChangeListener(listener)
+            root
+                .get()
+                ?.viewTreeObserver
+                ?.takeIf { it.isAlive }
+                ?.removeOnWindowFocusChangeListener(listener)
         }
     }
 }

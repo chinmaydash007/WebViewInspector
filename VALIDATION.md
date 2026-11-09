@@ -1,5 +1,52 @@
 # Standalone validation
 
+## Lint and formatting setup — 8 November 2026
+
+Added root Spotless 8.11.0 with ktlint 1.8.0 for Kotlin/Gradle Kotlin scripts and
+google-java-format 1.28.0 AOSP for Java, on the existing JDK 17 / Gradle 8.13 toolchain.
+All 69 existing covered source/build files now pass the full-tree style check. Root
+`.editorconfig` supplies four-space indentation, LF/UTF-8, 120-column Kotlin and
+formatter-defined 100-column Java. Formatter dependencies remain build tooling only.
+
+Fresh local evidence:
+
+| Check | Result |
+|---|---|
+| Deliberately malformed Kotlin, Java and Gradle probes | All three rejected by `spotlessCheck`; `spotlessApply` repaired them |
+| Read-only checks / repeat apply | Source hashes unchanged by checks; second apply produced no changes |
+| Exclusion probes | Build/generated sources, Gradle/Kotlin caches, `.tools` and `.idea` remained untouched |
+| Literal audit | Kotlin lexer / Java parser preserved literal sequences across all 69 source/build files; existing root-build literals remain with additional tooling configuration |
+| JVM tests | All 38 passed, zero failures/errors/skips |
+| Android Lint | Zero errors in full, no-op, sample and Java consumer; existing warnings remain reported (39 / 0 / 7 / 1) |
+| API parity / no-op forwarding | Seven matching static methods; helpers still delegate exactly once |
+| Publishing/content guards | All 30 passed; both locally staged publications validated |
+| Sample / independent Java consumer | All three variants of each built, including both minified profiles |
+| Packaged isolation | All six APKs require API 24; both production builds contain zero inspector resources, implementation names or internal R8 mappings |
+| Published dependency inventory | No Spotless, ktlint or google-java-format dependencies in either publication |
+
+The first normalization passes reported wildcard imports and long-line diagnostics.
+Imports were expanded explicitly and layout corrected without disabling rules or
+weakening assertions. The pinned ktlint CLI helped materialize intermediate formatting
+for the initial mixed-style files; the final supported workflow is the root Spotless
+tasks. All formatting probes were removed before compiling or staging publications.
+Temporary checks/tools and logs are ignored under `build/reports/formatting-2026-11-08/`
+and `.tools/formatting/`.
+
+`scripts/verify.sh` now checks formatting first and includes Android Lint for every
+Android project, including the independent consumer. Existing main/PR and release
+validation use that script. CI does not apply formatting. The consumer still uses
+Maven coordinates and has no Kotlin or formatting Gradle plugin.
+
+Existing local Gradle edits were preserved and normalized; unrelated IDE metadata and
+the consuming app checkout were preserved. API 24, version 0.3.0, runtime behavior and
+release safeguards are unchanged. No commits, pushes, repository visibility changes,
+signing, publication or app distribution were performed. Generated local unsigned
+publications are validation outputs, not replacement release artifacts.
+
+Instrumentation hosts were compiled; device/emulator interaction suites were not rerun
+for this formatting/build-tooling change. Runtime, clipboard and device evidence below
+retains its original dates and is not presented as fresh execution.
+
 ## 0.3.0 Basic / Advanced preparation — 1 November 2026
 
 **Original unreleased preparation checkpoint.** At that checkpoint no commits, pushes,

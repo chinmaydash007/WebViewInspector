@@ -35,7 +35,10 @@ internal class WebViewDetector(
         return webView.getGlobalVisibleRect(visibleBounds) && !visibleBounds.isEmpty
     }
 
-    private fun collectVisibleWebViews(view: View, targets: MutableList<WebView>) {
+    private fun collectVisibleWebViews(
+        view: View,
+        targets: MutableList<WebView>,
+    ) {
         if (view === inspectorOverlay || view.visibility != View.VISIBLE || view.alpha <= 0f) return
 
         if (view is WebView) {

@@ -7,24 +7,24 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.webkit.WebView
 import android.widget.FrameLayout
 import io.github.chinmaydash007.webviewinspector.R
+import io.github.chinmaydash007.webviewinspector.internal.actions.AppLoadClipboardCopier
+import io.github.chinmaydash007.webviewinspector.internal.actions.HistoryClipboardCopier
 import io.github.chinmaydash007.webviewinspector.internal.actions.LocateHighlighter
 import io.github.chinmaydash007.webviewinspector.internal.actions.UrlClipboardCopier
-import io.github.chinmaydash007.webviewinspector.internal.actions.HistoryClipboardCopier
-import io.github.chinmaydash007.webviewinspector.internal.actions.AppLoadClipboardCopier
-import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
-import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadCopyPart
-import io.github.chinmaydash007.webviewinspector.internal.util.AppLoadsPresentation
 import io.github.chinmaydash007.webviewinspector.internal.detection.WebViewDetector
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadCopyPart
+import io.github.chinmaydash007.webviewinspector.internal.state.AppLoadStore
 import io.github.chinmaydash007.webviewinspector.internal.state.FloatingPosition
-import io.github.chinmaydash007.webviewinspector.internal.state.InspectorState
-import io.github.chinmaydash007.webviewinspector.internal.state.TargetInfo
-import io.github.chinmaydash007.webviewinspector.internal.state.InspectorActivityState
-import io.github.chinmaydash007.webviewinspector.internal.state.NavigationHistoryStore
 import io.github.chinmaydash007.webviewinspector.internal.state.HistoryTargetKey
+import io.github.chinmaydash007.webviewinspector.internal.state.InspectorActivityState
+import io.github.chinmaydash007.webviewinspector.internal.state.InspectorState
+import io.github.chinmaydash007.webviewinspector.internal.state.NavigationHistoryStore
+import io.github.chinmaydash007.webviewinspector.internal.state.TargetInfo
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.BottomSheetFactory
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.inspectorTheme
 import io.github.chinmaydash007.webviewinspector.internal.ui.floating.FloatingOverlay
 import io.github.chinmaydash007.webviewinspector.internal.ui.sheet.InspectorSheet
+import io.github.chinmaydash007.webviewinspector.internal.util.AppLoadsPresentation
 import java.lang.ref.WeakReference
 
 /**
@@ -52,14 +52,15 @@ internal class InspectorSession(
     private val appLoadCopier = AppLoadClipboardCopier(activity)
     private val highlighter = LocateHighlighter(root, overlay, detector::isVisible, overlay::highlight)
     private val monitor = InspectorMonitor(root, ::discoverTargets, ::sampleUrls, highlighter::update)
-    private val historyObserver = NavigationHistoryObserver(
-        activityScope = activityState.scope,
-        store = historyStore,
-        source = navigationSource,
-        readUrl = { view -> runCatching { view.url }.getOrNull() },
-        isVisible = detector::isVisible,
-        changed = ::render,
-    )
+    private val historyObserver =
+        NavigationHistoryObserver(
+            activityScope = activityState.scope,
+            store = historyStore,
+            source = navigationSource,
+            readUrl = { view -> runCatching { view.url }.getOrNull() },
+            isVisible = detector::isVisible,
+            changed = ::render,
+        )
     private var sheet: InspectorSheet? = null
     private var disposed = false
 
@@ -89,8 +90,9 @@ internal class InspectorSession(
     fun refreshVisibility() {
         if (disposed) return
         val activity = host.get()
-        val active = activity != null && !activity.isFinishing && !activity.isDestroyed &&
-            (activity.hasWindowFocus() || sheet?.dialog?.isShowing == true || settingsOwnFocus())
+        val active =
+            activity != null && !activity.isFinishing && !activity.isDestroyed &&
+                (activity.hasWindowFocus() || sheet?.dialog?.isShowing == true || settingsOwnFocus())
         monitor.setActive(active)
 
         if (active) {
@@ -117,12 +119,14 @@ internal class InspectorSession(
         registry.targets.forEach { target ->
             target.reference.get()?.let { appLoads.bind(it, HistoryTargetKey(activityState.scope, target.id)) }
         }
-        val targets = registry.targets.mapIndexed { index, target ->
-            val rawUrl = target.reference.get()?.let { webView ->
-                runCatching { webView.url }.getOrNull()
+        val targets =
+            registry.targets.mapIndexed { index, target ->
+                val rawUrl =
+                    target.reference.get()?.let { webView ->
+                        runCatching { webView.url }.getOrNull()
+                    }
+                TargetInfo(id = target.id, number = index + 1, url = rawUrl)
             }
-            TargetInfo(id = target.id, number = index + 1, url = rawUrl)
-        }
         val historyTarget = registry.lastSelection
         val history = historyTarget?.let { historyStore.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
         val loads = historyTarget?.let { appLoads.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
@@ -157,56 +161,65 @@ internal class InspectorSession(
         // The previous dismissal listener may still be queued when the control is reopened.
         sheet = null
         discoverTargets()
-        val inspectorSheet = InspectorSheet(
-            activity = activity,
-            select = { id ->
-                discoverTargets()
-                registry.select(id)
-                render()
-            },
-            copy = ::copy,
-            locate = ::locate,
-            presentation = activityState.sheet,
-            copyRecordedUrl = { recordId, stepIndex ->
-                val state = snapshot()
-                val record = state.history?.records?.firstOrNull { it.id == recordId }
-                val rawUrl = if (stepIndex == null) record?.rawUrl else record?.steps?.getOrNull(stepIndex)?.rawUrl
-                if (rawUrl != null) historyCopier.copyUrl(rawUrl, state.historyNumber ?: 1)
-            },
-            copyHistory = {
-                val state = snapshot()
-                state.history?.let { historyCopier.copyTimeline(it, state.historyNumber ?: 1) }
-            },
-            clearHistory = {
-                snapshot().history?.let { history ->
-                    historyStore.clear(history.key)
-                    activityState.sheet.expandedRecordIds.removeAll(history.records.map { it.id }.toSet())
-                }
-                render()
-            },
-            copyAppLoad = { recordId, part ->
-                val record = snapshot().appLoads?.records?.firstOrNull { it.id == recordId }
-                val text = record?.let {
-                    when (part) {
-                        AppLoadCopyPart.Headers -> AppLoadsPresentation.headers(it)
-                        AppLoadCopyPart.Url -> it.rawUrl
-                        is AppLoadCopyPart.HeaderValue -> it.headers.getOrNull(part.index)?.value
+        val inspectorSheet =
+            InspectorSheet(
+                activity = activity,
+                select = { id ->
+                    discoverTargets()
+                    registry.select(id)
+                    render()
+                },
+                copy = ::copy,
+                locate = ::locate,
+                presentation = activityState.sheet,
+                copyRecordedUrl = { recordId, stepIndex ->
+                    val state = snapshot()
+                    val record = state.history?.records?.firstOrNull { it.id == recordId }
+                    val rawUrl = if (stepIndex == null) record?.rawUrl else record?.steps?.getOrNull(stepIndex)?.rawUrl
+                    if (rawUrl != null) historyCopier.copyUrl(rawUrl, state.historyNumber ?: 1)
+                },
+                copyHistory = {
+                    val state = snapshot()
+                    state.history?.let { historyCopier.copyTimeline(it, state.historyNumber ?: 1) }
+                },
+                clearHistory = {
+                    snapshot().history?.let { history ->
+                        historyStore.clear(history.key)
+                        activityState.sheet.expandedRecordIds.removeAll(history.records.map { it.id }.toSet())
                     }
-                }
-                text?.let(appLoadCopier::copy)
-            },
-            copyAppLoads = {
-                val state = snapshot()
-                state.appLoads?.let { appLoadCopier.copy(AppLoadsPresentation.export(it, state.historyNumber ?: 1)) }
-            },
-            clearAppLoads = {
-                snapshot().appLoads?.let { loads ->
-                    appLoads.clear(loads.key)
-                    activityState.sheet.target(loads.key.targetId).expandedAppLoadIds.clear()
-                }
-                render()
-            },
-        )
+                    render()
+                },
+                copyAppLoad = { recordId, part ->
+                    val record = snapshot().appLoads?.records?.firstOrNull { it.id == recordId }
+                    val text =
+                        record?.let {
+                            when (part) {
+                                AppLoadCopyPart.Headers -> AppLoadsPresentation.headers(it)
+                                AppLoadCopyPart.Url -> it.rawUrl
+                                is AppLoadCopyPart.HeaderValue -> it.headers.getOrNull(part.index)?.value
+                            }
+                        }
+                    text?.let(appLoadCopier::copy)
+                },
+                copyAppLoads = {
+                    val state = snapshot()
+                    state.appLoads?.let {
+                        appLoadCopier.copy(
+                            AppLoadsPresentation.export(it, state.historyNumber ?: 1),
+                        )
+                    }
+                },
+                clearAppLoads = {
+                    snapshot().appLoads?.let { loads ->
+                        appLoads.clear(loads.key)
+                        activityState.sheet
+                            .target(loads.key.targetId)
+                            .expandedAppLoadIds
+                            .clear()
+                    }
+                    render()
+                },
+            )
         sheet = inspectorSheet
         inspectorSheet.render(snapshot())
         inspectorSheet.dialog.setOnDismissListener {

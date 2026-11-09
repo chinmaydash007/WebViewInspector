@@ -17,25 +17,39 @@ import io.github.chinmaydash007.webviewinspector.internal.ui.common.label
 import io.github.chinmaydash007.webviewinspector.internal.ui.common.shape
 
 /** Inspector-only styling. Existing floating/settings helpers deliberately keep their appearance. */
-internal fun Context.focusedLabel(text: CharSequence = "", size: Float = 14f, muted: Boolean = false, medium: Boolean = false): TextView =
+internal fun Context.focusedLabel(
+    text: CharSequence = "",
+    size: Float = 14f,
+    muted: Boolean = false,
+    medium: Boolean = false,
+): TextView =
     label(text, size, muted).apply {
         includeFontPadding = false
         setLineSpacing(dp(2).toFloat(), 1f)
         if (medium) typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
-internal fun Context.focusedIcon(drawable: Int, description: String, action: () -> Unit): ImageButton = ImageButton(this).apply {
-    setImageResource(drawable)
-    imageTintList = ColorStateList.valueOf(color(R.color.wvi_muted))
-    scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
-    setPadding(dp(14), dp(14), dp(14), dp(14))
-    contentDescription = description
-    background = RippleDrawable(ColorStateList.valueOf(color(R.color.wvi_tint)), null, shape(color(R.color.wvi_surface)))
-    setOnClickListener { action() }
-    layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
-}
+internal fun Context.focusedIcon(
+    drawable: Int,
+    description: String,
+    action: () -> Unit,
+): ImageButton =
+    ImageButton(this).apply {
+        setImageResource(drawable)
+        imageTintList = ColorStateList.valueOf(color(R.color.wvi_muted))
+        scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+        setPadding(dp(14), dp(14), dp(14), dp(14))
+        contentDescription = description
+        background =
+            RippleDrawable(ColorStateList.valueOf(color(R.color.wvi_tint)), null, shape(color(R.color.wvi_surface)))
+        setOnClickListener { action() }
+        layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+    }
 
-internal fun Context.focusedButton(text: String, action: () -> Unit): MaterialButton =
+internal fun Context.focusedButton(
+    text: String,
+    action: () -> Unit,
+): MaterialButton =
     MaterialButton(this, null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
         this.text = text
         isAllCaps = false
@@ -50,12 +64,15 @@ internal fun Context.focusedButton(text: String, action: () -> Unit): MaterialBu
         setOnClickListener { action() }
     }
 
-internal fun Context.focusedDivider(): View = View(this).apply {
-    setBackgroundColor(color(R.color.wvi_border))
-    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1))
-    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-}
+internal fun Context.focusedDivider(): View =
+    View(this).apply {
+        setBackgroundColor(color(R.color.wvi_border))
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1))
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
 
-internal fun TextView.asHeading(): TextView = apply {
-    androidx.core.view.ViewCompat.setAccessibilityHeading(this, true)
-}
+internal fun TextView.asHeading(): TextView =
+    apply {
+        androidx.core.view.ViewCompat
+            .setAccessibilityHeading(this, true)
+    }

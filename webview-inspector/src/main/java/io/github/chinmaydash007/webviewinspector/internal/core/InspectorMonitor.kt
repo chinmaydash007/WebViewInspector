@@ -23,35 +23,40 @@ internal class InspectorMonitor(
     var isActive = false
         private set
 
-    private val debouncedDiscovery = Runnable {
-        if (isActive) discoverTargets()
-    }
-
-    private val fallbackDiscovery = object : Runnable {
-        override fun run() {
-            if (!isActive) return
-            discoverTargets()
-            main.postDelayed(this, FALLBACK_DISCOVERY_INTERVAL_MS)
+    private val debouncedDiscovery =
+        Runnable {
+            if (isActive) discoverTargets()
         }
-    }
 
-    private val urlSampler = object : Runnable {
-        override fun run() {
-            if (!isActive) return
-            sampleUrls()
-            main.postDelayed(this, URL_SAMPLE_INTERVAL_MS)
+    private val fallbackDiscovery =
+        object : Runnable {
+            override fun run() {
+                if (!isActive) return
+                discoverTargets()
+                main.postDelayed(this, FALLBACK_DISCOVERY_INTERVAL_MS)
+            }
         }
-    }
 
-    private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-        scheduleDiscovery()
-        updateGeometry()
-    }
+    private val urlSampler =
+        object : Runnable {
+            override fun run() {
+                if (!isActive) return
+                sampleUrls()
+                main.postDelayed(this, URL_SAMPLE_INTERVAL_MS)
+            }
+        }
 
-    private val scrollListener = ViewTreeObserver.OnScrollChangedListener {
-        scheduleDiscovery()
-        updateGeometry()
-    }
+    private val layoutListener =
+        ViewTreeObserver.OnGlobalLayoutListener {
+            scheduleDiscovery()
+            updateGeometry()
+        }
+
+    private val scrollListener =
+        ViewTreeObserver.OnScrollChangedListener {
+            scheduleDiscovery()
+            updateGeometry()
+        }
 
     /** Waits for the root's posted work before the session performs its initial activation/scan. */
     fun start(onAttached: () -> Unit) {

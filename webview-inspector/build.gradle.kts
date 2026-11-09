@@ -8,9 +8,18 @@ plugins {
 android {
     namespace = providers.gradleProperty("INSPECTOR_PACKAGE").get()
     compileSdk = 36
-    defaultConfig { minSdk = 24; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
-    testOptions { targetSdk = 35; animationsDisabled = true }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    defaultConfig {
+        minSdk = 24
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    testOptions {
+        targetSdk = 35
+        animationsDisabled = true
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     buildFeatures { compose = true }
 }
 kotlin { jvmToolchain(17) }

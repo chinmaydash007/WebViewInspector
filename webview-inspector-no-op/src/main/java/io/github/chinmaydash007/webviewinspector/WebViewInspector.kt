@@ -28,11 +28,18 @@ object WebViewInspector {
 
     /** Production preserves the original load without observing or retaining its inputs. */
     @JvmStatic
-    fun loadUrl(webView: WebView, url: String) = webView.loadUrl(url)
+    fun loadUrl(
+        webView: WebView,
+        url: String,
+    ) = webView.loadUrl(url)
 
     /** Forwards the original arguments exactly once, synchronously, without inspection. */
     @JvmStatic
-    fun loadUrl(webView: WebView, url: String, headers: Map<String, String>) = webView.loadUrl(url, headers)
+    fun loadUrl(
+        webView: WebView,
+        url: String,
+        headers: Map<String, String>,
+    ) = webView.loadUrl(url, headers)
 
     /** Safe to call repeatedly, matching the diagnostic facade. */
     @JvmStatic

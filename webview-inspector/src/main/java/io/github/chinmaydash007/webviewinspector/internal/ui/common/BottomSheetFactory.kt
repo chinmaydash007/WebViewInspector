@@ -29,7 +29,11 @@ internal object BottomSheetFactory {
         }
     }
 
-    fun createBody(context: Context, title: String, close: () -> Unit): LinearLayout =
+    fun createBody(
+        context: Context,
+        title: String,
+        close: () -> Unit,
+    ): LinearLayout =
         LinearLayout(context).apply {
             id = R.id.wvi_sheet
             orientation = LinearLayout.VERTICAL
@@ -38,25 +42,36 @@ internal object BottomSheetFactory {
             addView(createHeader(context, title, close), LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         }
 
-    fun scroll(dialog: BottomSheetDialog, body: LinearLayout): NestedScrollView = SheetScrollView(dialog.context, dialog.behavior).apply {
-        isFillViewport = false
-        addView(body, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-    }
-
-    private fun createHandle(context: Context): View = View(context).apply {
-        background = context.shape(context.color(R.color.wvi_border), radius = HANDLE_RADIUS_DP)
-        layoutParams = LinearLayout.LayoutParams(context.dp(HANDLE_WIDTH_DP), context.dp(HANDLE_HEIGHT_DP)).apply {
-            gravity = Gravity.CENTER_HORIZONTAL
-            bottomMargin = context.dp(HANDLE_MARGIN_BOTTOM_DP)
+    fun scroll(
+        dialog: BottomSheetDialog,
+        body: LinearLayout,
+    ): NestedScrollView =
+        SheetScrollView(dialog.context, dialog.behavior).apply {
+            isFillViewport = false
+            addView(body, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         }
-    }
 
-    private fun createHeader(context: Context, title: String, close: () -> Unit): LinearLayout =
+    private fun createHandle(context: Context): View =
+        View(context).apply {
+            background = context.shape(context.color(R.color.wvi_border), radius = HANDLE_RADIUS_DP)
+            layoutParams =
+                LinearLayout.LayoutParams(context.dp(HANDLE_WIDTH_DP), context.dp(HANDLE_HEIGHT_DP)).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    bottomMargin = context.dp(HANDLE_MARGIN_BOTTOM_DP)
+                }
+        }
+
+    private fun createHeader(
+        context: Context,
+        title: String,
+        close: () -> Unit,
+    ): LinearLayout =
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
-            val heading = context.label(title, size = HEADER_SIZE_SP).bold().apply {
-                ViewCompat.setAccessibilityHeading(this, true)
-            }
+            val heading =
+                context.label(title, size = HEADER_SIZE_SP).bold().apply {
+                    ViewCompat.setAccessibilityHeading(this, true)
+                }
             addView(heading, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
             addView(context.icon(R.drawable.wvi_ic_close, context.getString(R.string.wvi_close), close))
         }

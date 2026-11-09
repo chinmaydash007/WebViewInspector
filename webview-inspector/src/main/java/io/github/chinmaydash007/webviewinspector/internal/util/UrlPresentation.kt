@@ -4,15 +4,21 @@ import android.net.Uri
 
 /** Display-only URL formatting. Clipboard actions must use the original WebView URL instead. */
 internal object UrlPresentation {
-    internal data class QueryParameter(val name: String, val value: String)
+    internal data class QueryParameter(
+        val name: String,
+        val value: String,
+    )
 
-    fun domain(rawUrl: String?): String = parse(rawUrl)?.host
-        ?: rawUrl?.substringBefore(':')
-        ?: "—"
+    fun domain(rawUrl: String?): String =
+        parse(rawUrl)?.host
+            ?: rawUrl?.substringBefore(':')
+            ?: "—"
 
-    fun path(rawUrl: String?): String = parse(rawUrl)?.encodedPath
-        ?.takeIf { it.isNotEmpty() }
-        ?: "/"
+    fun path(rawUrl: String?): String =
+        parse(rawUrl)
+            ?.encodedPath
+            ?.takeIf { it.isNotEmpty() }
+            ?: "/"
 
     /** Preserves entry order and duplicates for presentation; decoding is never used for copying. */
     fun queryParameters(rawUrl: String?): List<QueryParameter> {
@@ -26,7 +32,8 @@ internal object UrlPresentation {
         }
     }
 
-    private fun parse(rawUrl: String?): Uri? = rawUrl?.let {
-        runCatching { Uri.parse(it) }.getOrNull()
-    }
+    private fun parse(rawUrl: String?): Uri? =
+        rawUrl?.let {
+            runCatching { Uri.parse(it) }.getOrNull()
+        }
 }
