@@ -8,11 +8,13 @@ import re
 import zipfile
 
 
+WEBKIT = ('androidx.webkit', 'webkit')
+WEBKIT_MINIMUM = '1.15.0'
 FULL_DEPENDENCIES = {
     ('org.jetbrains.kotlin', 'kotlin-stdlib'),
     ('androidx.core', 'core-ktx'),
     ('com.google.android.material', 'material'),
-    ('androidx.webkit', 'webkit'),
+    WEBKIT,
 }
 NO_OP_DEPENDENCIES = {('org.jetbrains.kotlin', 'kotlin-stdlib')}
 DOCUMENTATION_IDENTITIES = (
@@ -39,7 +41,7 @@ def validate_text(text, namespace, location):
         raise ValueError('Host-application extraction notice in ' + location)
 
 
-def validate_dependencies(pom, metadata, artifact):
+def validate_dependencies(pom, metadata, artifact, *, legacy_webkit_pin=False):
     """Require the reviewed direct dependencies in both Maven and Gradle metadata."""
     xml_namespace = {'m': 'http://maven.apache.org/POM/4.0.0'}
     dependencies = pom.findall('m:dependencies/m:dependency', xml_namespace)
@@ -50,17 +52,37 @@ def validate_dependencies(pom, metadata, artifact):
     expected = NO_OP_DEPENDENCIES if artifact.endswith('no-op') else FULL_DEPENDENCIES
     if identities != expected:
         raise ValueError('Unexpected POM dependency inventory: ' + repr(sorted(identities)))
-    for dependency in dependencies:
-        if dependency.findtext('m:groupId', namespaces=xml_namespace) == 'androidx.webkit':
-            if dependency.findtext('m:version', namespaces=xml_namespace) != '1.15.0':
-                raise ValueError('WebKit publication version must remain 1.15.0')
+    if WEBKIT in expected:
+        webkit_pom_versions = [
+            dependency.findtext('m:version', namespaces=xml_namespace)
+            for dependency in dependencies
+            if (
+                dependency.findtext('m:groupId', namespaces=xml_namespace),
+                dependency.findtext('m:artifactId', namespaces=xml_namespace),
+            ) == WEBKIT
+        ]
+        if webkit_pom_versions != [WEBKIT_MINIMUM]:
+            raise ValueError('POM must declare WebKit 1.15.0 exactly once')
+
+    webkit_metadata_versions = []
     for variant in metadata['variants']:
-        for dependency in variant.get('dependencies', []) + variant.get('dependencyConstraints', []):
-            identity = (dependency['group'], dependency['module'])
-            if identity not in expected:
-                raise ValueError('Unexpected Gradle dependency: ' + repr(identity))
-            if identity == ('androidx.webkit', 'webkit') and dependency.get('version', {}).get('strictly') != '1.15.0':
-                raise ValueError('Gradle metadata must strictly constrain WebKit to 1.15.0')
+        for field in ('dependencies', 'dependencyConstraints'):
+            for dependency in variant.get(field, []):
+                identity = (dependency['group'], dependency['module'])
+                if identity not in expected:
+                    raise ValueError('Unexpected Gradle dependency: ' + repr(identity))
+                if identity == WEBKIT:
+                    usage = variant.get('attributes', {}).get('org.gradle.usage')
+                    if field != 'dependencies' or usage != 'java-runtime':
+                        raise ValueError('WebKit must be a direct Gradle runtime dependency')
+                    webkit_metadata_versions.append(dependency.get('version'))
+    if WEBKIT in expected:
+        webkit_version = {'requires': WEBKIT_MINIMUM}
+        if legacy_webkit_pin:
+            webkit_version['strictly'] = WEBKIT_MINIMUM
+        if webkit_metadata_versions != [webkit_version]:
+            policy = 'strictly pin' if legacy_webkit_pin else 'require as a minimum'
+            raise ValueError(f'Gradle runtime metadata must {policy} WebKit 1.15.0 exactly once')
 
 
 def validate_classes(data, namespace, no_op):

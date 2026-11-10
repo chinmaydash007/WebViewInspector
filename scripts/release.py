@@ -137,8 +137,16 @@ def validate_saved_bundle(output, version, commit):
                 if not destination.is_relative_to(parent.resolve()):
                     raise ValueError('Unsafe publication path')
             archive.extractall(parent)
+        # These immutable signed versions were built before WebKit upgrades were supported.
+        legacy_webkit_pin = version in {'0.1.0', '0.2.0', '0.3.0'}
         for artifact in ARTIFACTS:
-            validate_publication(parent / 'io/github/chinmaydash007' / artifact / version, artifact, version, signed=True)
+            validate_publication(
+                parent / 'io/github/chinmaydash007' / artifact / version,
+                artifact,
+                version,
+                signed=True,
+                legacy_webkit_pin=legacy_webkit_pin,
+            )
     return manifest, bundle
 
 

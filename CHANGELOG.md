@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Support WebKit 1.15.0 and 1.16.0 navigation events in the same AAR. Declare WebKit 1.15.0 as the minimum so consumers can select 1.16.0.
+
 ## 0.3.0 — 1 November 2026
 
 - Preserve Basic central URL/history inspection and add opt-in Advanced capture per WebView.

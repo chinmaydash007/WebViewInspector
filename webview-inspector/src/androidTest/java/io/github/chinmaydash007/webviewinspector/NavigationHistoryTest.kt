@@ -21,7 +21,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.webkit.WebViewFeature
+import io.github.chinmaydash007.webviewinspector.internal.core.AndroidXNavigationEventSource
 import io.github.chinmaydash007.webviewinspector.internal.core.InspectorSession
 import io.github.chinmaydash007.webviewinspector.internal.core.NavigationEventSource
 import io.github.chinmaydash007.webviewinspector.internal.state.FloatingPosition
@@ -41,7 +41,6 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(AndroidJUnit4::class)
-@androidx.annotation.OptIn(markerClass = [androidx.webkit.WebNavigationClient.ExperimentalNavigationCallback::class])
 class NavigationHistoryTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val application get() = ApplicationProvider.getApplicationContext<Application>()
@@ -199,9 +198,9 @@ class NavigationHistoryTest {
 
     private fun requireEvents() {
         assumeTrue(
-            "Installed WebView provider does not expose NAVIGATION_LISTENER_V1",
+            "Installed WebView provider does not support navigation events with this WebKit version",
             ui {
-                WebViewFeature.isFeatureSupported(WebViewFeature.NAVIGATION_LISTENER_V1)
+                AndroidXNavigationEventSource.supportsNavigationEvents()
             },
         )
     }

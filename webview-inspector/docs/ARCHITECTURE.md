@@ -82,7 +82,7 @@ All package names below are relative to `io.github.chinmaydash007.webviewinspect
 
 `InspectorController` owns one `NavigationHistoryStore` and weak Activity-keyed `InspectorActivityState` values. Each Activity receives a unique scope; history keys combine that scope and the registry's WebView identity. The registry's weak catalogue survives temporary visibility loss, while live selection still becomes unavailable and requires explicit reselection. Its last selection supplies saved-history context without retaining the WebView.
 
-`InspectorSession` reconciles visible targets with `NavigationHistoryObserver` on discovery. Each active target has exactly one subscription. `AndroidXNavigationEventSource` checks `NAVIGATION_LISTENER_V1` and uses the explicitly pinned WebKit 1.15 API without changing host clients/settings. Its direct executor snapshots mutable Navigation values at provider dispatch; the default extra Handler hop can otherwise make multiple rapid redirects report the final URL. Immutable snapshots are delivered to main-thread state, and inactive subscriptions reject queued delivery.
+`InspectorSession` reconciles visible targets with `NavigationHistoryObserver` on discovery. Each active target has exactly one subscription. `AndroidXNavigationEventSource` selects experimental `NAVIGATION_LISTENER_V1` when `Navigation` is an interface and stable `NAVIGATION_LISTENER` when it is a class. It caches public method lookups so an AAR compiled against WebKit 1.15 can also read the 1.16 navigation class. Its direct executor snapshots mutable navigation values at provider dispatch so fast redirects retain each URL. Immutable snapshots reach main-thread state, and inactive subscriptions reject queued delivery.
 
 ```mermaid
 sequenceDiagram
@@ -93,7 +93,7 @@ sequenceDiagram
     participant UI as InspectorSheet and HistoryPanel
     Session->>Observer: reconcile visible weak targets
     Observer->>Adapter: attach listener once
-    alt Provider supports NAVIGATION_LISTENER_V1
+    alt Provider supports the selected navigation listener
         Adapter-->>Observer: immutable start, redirect, completion values
         Observer->>Store: group by navigation identity
     else Unsupported provider

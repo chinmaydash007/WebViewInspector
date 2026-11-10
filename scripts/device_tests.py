@@ -27,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', required=True)
     parser.add_argument('--api', type=int, choices=[24, 36], required=True)
+    parser.add_argument('--evidence-dir', type=Path, help='Separate output directory for this run.')
     parser.add_argument('--skip-normal', action='store_true', help='Continue a previously completed normal suite with only the presentation matrix.')
     args = parser.parse_args()
     if not args.serial.startswith('emulator-'):
@@ -38,14 +39,15 @@ def main():
         return subprocess.check_output([adb, '-s', args.serial, *parts], text=True).strip()
     def shell(*parts):
         return command('shell', *parts)
-    if int(shell('getprop', 'ro.build.version.sdk')) != args.api:
+    if shell('getprop', 'ro.kernel.qemu') != '1' or shell('getprop', 'ro.build.version.sdk') != str(args.api):
         raise SystemExit('Selected emulator API differs from the requested API.')
-    output = ROOT / 'build/reports/devices' / ('api-' + str(args.api))
+    output = args.evidence_dir or ROOT / 'build/reports/devices' / ('api-' + str(args.api))
     output.mkdir(parents=True, exist_ok=True)
     settings = {key: shell('settings', 'get', 'global', key) for key in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']}
     settings.update({'font_scale': shell('settings', 'get', 'system', 'font_scale'), 'density': shell('wm', 'density')})
     if args.api >= 29:
         settings['night'] = shell('cmd', 'uimode', 'night').split()[-1]
+        settings['keyboard'] = shell('settings', 'get', 'secure', 'show_ime_with_hard_keyboard')
     (output / 'original-settings.json').write_text(json.dumps(settings, indent=2))
     (output / 'provider.txt').write_text(shell('dumpsys', 'webviewupdate'))
     apk = ROOT / 'webview-inspector/build/outputs/apk/androidTest/debug/webview-inspector-debug-androidTest.apk'
@@ -64,6 +66,7 @@ def main():
         for key in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
             shell('settings', 'put', 'global', key, '0')
         if args.api == 36:
+            shell('settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1')
             run('navigation-prerequisite', [PREFIX + 'ReleasePrerequisitesTest'], 1)
         if not args.skip_normal:
             run('normal', NORMAL if args.api == 36 else FALLBACK, 27 if args.api == 36 else 14)
@@ -83,7 +86,12 @@ def main():
         shell('wm', 'density', override.group(1) if override else 'reset')
         if 'night' in settings:
             shell('cmd', 'uimode', 'night', settings['night'])
-        (output / 'restored.txt').write_text('Original density, font, night mode and animation settings restored.\n')
+            keyboard = settings['keyboard']
+            if keyboard == 'null':
+                shell('settings', 'delete', 'secure', 'show_ime_with_hard_keyboard')
+            else:
+                shell('settings', 'put', 'secure', 'show_ime_with_hard_keyboard', keyboard)
+        (output / 'restored.txt').write_text('Original density, font, night mode, keyboard and animation settings restored.\n')
 
 
 if __name__ == '__main__':

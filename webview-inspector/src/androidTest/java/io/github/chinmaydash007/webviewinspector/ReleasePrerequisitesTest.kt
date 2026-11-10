@@ -1,7 +1,7 @@
 package io.github.chinmaydash007.webviewinspector
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.webkit.WebViewFeature
+import io.github.chinmaydash007.webviewinspector.internal.core.AndroidXNavigationEventSource
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,8 +12,8 @@ class ReleasePrerequisitesTest {
     @Test
     fun navigationEventsAreAvailable() {
         assertTrue(
-            "Install a WebView provider supporting NAVIGATION_LISTENER_V1 before release validation.",
-            WebViewFeature.isFeatureSupported(WebViewFeature.NAVIGATION_LISTENER_V1),
+            "Install a WebView provider supporting navigation events with this WebKit version.",
+            AndroidXNavigationEventSource.supportsNavigationEvents(),
         )
     }
 }

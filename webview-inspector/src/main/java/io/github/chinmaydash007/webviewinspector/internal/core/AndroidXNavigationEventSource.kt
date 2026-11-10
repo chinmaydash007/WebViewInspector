@@ -18,17 +18,59 @@ import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Isolates WebKit 1.15's experimental API so the rest of the library remains platform-independent.
+ * Isolates WebKit navigation events across the experimental and stable APIs.
  * Registration runs on the main thread. Provider callbacks snapshot values immediately, then
  * publish them to main-thread state. No WebViewClient or settings are changed.
  */
 @androidx.annotation.OptIn(markerClass = [WebNavigationClient.ExperimentalNavigationCallback::class])
 internal class AndroidXNavigationEventSource : NavigationEventSource<WebView> {
+    // The same callback signature takes an interface in 1.15 and a class in 1.16.
+    // Looking up getters on the runtime type avoids incompatible JVM call instructions.
+    private class NavigationMethods(
+        type: Class<Navigation>,
+    ) {
+        val url = type.getMethod("getUrl")
+        val sameDocument = type.getMethod("isSameDocument")
+        val reload = type.getMethod("isReload")
+        val back = type.getMethod("isBack")
+        val forward = type.getMethod("isForward")
+        val committed = type.getMethod("didCommit")
+        val errorPage = type.getMethod("didCommitErrorPage")
+    }
+
+    companion object {
+        // The stable feature name is absent from the 1.15 compile dependency.
+        private const val STABLE_NAVIGATION_FEATURE = "NAVIGATION_LISTENER"
+        private val navigationType = Navigation::class.java
+        private val navigationMethods by lazy {
+            try {
+                NavigationMethods(navigationType)
+            } catch (_: NoSuchMethodException) {
+                null
+            }
+        }
+
+        fun supportsNavigationEvents(): Boolean = supportedMethods() != null
+
+        private fun supportedMethods(): NavigationMethods? {
+            val feature =
+                if (navigationType.isInterface) WebViewFeature.NAVIGATION_LISTENER_V1 else STABLE_NAVIGATION_FEATURE
+            val supported =
+                try {
+                    WebViewFeature.isFeatureSupported(feature)
+                } catch (error: RuntimeException) {
+                    if (error.message != "Unknown feature $feature") throw error
+                    false
+                }
+            return if (supported) navigationMethods else null
+        }
+    }
+
     override fun attach(
         view: WebView,
         receive: (NavigationEvent) -> Unit,
     ): (() -> Unit)? {
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.NAVIGATION_LISTENER_V1)) return null
+        val methods = supportedMethods() ?: return null
         val reference = WeakReference(view)
         val identities = IdentityHashMap<Navigation, Long>()
         var nextId = 0L
@@ -48,22 +90,22 @@ internal class AndroidXNavigationEventSource : NavigationEventSource<WebView> {
                     val outcome =
                         when {
                             phase != NavigationPhase.COMPLETED -> NavigationOutcome.IN_PROGRESS
-                            navigation.didCommitErrorPage() -> NavigationOutcome.ERROR_PAGE
-                            navigation.didCommit() -> NavigationOutcome.COMMITTED
+                            methods.errorPage.invoke(navigation) as Boolean -> NavigationOutcome.ERROR_PAGE
+                            methods.committed.invoke(navigation) as Boolean -> NavigationOutcome.COMMITTED
                             else -> NavigationOutcome.NOT_COMMITTED
                         }
                     val event =
                         NavigationEvent(
                             navigationId = id,
                             phase = phase,
-                            rawUrl = navigation.url,
+                            rawUrl = methods.url.invoke(navigation) as String,
                             atMillis = System.currentTimeMillis(),
                             flags =
                                 NavigationFlags(
-                                    sameDocument = navigation.isSameDocument,
-                                    reload = navigation.isReload,
-                                    back = navigation.isBack,
-                                    forward = navigation.isForward,
+                                    sameDocument = methods.sameDocument.invoke(navigation) as Boolean,
+                                    reload = methods.reload.invoke(navigation) as Boolean,
+                                    back = methods.back.invoke(navigation) as Boolean,
+                                    forward = methods.forward.invoke(navigation) as Boolean,
                                 ),
                             outcome = outcome,
                         )

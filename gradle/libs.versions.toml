@@ -11,7 +11,7 @@ gjf = "1.28.0"
 [libraries]
 core = { module = "androidx.core:core-ktx", version = "1.13.1" }
 material = { module = "com.google.android.material:material", version = "1.12.0" }
-webkit = { module = "androidx.webkit:webkit", version = { strictly = "1.15.0" } }
+webkit = { module = "androidx.webkit:webkit", version = "1.15.0" }
 junit = { module = "junit:junit", version = "4.13.2" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose" }
 compose-runtime = { module = "androidx.compose.runtime:runtime" }

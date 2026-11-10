@@ -25,7 +25,7 @@ def archive_bytes(entries):
     return output.getvalue()
 
 
-def publication_metadata(dependencies):
+def publication_metadata(dependencies, *, legacy_webkit_pin=False):
     xml_namespace = 'http://maven.apache.org/POM/4.0.0'
     root = ET.Element('{' + xml_namespace + '}project')
     elements = ET.SubElement(root, '{' + xml_namespace + '}dependencies')
@@ -35,8 +35,15 @@ def publication_metadata(dependencies):
         version = '1.15.0' if group == 'androidx.webkit' else '1.0'
         for key, value in [('groupId', group), ('artifactId', module), ('version', version)]:
             ET.SubElement(dependency, '{' + xml_namespace + '}' + key).text = value
-        records.append({'group': group, 'module': module, 'version': {'strictly': version}})
-    return root, {'variants': [{'name': 'runtime', 'dependencies': records}]}
+        version_metadata = {'requires': version}
+        if group == 'androidx.webkit' and legacy_webkit_pin:
+            version_metadata['strictly'] = version
+        records.append({'group': group, 'module': module, 'version': version_metadata})
+    return root, {'variants': [{
+        'name': 'runtime',
+        'attributes': {'org.gradle.usage': 'java-runtime'},
+        'dependencies': records,
+    }]}
 
 
 class PublicationContentTest(unittest.TestCase):
@@ -103,12 +110,36 @@ class PublicationContentTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Unexpected POM dependency'):
             validate_dependencies(*publication_metadata(FULL_DEPENDENCIES), 'webview-inspector-no-op')
 
-    def test_webkit_constraint_cannot_be_relaxed_in_gradle_metadata(self):
+    def test_only_saved_legacy_publications_accept_the_original_pin(self):
+        pom, metadata = publication_metadata(FULL_DEPENDENCIES, legacy_webkit_pin=True)
+        validate_dependencies(pom, metadata, 'webview-inspector', legacy_webkit_pin=True)
+        with self.assertRaisesRegex(ValueError, 'require as a minimum WebKit 1.15.0'):
+            validate_dependencies(pom, metadata, 'webview-inspector')
         pom, metadata = publication_metadata(FULL_DEPENDENCIES)
-        for dependency in metadata['variants'][0]['dependencies']:
-            if dependency['group'] == 'androidx.webkit':
-                dependency['version'] = {'requires': '1.15.0'}
-        with self.assertRaisesRegex(ValueError, 'strictly constrain WebKit'):
+        with self.assertRaisesRegex(ValueError, 'strictly pin WebKit 1.15.0'):
+            validate_dependencies(pom, metadata, 'webview-inspector', legacy_webkit_pin=True)
+
+    def test_webkit_minimum_must_be_present_exactly_once(self):
+        pom, metadata = publication_metadata(FULL_DEPENDENCIES)
+        dependencies = metadata['variants'][0]['dependencies']
+        webkit = next(dependency for dependency in dependencies if dependency['group'] == 'androidx.webkit')
+        dependencies.remove(webkit)
+        with self.assertRaisesRegex(ValueError, 'require as a minimum WebKit 1.15.0'):
+            validate_dependencies(pom, metadata, 'webview-inspector')
+        dependencies.extend([webkit, webkit])
+        with self.assertRaisesRegex(ValueError, 'require as a minimum WebKit 1.15.0'):
+            validate_dependencies(pom, metadata, 'webview-inspector')
+
+    def test_webkit_metadata_cannot_use_a_different_version_or_a_constraint(self):
+        pom, metadata = publication_metadata(FULL_DEPENDENCIES)
+        runtime = metadata['variants'][0]
+        webkit = next(dependency for dependency in runtime['dependencies'] if dependency['group'] == 'androidx.webkit')
+        webkit['version'] = {'requires': '1.14.0'}
+        with self.assertRaisesRegex(ValueError, 'require as a minimum WebKit 1.15.0'):
+            validate_dependencies(pom, metadata, 'webview-inspector')
+        runtime['dependencies'].remove(webkit)
+        runtime['dependencyConstraints'] = [webkit]
+        with self.assertRaisesRegex(ValueError, 'direct Gradle runtime dependency'):
             validate_dependencies(pom, metadata, 'webview-inspector')
 
 

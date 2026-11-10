@@ -21,7 +21,7 @@ def properties(root=ROOT):
     return dict(line.split('=', 1) for line in (root / 'gradle.properties').read_text().splitlines() if '=' in line and not line.startswith('#'))
 
 
-def validate_publication(folder, artifact, version, signed=False):
+def validate_publication(folder, artifact, version, signed=False, *, legacy_webkit_pin=False):
     namespace = properties()['INSPECTOR_PACKAGE']
     prefix = artifact + '-' + version
     required = [prefix + suffix for suffix in ('.aar', '.pom', '.module', '-sources.jar', '-javadoc.jar')]
@@ -39,7 +39,7 @@ def validate_publication(folder, artifact, version, signed=False):
         if not pom.findtext(query, namespaces=ns):
             raise ValueError('Missing POM metadata: ' + field)
     metadata = json.loads((folder / (prefix + '.module')).read_text())
-    validate_dependencies(pom.getroot(), metadata, artifact)
+    validate_dependencies(pom.getroot(), metadata, artifact, legacy_webkit_pin=legacy_webkit_pin)
     validate_text((folder / (prefix + '.pom')).read_text(), namespace, 'POM')
     validate_text(json.dumps(metadata), namespace, 'Gradle metadata')
     with zipfile.ZipFile(folder / (prefix + '.aar')) as aar:

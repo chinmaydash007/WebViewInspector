@@ -1,4 +1,5 @@
 import contextlib
+import hashlib
 import importlib.util
 import io
 import json
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import unittest
 import urllib.error
+import zipfile
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -83,6 +85,30 @@ class ReleaseTests(unittest.TestCase):
             (folder / 'publication-manifest.json').write_text(json.dumps({'signed': False, 'version': '0.1.0', 'source_commit': 'commit'}))
             with self.assertRaisesRegex(ValueError, 'unsigned'):
                 release.validate_saved_bundle(folder, '0.1.0', 'commit')
+
+    def test_saved_bundle_selects_the_webkit_policy_from_the_verified_version(self):
+        for version in ('0.1.0', '0.2.0', '0.3.0', '0.3.1'):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                archive_path = folder / 'bundle.zip'
+                with zipfile.ZipFile(archive_path, 'w'):
+                    pass
+                manifest = {
+                    'signed': True,
+                    'version': version,
+                    'source_commit': 'commit',
+                    'bundle': archive_path.name,
+                    'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest(),
+                }
+                (folder / 'publication-manifest.json').write_text(json.dumps(manifest))
+                with patch.object(release, 'validate_publication') as validate:
+                    release.validate_saved_bundle(folder, version, 'commit')
+                    self.assertEqual(len(bundle.ARTIFACTS), validate.call_count)
+                    for validation in validate.call_args_list:
+                        self.assertEqual(
+                            {'signed': True, 'legacy_webkit_pin': version != '0.3.1'},
+                            validation.kwargs,
+                        )
 
     def test_retry_resumes_recorded_deployment_without_uploading(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -88,8 +88,8 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 ## Compatibility and privacy
 
 - Android API 24+. Tested build baseline: JDK 17, Gradle 8.13, AGP 8.12.0, Kotlin 2.2.0 and compile SDK 36. Older consumer toolchains are not claimed as tested.
-- WebKit is strictly pinned to the validated experimental adapter version 1.15.0. A consumer requiring another WebKit version must resolve that compatibility constraint before integration; do not silently force an unsupported version.
-- Runtime feature detection selects experimental `NAVIGATION_LISTENER_V1` events or labelled 500 ms observed-URL sampling. Initial discovery cannot recover earlier redirects; sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
+- The published 0.3.0 full artifact strictly pins WebKit 1.15.0. The unreleased compatibility update declares 1.15.0 as the minimum and supports apps that resolve 1.16.0.
+- Runtime feature detection uses the experimental navigation listener in 1.15 or the stable listener in 1.16. The inspector uses labelled 500 ms observed-URL sampling when the provider lacks support. Initial discovery cannot recover earlier redirects, and sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
 - Scope is visible native WebViews in the active Activity hierarchy. Separate popup/dialog windows, external browsers/UPI apps and iframe URLs are excluded.
 - URLs and explicitly supplied headers remain in memory until copied. No logging, persistence, upload or analytics. Automatic cookies and request bodies are not collected. Query decoding is display-only; clipboard text remains exact.
 - Retention is 100 records per WebView, 500 process-wide and 2 MiB of URL text. Whole oldest records are evicted without truncating URLs. Activity destruction, disabling and uninstall clear their owned records.

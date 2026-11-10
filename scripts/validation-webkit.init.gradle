@@ -1,0 +1,54 @@
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+
+// Applied only by local compatibility validation, never by production publication.
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    def library = root.findProject(':webview-inspector')
+    def sample = root.findProject(':sample')
+    def consumer = root.findProject(':app')
+    def requested = root.providers.gradleProperty('validationWebkitVersion').get()
+    if (!(requested in ['1.15.0', '1.16.0']) && !(consumer && requested == '1.14.0')) {
+        throw new GradleException("Unsupported validation WebKit request: " + requested)
+    }
+    def expected = requested == '1.14.0' ? '1.15.0' : requested
+    if (library) {
+        library.dependencies.add('androidTestImplementation', "androidx.webkit:webkit:${requested}")
+    }
+    [sample, consumer].findAll().each { app ->
+        ['debugImplementation', 'diagnosticImplementation'].each { configuration ->
+            app.dependencies.add(configuration, "androidx.webkit:webkit:${requested}")
+        }
+    }
+
+    root.tasks.register('verifyWebkitResolution') {
+        doLast {
+            def check = { project, configuration, version ->
+                def result = project.configurations.getByName(configuration).incoming.resolutionResult
+                def unresolved = result.allDependencies.findAll { it instanceof UnresolvedDependencyResult }
+                if (unresolved) {
+                    throw new GradleException("Unresolved dependencies in ${project.path} ${configuration}: " +
+                        unresolved.collect { it.failure.message }.join('\n'))
+                }
+                def webkit = result.allComponents.collect { it.moduleVersion }.findAll {
+                    it?.group == 'androidx.webkit' && it.name == 'webkit'
+                }.collect { it.version }
+                def wanted = version ? [version] : []
+                if (webkit != wanted) {
+                    throw new GradleException("${project.path} ${configuration}: expected WebKit ${wanted}, resolved ${webkit}")
+                }
+                println("${project.path} ${configuration}: WebKit ${version ?: 'absent'}")
+            }
+            if (library) {
+                check(library, 'releaseCompileClasspath', '1.15.0')
+                check(library, 'releaseRuntimeClasspath', '1.15.0')
+                check(library, 'debugAndroidTestRuntimeClasspath', expected)
+                check(root.project(':webview-inspector-no-op'), 'releaseRuntimeClasspath', null)
+            }
+            [sample, consumer].findAll().each { app ->
+                check(app, 'debugRuntimeClasspath', expected)
+                check(app, 'diagnosticRuntimeClasspath', expected)
+                check(app, 'releaseRuntimeClasspath', null)
+            }
+        }
+    }
+}
