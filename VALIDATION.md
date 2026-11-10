@@ -1,5 +1,20 @@
 # Standalone validation
 
+## Published 0.4.0 — 10 November 2026
+
+Both artifacts are available on Maven Central. All ten primary files, including
+the AARs, POMs, Gradle metadata, sources and API documentation, matched the
+original signed bundle by SHA-256 when downloaded without credentials.
+
+The prepared release passed the standalone and API 24 and 36 gates, then
+published the signed bundle attached to the private draft. The independent Java
+consumer built its debug, diagnostic and release variants against the public
+coordinates. [Prepared release run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/42785929523)
+
+Local compatibility checks passed on API 24 and 36 with WebKit 1.15.0 and 1.16.0.
+They covered the full/no-op facade, production isolation and exact URL copying
+in the minified sample.
+
 ## Lint and formatting setup — 8 November 2026
 
 Added root Spotless 8.11.0 with ktlint 1.8.0 for Kotlin/Gradle Kotlin scripts and
