@@ -4,7 +4,7 @@ Read the [root guide](../README.md), [architecture](docs/ARCHITECTURE.md), and [
 
 ## Responsibilities
 
-- Keep `io.github.chinmaydash007.webviewinspector.WebViewInspector` with its five original Java-compatible static methods and both loadUrl helpers. Implementation types belong under `internal` and remain Kotlin `internal`.
+- Keep `com.webviewinspector.WebViewInspector` with its five original Java-compatible static methods and both loadUrl helpers. Implementation types belong under `internal` and remain Kotlin `internal`.
 - `core` owns lifecycle/session orchestration, scheduling and navigation subscriptions; `detection` owns hierarchy traversal/visibility; `state` owns weak instance selection, immutable navigation records and bounded history; `actions` owns live/saved copying and highlighting.
 - `ui.floating` owns control rendering/movement; `ui.sheet` owns Focused content, picker/footer popups and About; `ui.common` owns native measurement/gesture coordination and shared themes. UI emits callbacks rather than importing `core`. Keep inspector-only styling separate from the floating/settings helpers.
 - `util` is for narrowly named presentation helpers. Do not put selection, timers, Android UI ownership, or actions there.

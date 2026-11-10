@@ -59,7 +59,7 @@ def has_id(name):
 
 def smoke(device, root, namespace, output):
     consumer = 'example.webviewinspector.consumer.diagnostic'
-    sample_namespace = namespace + '.sample'
+    sample_namespace = 'io.github.chinmaydash007.webviewinspector.sample'
     sample = sample_namespace + '.diagnostic'
     test_package = namespace + '.test'
     failed_ui = output / 'smoke-failed-ui.xml'

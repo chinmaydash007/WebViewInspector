@@ -1,7 +1,7 @@
 package example.consumer;
 
 import android.app.Application;
-import io.github.chinmaydash007.webviewinspector.WebViewInspector;
+import com.webviewinspector.WebViewInspector;
 
 public final class ConsumerApplication extends Application {
     @Override

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Version 0.4.0 moves both facades to `com.webviewinspector.WebViewInspector`. Update imports and recompile when upgrading. Both artifacts retain the Maven group `io.github.chinmaydash007`.
 - Support WebKit 1.15.0 and 1.16.0 navigation events in the same AAR. Declare WebKit 1.15.0 as the minimum so consumers can select 1.16.0.
 
 ## 0.3.0 — 1 November 2026

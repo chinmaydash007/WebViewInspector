@@ -6,7 +6,7 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import io.github.chinmaydash007.webviewinspector.WebViewInspector
+import com.webviewinspector.WebViewInspector
 
 class XmlWebViewActivity : AppCompatActivity() {
     private lateinit var browser: WebView

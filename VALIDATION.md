@@ -193,8 +193,8 @@ authenticated host-app flows remain unexercised. No app distribution was perform
 
 ## 0.2.0 namespace migration — local evidence, 1 November 2026
 
-Current sources use `io.github.chinmaydash007.webviewinspector`; both artifacts retain
-API 24 and the five facade methods, with no legacy alias. These are fresh local results:
+The 0.2.0 sources moved both artifacts to the publisher-qualified package and retained
+API 24 and the five facade methods. Local results for that migration:
 
 - Clean module/sample outputs rebuilt successfully. All 26 JVM tests, lint (zero errors),
   full/no-op API parity and 30 publishing/content guard tests passed.

@@ -3,6 +3,7 @@
 These checks run before signing/uploading and again when restoring a release bundle.
 They inspect archive contents rather than trusting the top-level artifact filename.
 """
+import hashlib
 import io
 import re
 import zipfile
@@ -25,20 +26,26 @@ DOCUMENTATION_IDENTITIES = (
 QUALIFIED_IDENTITY = re.compile(r'(?<![A-Za-z0-9_$])(?:com|io|org)(?:\.[A-Za-z_][A-Za-z0-9_$]*){2,}')
 RUNTIME_REFERENCE = re.compile(rb'(?<![a-z0-9_$])(?:com|io|org)(?:/[A-Za-z_][A-Za-z0-9_$]*){2,}')
 TEXT_EXTENSIONS = ('.kt', '.java', '.md', '.html', '.xml', '.json', '.txt', '.properties')
+V0_1_0_NOTICE_SHA256 = 'd23982d223bec6296ca9cdc09c5fca84ebb0c9da513456d826bed4663716200b'
 
 
-def validate_text(text, namespace, location):
+def validate_text(text, namespace, maven_group, location, *, legacy_notice=False):
     """Reject foreign project identities and private workspace paths in public text."""
-    publisher = namespace.rsplit('.', 1)[0]
-    permitted = (publisher,) + DOCUMENTATION_IDENTITIES
+    permitted = (namespace,) + DOCUMENTATION_IDENTITIES
     for match in QUALIFIED_IDENTITY.finditer(text):
         identity = match.group()
-        if not any(identity == prefix or identity.startswith(prefix + '.') for prefix in permitted):
+        if identity != maven_group and not any(
+            identity == prefix or identity.startswith(prefix + '.') for prefix in permitted
+        ):
             raise ValueError('Unexpected project identity in ' + location + ': ' + identity)
     if re.search(r'/Users/|[A-Za-z]:\\Users\\|/home/[^/\s]+/', text):
         raise ValueError('Private workspace path in ' + location)
     if re.search(r'extracted from .+ implementation', text, re.IGNORECASE):
-        raise ValueError('Host-application extraction notice in ' + location)
+        if not (
+            legacy_notice and location == 'NOTICE'
+            and hashlib.sha256(text.encode('utf-8')).hexdigest() == V0_1_0_NOTICE_SHA256
+        ):
+            raise ValueError('Host-application extraction notice in ' + location)
 
 
 def validate_dependencies(pom, metadata, artifact, *, legacy_webkit_pin=False):
@@ -108,13 +115,13 @@ def validate_classes(data, namespace, no_op):
             raise ValueError('Published facade is missing')
 
 
-def validate_document_archive(archive, namespace, sources):
+def validate_document_archive(archive, namespace, maven_group, sources, *, legacy_notice=False):
     """Inspect source paths, package references, and generated documentation content."""
     package = namespace.replace('.', '/')
     for name in archive.namelist():
-        validate_text(name.replace('/', '.'), namespace, 'archive entry ' + name)
+        validate_text(name.replace('/', '.'), namespace, maven_group, 'archive entry ' + name)
         if sources and name.endswith(('.kt', '.java')):
             if not (name.startswith(package + '/internal/') or name == package + '/WebViewInspector.kt'):
                 raise ValueError('Unexpected published source: ' + name)
         if name.endswith(TEXT_EXTENSIONS) or name in ('NOTICE', 'LICENSE'):
-            validate_text(archive.read(name).decode('utf-8'), namespace, name)
+            validate_text(archive.read(name).decode('utf-8'), namespace, maven_group, name, legacy_notice=legacy_notice)

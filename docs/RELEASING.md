@@ -14,7 +14,7 @@ Local tooling dependencies are not consumer dependencies. Use `python3 -m venv .
 
 ## Before a release
 
-- Keep `GROUP` and `VERSION_NAME` in gradle.properties as the single coordinate source. Both modules always share a version. Do not use SNAPSHOT versions for releases.
+- Keep `GROUP` and `VERSION_NAME` in gradle.properties as the single coordinate source. `INSPECTOR_PACKAGE` defines the library namespace separately. Both modules always share a version. Do not use SNAPSHOT versions for releases.
 - Update CHANGELOG and compatibility notes. Run `bash scripts/verify.sh`, then native API 36/API 24 gates. The API 36 provider must support the navigation listener for the resolved WebKit version. An unsupported provider fails the prerequisite.
 - Check the independent Java consumer, including its minified diagnostic variant, with no Compose/Kotlin Gradle plugin. Check no-op resource/dependency isolation and exact clipboard contents on an emulator.
 - Push the tested source to private main. Run **Signed Maven Central release → Run workflow** for a signed dry run. Manual dispatch only signs/stages/verifies; it never uploads to Central.
@@ -56,7 +56,7 @@ Missing account/token credentials block publication, not extraction or local val
 
 Confirm both AARs/POMs/sources/docs are downloadable without GitHub authentication. Update README/CHANGELOG status only after that verification passes. Consumers need `google()` and `mavenCentral()` and select exactly one full/no-op artifact per variant.
 
-Migrate a consuming application only after both coordinates work. Both artifacts require API 24. Pin the full/no-op artifacts to the same version and update the facade import when moving from 0.1.0 to 0.2.0. Preserve central Application installation, developer controls and individual WebView screens. Remove any former source-module dependencies and update integration docs. Build each consumer profile and repeat minified copying and no-op isolation checks. Keep consumer changes separate from library release commits; do not distribute an app release as part of library publishing.
+Migrate a consuming application only after both coordinates work. Both artifacts require API 24. Pin the full/no-op artifacts to the same version. When moving to 0.4.0, update the facade import to `com.webviewinspector.WebViewInspector` and recompile. Preserve central Application installation, developer controls and individual WebView screens. Remove any former source-module dependencies and update integration docs. Build each consumer profile and repeat minified copying and no-op isolation checks. Keep consumer changes separate from library release commits and app distribution.
 
 ## Cloud test provider
 

@@ -6,7 +6,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import io.github.chinmaydash007.webviewinspector.WebViewInspector;
+import com.webviewinspector.WebViewInspector;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;

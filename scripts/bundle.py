@@ -21,8 +21,7 @@ def properties(root=ROOT):
     return dict(line.split('=', 1) for line in (root / 'gradle.properties').read_text().splitlines() if '=' in line and not line.startswith('#'))
 
 
-def validate_publication(folder, artifact, version, signed=False, *, legacy_webkit_pin=False):
-    namespace = properties()['INSPECTOR_PACKAGE']
+def validate_publication(folder, artifact, version, *, namespace, maven_group, signed=False, legacy_webkit_pin=False):
     prefix = artifact + '-' + version
     required = [prefix + suffix for suffix in ('.aar', '.pom', '.module', '-sources.jar', '-javadoc.jar')]
     for name in required:
@@ -30,7 +29,7 @@ def validate_publication(folder, artifact, version, signed=False, *, legacy_webk
             raise ValueError('Missing publication file: ' + name)
     pom = ET.parse(folder / (prefix + '.pom'))
     ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
-    expected = {'groupId': 'io.github.chinmaydash007', 'artifactId': artifact, 'version': version, 'packaging': 'aar'}
+    expected = {'groupId': maven_group, 'artifactId': artifact, 'version': version, 'packaging': 'aar'}
     for field, value in expected.items():
         if pom.findtext('m:' + field, namespaces=ns) != value:
             raise ValueError('Incorrect POM ' + field)
@@ -40,8 +39,8 @@ def validate_publication(folder, artifact, version, signed=False, *, legacy_webk
             raise ValueError('Missing POM metadata: ' + field)
     metadata = json.loads((folder / (prefix + '.module')).read_text())
     validate_dependencies(pom.getroot(), metadata, artifact, legacy_webkit_pin=legacy_webkit_pin)
-    validate_text((folder / (prefix + '.pom')).read_text(), namespace, 'POM')
-    validate_text(json.dumps(metadata), namespace, 'Gradle metadata')
+    validate_text((folder / (prefix + '.pom')).read_text(), namespace, maven_group, 'POM')
+    validate_text(json.dumps(metadata), namespace, maven_group, 'Gradle metadata')
     with zipfile.ZipFile(folder / (prefix + '.aar')) as aar:
         validate_classes(aar.read('classes.jar'), namespace, no_op=artifact.endswith('no-op'))
         if any(name.startswith('libs/') and name.endswith('.jar') for name in aar.namelist()):
@@ -60,14 +59,18 @@ def validate_publication(folder, artifact, version, signed=False, *, legacy_webk
             raise ValueError('Test/sample manifest leaked into AAR')
         for name in aar.namelist():
             if name.endswith(('.xml', '.txt', '.pro', '.properties')):
-                validate_text(aar.read(name).decode('utf-8'), namespace, name)
+                validate_text(aar.read(name).decode('utf-8'), namespace, maven_group, name)
     for suffix in ['-sources.jar', '-javadoc.jar']:
         with zipfile.ZipFile(folder / (prefix + suffix)) as jar:
             if 'README.md' not in jar.namelist() or 'LICENSE' not in jar.namelist():
                 raise ValueError('Public usage guide or license missing from ' + suffix)
             if suffix == '-javadoc.jar' and not any(name.endswith('.html') for name in jar.namelist()):
                 raise ValueError('Documentation JAR is empty')
-            validate_document_archive(jar, namespace, sources=suffix == '-sources.jar')
+            # The original signed release predates the project-neutral NOTICE.
+            validate_document_archive(
+                jar, namespace, maven_group, sources=suffix == '-sources.jar',
+                legacy_notice=signed and legacy_webkit_pin and version == '0.1.0',
+            )
     if signed:
         for name in required:
             signature = folder / (name + '.asc')
@@ -95,7 +98,10 @@ def main():
     files = {}
     for artifact in ARTIFACTS:
         folder = staging / artifact / version
-        required = validate_publication(folder, artifact, version, signed=args.signed)
+        required = validate_publication(
+            folder, artifact, version,
+            namespace=config['INSPECTOR_PACKAGE'], maven_group=config['GROUP'], signed=args.signed,
+        )
         for name in required:
             file = folder / name
             relative = '/'.join([config['GROUP'].replace('.', '/'), artifact, version, name])

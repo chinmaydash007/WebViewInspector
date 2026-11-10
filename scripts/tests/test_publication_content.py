@@ -14,6 +14,7 @@ from publication_content import (
 )
 
 NAMESPACE = properties()['INSPECTOR_PACKAGE']
+MAVEN_GROUP = properties()['GROUP']
 PACKAGE = NAMESPACE.replace('.', '/')
 
 
@@ -75,28 +76,38 @@ class PublicationContentTest(unittest.TestCase):
             validate_classes(archive_bytes({}), NAMESPACE, no_op=True)
 
     def test_platform_documentation_and_public_import_are_accepted(self):
-        validate_text('import ' + NAMESPACE + '.WebViewInspector\ncom.google.android.material.dialog', NAMESPACE, 'README.md')
+        validate_text(
+            'import ' + NAMESPACE + '.WebViewInspector\ncom.google.android.material.dialog',
+            NAMESPACE, MAVEN_GROUP, 'README.md',
+        )
 
-    def test_publisher_maven_group_is_accepted(self):
-        validate_text(NAMESPACE.rsplit('.', 1)[0], NAMESPACE, 'POM groupId')
+    def test_publisher_maven_group_is_accepted_as_an_exact_identity(self):
+        validate_text(MAVEN_GROUP, NAMESPACE, MAVEN_GROUP, 'POM groupId')
+        with self.assertRaisesRegex(ValueError, 'Unexpected project identity'):
+            validate_text(MAVEN_GROUP + '.foreign', NAMESPACE, MAVEN_GROUP, 'POM groupId')
 
     def test_foreign_package_in_generated_documentation_is_rejected(self):
         with zipfile.ZipFile(io.BytesIO(archive_bytes({'index.html': 'import com.customer.app.Inspector'}))) as archive:
             with self.assertRaisesRegex(ValueError, 'Unexpected project identity'):
-                validate_document_archive(archive, NAMESPACE, sources=False)
+                validate_document_archive(archive, NAMESPACE, MAVEN_GROUP, sources=False)
 
     def test_foreign_source_path_is_rejected(self):
         with zipfile.ZipFile(io.BytesIO(archive_bytes({'customer/Host.kt': 'class Host'}))) as archive:
             with self.assertRaisesRegex(ValueError, 'Unexpected published source'):
-                validate_document_archive(archive, NAMESPACE, sources=True)
+                validate_document_archive(archive, NAMESPACE, MAVEN_GROUP, sources=True)
 
     def test_private_workspace_path_is_rejected(self):
         with self.assertRaisesRegex(ValueError, 'Private workspace path'):
-            validate_text('JDK: /Users/developer/private/jdk', NAMESPACE, 'README.md')
+            validate_text('JDK: /Users/developer/private/jdk', NAMESPACE, MAVEN_GROUP, 'README.md')
 
     def test_host_specific_notice_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, 'Host-application extraction notice'):
-            validate_text('Extracted from ExampleCompany Android implementation.', NAMESPACE, 'NOTICE')
+        for legacy_notice in (False, True):
+            with self.subTest(legacy_notice=legacy_notice):
+                with self.assertRaisesRegex(ValueError, 'Host-application extraction notice'):
+                    validate_text(
+                        'Extracted from ExampleCompany Android implementation.',
+                        NAMESPACE, MAVEN_GROUP, 'NOTICE', legacy_notice=legacy_notice,
+                    )
 
     def test_reviewed_dependency_inventories_are_accepted(self):
         for artifact, dependencies in [('webview-inspector', FULL_DEPENDENCIES), ('webview-inspector-no-op', NO_OP_DEPENDENCIES)]:

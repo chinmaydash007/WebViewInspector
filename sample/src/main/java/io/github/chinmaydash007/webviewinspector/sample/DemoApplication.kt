@@ -1,7 +1,7 @@
 package io.github.chinmaydash007.webviewinspector.sample
 
 import android.app.Application
-import io.github.chinmaydash007.webviewinspector.WebViewInspector
+import com.webviewinspector.WebViewInspector
 
 class DemoApplication : Application() {
     internal val server by lazy { DemoServer() }

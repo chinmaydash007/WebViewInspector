@@ -17,12 +17,33 @@ import bundle
 import release
 
 
+GROUP = 'io.github.chinmaydash007'
+LEGACY_PROPERTIES = {
+    'VERSION_NAME': '0.1.0',
+    'GROUP': GROUP,
+    'INSPECTOR_PACKAGE': 'com.visit.webviewinspector',
+}
+
+
 class ReleaseTests(unittest.TestCase):
-    def test_tagged_source_does_not_use_the_publishers_head_version(self):
-        with patch.object(release.subprocess, 'check_output', side_effect=['VERSION_NAME=0.1.0\n', 'tagged-commit\n', 'tagged-commit\n']) as git:
-            self.assertEqual(('0.1.0', 'tagged-commit'), release.tagged_source('v0.1.0'))
-            self.assertEqual(['git', 'show', 'refs/tags/v0.1.0:gradle.properties'], git.call_args_list[0].args[0])
-            self.assertFalse(any('HEAD' in call.args[0] for call in git.call_args_list))
+    def test_tagged_source_uses_the_tags_namespace_or_the_first_release_default(self):
+        cases = (
+            ('0.1.0', '', LEGACY_PROPERTIES['INSPECTOR_PACKAGE']),
+            ('0.3.0', 'INSPECTOR_PACKAGE=io.github.chinmaydash007.webviewinspector\n',
+             'io.github.chinmaydash007.webviewinspector'),
+        )
+        for version, namespace_property, namespace in cases:
+            with self.subTest(version=version):
+                source = f'VERSION_NAME={version}\nGROUP={GROUP}\n{namespace_property}'
+                with patch.object(release.subprocess, 'check_output',
+                                  side_effect=[source, 'tagged-commit\n', 'tagged-commit\n']) as git:
+                    tagged_properties, commit = release.tagged_source(f'v{version}')
+                self.assertEqual({
+                    'VERSION_NAME': version, 'GROUP': GROUP, 'INSPECTOR_PACKAGE': namespace,
+                }, tagged_properties)
+                self.assertEqual('tagged-commit', commit)
+                self.assertEqual(['git', 'show', f'refs/tags/v{version}:gradle.properties'], git.call_args_list[0].args[0])
+                self.assertFalse(any('HEAD' in call.args[0] for call in git.call_args_list))
 
     def test_tagged_source_rejects_another_version(self):
         with patch.object(release.subprocess, 'check_output', side_effect=['VERSION_NAME=0.2.0\n', 'commit\n']):
@@ -84,10 +105,16 @@ class ReleaseTests(unittest.TestCase):
             folder = Path(directory)
             (folder / 'publication-manifest.json').write_text(json.dumps({'signed': False, 'version': '0.1.0', 'source_commit': 'commit'}))
             with self.assertRaisesRegex(ValueError, 'unsigned'):
-                release.validate_saved_bundle(folder, '0.1.0', 'commit')
+                release.validate_saved_bundle(folder, LEGACY_PROPERTIES, 'commit')
 
-    def test_saved_bundle_selects_the_webkit_policy_from_the_verified_version(self):
-        for version in ('0.1.0', '0.2.0', '0.3.0', '0.3.1'):
+    def test_saved_bundle_selects_namespace_and_webkit_policy_from_the_tag(self):
+        cases = (
+            ('0.1.0', LEGACY_PROPERTIES['INSPECTOR_PACKAGE'], True),
+            ('0.2.0', 'io.github.chinmaydash007.webviewinspector', True),
+            ('0.3.0', 'io.github.chinmaydash007.webviewinspector', True),
+            ('0.4.0', 'com.webviewinspector', False),
+        )
+        for version, namespace, legacy_webkit_pin in cases:
             with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
                 folder = Path(directory)
                 archive_path = folder / 'bundle.zip'
@@ -101,12 +128,14 @@ class ReleaseTests(unittest.TestCase):
                     'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest(),
                 }
                 (folder / 'publication-manifest.json').write_text(json.dumps(manifest))
+                tagged_properties = {'VERSION_NAME': version, 'GROUP': GROUP, 'INSPECTOR_PACKAGE': namespace}
                 with patch.object(release, 'validate_publication') as validate:
-                    release.validate_saved_bundle(folder, version, 'commit')
+                    release.validate_saved_bundle(folder, tagged_properties, 'commit')
                     self.assertEqual(len(bundle.ARTIFACTS), validate.call_count)
                     for validation in validate.call_args_list:
                         self.assertEqual(
-                            {'signed': True, 'legacy_webkit_pin': version != '0.3.1'},
+                            {'namespace': namespace, 'maven_group': GROUP, 'signed': True,
+                             'legacy_webkit_pin': legacy_webkit_pin},
                             validation.kwargs,
                         )
 
@@ -119,7 +148,7 @@ class ReleaseTests(unittest.TestCase):
                 (folder / name).write_text('fixture')
             with contextlib.ExitStack() as stack:
                 stack.enter_context(patch.object(release, 'require_private_repository'))
-                stack.enter_context(patch.object(release, 'tagged_source', return_value=('0.1.0', 'commit')))
+                stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
                 stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
                 stack.enter_context(patch.object(release, 'release_for', return_value={'draft': False, 'id': 1, 'body': ''}))
                 stack.enter_context(patch.object(release, 'upload_asset'))
@@ -142,7 +171,7 @@ class ReleaseTests(unittest.TestCase):
                 (folder / name).write_text('fixture')
             with contextlib.ExitStack() as stack:
                 stack.enter_context(patch.object(release, 'require_private_repository'))
-                stack.enter_context(patch.object(release, 'tagged_source', return_value=('0.1.0', 'commit')))
+                stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
                 stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
                 stack.enter_context(patch.object(release, 'release_for', return_value={'draft': False}))
                 stack.enter_context(patch.object(release, 'upload_asset'))
@@ -156,7 +185,7 @@ class ReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, contextlib.ExitStack() as stack:
             folder = Path(directory)
             stack.enter_context(patch.object(release, 'require_private_repository'))
-            stack.enter_context(patch.object(release, 'tagged_source', return_value=('0.1.0', 'commit')))
+            stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
             stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=({'sha256': 'digest'}, folder / 'bundle.zip')))
             stack.enter_context(patch.object(release, 'release_for', return_value={'draft': True}))
             change = stack.enter_context(patch.object(release, 'github'))
@@ -174,7 +203,7 @@ class ReleaseTests(unittest.TestCase):
                 (folder / name).write_text('fixture')
             manifest = {'sha256': 'digest'}
             stack.enter_context(patch.object(release, 'require_private_repository'))
-            stack.enter_context(patch.object(release, 'tagged_source', return_value=('0.1.0', 'tagged-commit')))
+            stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'tagged-commit')))
             validate = stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
             stack.enter_context(patch.object(release, 'release_for', return_value={'draft': True, 'id': 1, 'body': ''}))
             stack.enter_context(patch.object(release, 'upload_asset'))
@@ -187,7 +216,7 @@ class ReleaseTests(unittest.TestCase):
             stack.enter_context(patch.object(release, 'verify_downloads'))
             stack.enter_context(patch.dict(release.os.environ, {'CENTRAL_USERNAME': 'fixture', 'CENTRAL_PASSWORD': 'fixture'}))
             release.publish('v0.1.0', folder, 'synthetic', publish_draft=True)
-            validate.assert_called_once_with(folder, '0.1.0', 'tagged-commit')
+            validate.assert_called_once_with(folder, LEGACY_PROPERTIES, 'tagged-commit')
             self.assertEqual({'draft': False}, change.call_args_list[0].args[3])
             upload.assert_called_once()
             self.assertEqual('new-deployment', wait.call_args.args[0])

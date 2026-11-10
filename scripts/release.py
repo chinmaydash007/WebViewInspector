@@ -71,7 +71,11 @@ def tagged_source(tag):
     version = tagged_properties['VERSION_NAME'].strip()
     commit = subprocess.check_output(['git', 'rev-parse', reference + '^{commit}'], cwd=ROOT, text=True).strip()
     validate_tag(tag, version, commit)
-    return version, commit
+    tagged_properties['VERSION_NAME'] = version
+    if version == '0.1.0':
+        # The first release predates the namespace property.
+        tagged_properties.setdefault('INSPECTOR_PACKAGE', 'com.visit.webviewinspector')
+    return tagged_properties, commit
 
 
 def require_private_repository(token):
@@ -121,7 +125,8 @@ def restore(tag, output, token):
             (output / name).write_bytes(fetch(asset['url'], token=token, accept='application/octet-stream'))
 
 
-def validate_saved_bundle(output, version, commit):
+def validate_saved_bundle(output, tagged_properties, commit):
+    version = tagged_properties['VERSION_NAME']
     manifest = json.loads((output / 'publication-manifest.json').read_text())
     if not manifest.get('signed') or manifest['version'] != version or manifest['source_commit'] != commit:
         raise ValueError('Bundle is unsigned or does not belong to this tagged commit.')
@@ -139,11 +144,15 @@ def validate_saved_bundle(output, version, commit):
             archive.extractall(parent)
         # These immutable signed versions were built before WebKit upgrades were supported.
         legacy_webkit_pin = version in {'0.1.0', '0.2.0', '0.3.0'}
+        group = tagged_properties['GROUP']
+        staging = parent.joinpath(*group.split('.'))
         for artifact in ARTIFACTS:
             validate_publication(
-                parent / 'io/github/chinmaydash007' / artifact / version,
+                staging / artifact / version,
                 artifact,
                 version,
+                namespace=tagged_properties['INSPECTOR_PACKAGE'],
+                maven_group=group,
                 signed=True,
                 legacy_webkit_pin=legacy_webkit_pin,
             )
@@ -203,8 +212,9 @@ def verify_downloads(manifest, timeout=1800):
 
 def publish(tag, output, token, *, publish_draft=False):
     require_private_repository(token)
-    version, commit = tagged_source(tag)
-    manifest, bundle = validate_saved_bundle(output, version, commit)
+    tagged_properties, commit = tagged_source(tag)
+    version = tagged_properties['VERSION_NAME']
+    manifest, bundle = validate_saved_bundle(output, tagged_properties, commit)
     username = os.environ.get('CENTRAL_USERNAME')
     password = os.environ.get('CENTRAL_PASSWORD')
     if not username or not password:

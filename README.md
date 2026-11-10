@@ -2,18 +2,18 @@
 
 A floating Android inspector for native WebViews. **Basic** discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally, showing current URLs and navigation history. **Advanced** adds explicit app-load URL/header snapshots when developers use the load helper. Neither replaces WebView clients or injects JavaScript.
 
-**Latest published version:** `0.3.0`. Both artifacts are available on Maven Central, and all ten primary publication files match the signed release bundle. Version 0.3.0 adds optional Advanced inspection while preserving existing Basic integrations. Previously published versions remain unchanged. See [validation](VALIDATION.md).
+**Source version:** `0.4.0`, unreleased. The examples below use artifacts staged in the local validation repository. **Latest published version:** `0.3.0`, available on Maven Central under the same Maven group. See [validation](VALIDATION.md) for the signed release verification.
 
 The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
 
 ## Integrate
 
-Use `google()` and `mavenCentral()`. Select exactly one artifact per app variant:
+Use `google()` and `mavenCentral()` for dependencies. For the unreleased examples, also use the repository created by `./gradlew stageRelease` at `build/validation-repository`. Select exactly one artifact per app variant:
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.3.0")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.3.0")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.0")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.0")
 }
 ```
 
@@ -28,7 +28,7 @@ override fun onCreate() {
 }
 ```
 
-Java uses `WebViewInspector.install(this);` in `Application.onCreate()`. The import is `io.github.chinmaydash007.webviewinspector.WebViewInspector` for both languages and artifacts.
+Java uses `WebViewInspector.install(this);` in `Application.onCreate()`. The import is `com.webviewinspector.WebViewInspector` for both languages and artifacts.
 
 The original five methods remain `install(Application)`, `showSettings(Activity)`, `setEnabled(Boolean)`, `isEnabled()` and `uninstall()`. These mutations dispatch to the main thread; install/uninstall are idempotent. Settings, toggle and floating position are process-only. The no-op facade installs nothing and always reports disabled.
 
@@ -70,14 +70,12 @@ lines); URL/value copying is exact. Timeline export adds timestamps and capture 
 Android 13+ system clipboard previews are marked sensitive; the inspector still shows
 full values and the copied text is unchanged.
 
-### Upgrade from 0.1.0
+### Upgrade to 0.4.0
 
-Update both artifact versions together and replace the previous facade import with
-`io.github.chinmaydash007.webviewinspector.WebViewInspector`. Recompile consumers;
-there is no legacy package alias or compatibility wrapper. The five method signatures,
-Basic URL/navigation behavior and API 24 floor remain compatible. Basic needs no
-individual screen changes. The 0.2.0 → 0.3.0 upgrade keeps the same import and adds
-optional load helpers plus App loads; existing Basic integrations remain valid.
+Update both artifact versions together, replace the previous facade import with
+`com.webviewinspector.WebViewInspector`, and recompile consumers. The package rename
+breaks source and binary compatibility. The five original methods and both synchronous
+load helpers keep their signatures.
 
 ## Use the inspector
 

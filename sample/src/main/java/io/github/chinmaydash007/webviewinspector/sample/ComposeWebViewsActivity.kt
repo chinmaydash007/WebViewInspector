@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import io.github.chinmaydash007.webviewinspector.WebViewInspector
+import com.webviewinspector.WebViewInspector
 
 class ComposeWebViewsActivity : ComponentActivity() {
     private val browsers = mutableListOf<WebView>()
