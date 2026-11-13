@@ -1,4 +1,4 @@
-package io.github.chinmaydash007.webviewinspector.sample
+package com.webviewinspector.sample
 
 import android.app.Application
 import com.webviewinspector.WebViewInspector

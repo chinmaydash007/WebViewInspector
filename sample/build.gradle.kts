@@ -4,10 +4,11 @@ plugins {
     alias(libs.plugins.compose)
 }
 android {
-    namespace = "io.github.chinmaydash007.webviewinspector.sample"
+    val samplePackage = providers.gradleProperty("INSPECTOR_PACKAGE").get() + ".sample"
+    namespace = samplePackage
     compileSdk = 36
     defaultConfig {
-        applicationId = "io.github.chinmaydash007.webviewinspector.sample"
+        applicationId = samplePackage
         minSdk = 24
         targetSdk =
             35

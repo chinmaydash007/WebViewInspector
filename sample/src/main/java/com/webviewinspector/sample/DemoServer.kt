@@ -1,4 +1,4 @@
-package io.github.chinmaydash007.webviewinspector.sample
+package com.webviewinspector.sample
 
 import java.net.InetAddress
 import java.net.ServerSocket
