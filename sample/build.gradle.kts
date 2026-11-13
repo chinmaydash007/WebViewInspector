@@ -23,12 +23,6 @@ android {
                 signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
-        create("diagnostic") {
-            initWith(getByName("release"))
-            applicationIdSuffix =
-                ".diagnostic"
-            matchingFallbacks += "release"
-        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -39,7 +33,6 @@ android {
 kotlin { jvmToolchain(17) }
 dependencies {
     debugImplementation(project(":webview-inspector"))
-    add("diagnosticImplementation", project(":webview-inspector"))
     releaseImplementation(project(":webview-inspector-no-op"))
     implementation(libs.appcompat)
     implementation(libs.activity.compose)

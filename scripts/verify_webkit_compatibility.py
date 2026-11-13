@@ -85,7 +85,7 @@ def run_lane(version, lane, devices, aapt, config, expected_hashes=None):
         native_runs = [pool.submit(native_gate, device, lane) for device in devices]
         for run in native_runs:
             run.result()
-    print(f'Running the minified consumer and sample smoke checks for {version}', flush=True)
+    print(f'Running the minified Java consumer and sample debug smoke checks for {version}', flush=True)
     smoke(devices[1], ROOT, namespace, lane)
     return hashes
 

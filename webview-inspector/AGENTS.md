@@ -48,8 +48,7 @@ formatter in Android Studio instead of committing IDE metadata. The complete gat
 ```sh
 ./gradlew :webview-inspector:testDebugUnitTest :webview-inspector:lintDebug \
   :webview-inspector:assembleDebugAndroidTest :webview-inspector-no-op:assembleRelease
-./gradlew :sample:assembleDebug :sample:assembleRelease \
-  :sample:assembleDiagnostic
+./gradlew :sample:assembleDebug :sample:assembleRelease
 ./gradlew :sample:dependencyInsight --configuration releaseRuntimeClasspath --dependency webview-inspector
 ```
 

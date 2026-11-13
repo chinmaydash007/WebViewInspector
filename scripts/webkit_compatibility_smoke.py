@@ -1,4 +1,4 @@
-"""Exercise the two minified validation apps and read back an exact copied redirect URL."""
+"""Smoke-test the minified Java consumer and exact redirect URL copying in sample debug."""
 import re
 import subprocess
 import time
@@ -60,7 +60,7 @@ def has_id(name):
 def smoke(device, root, namespace, output):
     consumer = 'example.webviewinspector.consumer.diagnostic'
     sample_namespace = namespace + '.sample'
-    sample = sample_namespace + '.diagnostic'
+    sample = sample_namespace + '.debug'
     test_package = namespace + '.test'
     failed_ui = output / 'smoke-failed-ui.xml'
 
@@ -70,8 +70,9 @@ def smoke(device, root, namespace, output):
     try:
         device.start(root / 'consumer-fixture/app/build/outputs/apk/diagnostic/app-diagnostic.apk',
                      consumer, 'example.consumer.ConsumerActivity')
-        find(consumer, 'Java consumer inspector', has_id('wvi_open'))
-        device.start(root / 'sample/build/outputs/apk/diagnostic/sample-diagnostic.apk',
+        device.tap(find(consumer, 'Java consumer inspector button', has_id('wvi_open')))
+        find(consumer, 'Java consumer inspector sheet', has_id('wvi_history_tab'))
+        device.start(root / 'sample/build/outputs/apk/debug/sample-debug.apk',
                      sample, sample_namespace + '.MainActivity')
         device.tap(find(sample, 'XML demo', contains('text', 'Advanced with real redirects')))
         device.tap(find(sample, 'redirect link', contains('text', 'Navigate through two redirects')))
@@ -88,9 +89,9 @@ def smoke(device, root, namespace, output):
         )
         (output / 'smoke-clipboard.log').write_text(result)
         if 'OK (1 test)' not in result or re.search(r'INSTRUMENTATION_STATUS_CODE: -[1234]\b|FAILURES!!!|INSTRUMENTATION_FAILED', result):
-            raise RuntimeError(f'The minified sample did not copy the exact URL. See {output / "smoke-clipboard.log"}')
+            raise RuntimeError(f'The debug sample did not copy the exact URL. See {output / "smoke-clipboard.log"}')
         (output / 'smoke.txt').write_text(
-            'The minified Java consumer opened the inspector. The minified sample grouped two redirects '
+            'The minified Java consumer opened the inspector. The debug sample grouped two redirects '
             'and copied the original intermediate URL exactly.\n',
         )
     finally:

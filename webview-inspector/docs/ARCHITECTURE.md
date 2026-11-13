@@ -274,6 +274,6 @@ Both sheets use `SheetScrollView`, a native AndroidX `NestedScrollView`. The Foc
 
 ## Production and inspection boundaries
 
-Debug and diagnostic variants resolve full. Ordinary release resolves only [no-op](../../webview-inspector-no-op/README.md): seven matching static methods, no inspector implementation/UI/storage, and synchronous pass-through loading helpers.
+The sample uses the full inspector in debug and [no-op](../../webview-inspector-no-op/README.md) in its minified release. Consumer apps choose an artifact per variant. The no-op artifact supplies seven matching static methods and synchronous pass-through loading helpers without inspector implementation, UI or storage.
 
 This is an Activity-hierarchy inspector with opt-in app-load snapshots, not a complete network trace. Separate windows, external browsers/UPI apps and iframe navigation are excluded. Events before discovery and during gaps cannot be reconstructed; sampling may miss redirects and failures. Commitment does not prove rendering or successful payment. Never replace clients/bridges, inject JavaScript or change settings to extend coverage. Only explicit helper inputs are captured: no implicit network/browser/response headers, automatic cookies or bodies. Inputs must not be logged, persisted, uploaded or sent to analytics.

@@ -17,7 +17,7 @@ dependencies {
 }
 ```
 
-For your own diagnostic build types, select the full artifact using that build type's `Implementation` configuration. Never include full and no-op artifacts on the same variant's classpath: they intentionally contain the same facade.
+For custom build types, including diagnostic builds, choose one artifact using that build type's `Implementation` configuration. Never include full and no-op artifacts on the same variant's classpath: they intentionally contain the same facade.
 
 Install centrally in your Application:
 
@@ -125,7 +125,7 @@ JAVA_HOME=/path/to/jdk17 ANDROID_HOME=/path/to/android-sdk bash scripts/verify.s
 ```
 
 This checks formatting first, then runs JVM tests, Android Lint for the full/no-op
-libraries, sample and consumer, native test APK assembly, all three sample variants,
+libraries, sample and consumer, native test APK assembly, both sample build types,
 full/no-op API checks, unsigned local publication validation, publishing-script tests,
 and an independent **Java-only** Maven consumer, including R8. Android Lint errors
 fail verification; warnings remain reported under the existing policy. It never
@@ -140,6 +140,6 @@ python3 scripts/device_tests.py --serial emulator-5554 --api 36
 python3 scripts/device_tests.py --serial emulator-5556 --api 24
 ```
 
-API 36 requires an installed provider supporting navigation events; the prerequisite fails instead of silently skipping event tests. The script restores font, density, night mode and animation settings. It rejects physical devices. The sample's debug/diagnostic variants use the full inspector; its minified release uses no-op. Sample pages and real HTTP redirects use loopback, with cleartext exceptions confined to sample/test manifests.
+API 36 requires an installed provider supporting navigation events; the prerequisite fails instead of silently skipping event tests. The script restores font, density, night mode and animation settings. It rejects physical devices. The sample uses the full inspector in debug and the no-op artifact in its minified release. Sample pages and real HTTP redirects use loopback, with cleartext exceptions confined to sample/test manifests.
 
 Read [architecture](webview-inspector/docs/ARCHITECTURE.md), [release workflow](docs/RELEASING.md), [validation](VALIDATION.md), [contribution guidance](CONTRIBUTING.md), and [maintenance rules](AGENTS.md). Release source/documentation JARs contain this guide and the [Apache 2.0 license](LICENSE), so consumers do not need private GitHub access.

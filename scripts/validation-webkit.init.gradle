@@ -15,9 +15,10 @@ gradle.projectsEvaluated {
         library.dependencies.add('androidTestImplementation', "androidx.webkit:webkit:${requested}")
     }
     [sample, consumer].findAll().each { app ->
-        ['debugImplementation', 'diagnosticImplementation'].each { configuration ->
-            app.dependencies.add(configuration, "androidx.webkit:webkit:${requested}")
-        }
+        app.dependencies.add('debugImplementation', "androidx.webkit:webkit:${requested}")
+    }
+    if (consumer) {
+        consumer.dependencies.add('diagnosticImplementation', "androidx.webkit:webkit:${requested}")
     }
 
     root.tasks.register('verifyWebkitResolution') {
@@ -46,8 +47,10 @@ gradle.projectsEvaluated {
             }
             [sample, consumer].findAll().each { app ->
                 check(app, 'debugRuntimeClasspath', expected)
-                check(app, 'diagnosticRuntimeClasspath', expected)
                 check(app, 'releaseRuntimeClasspath', null)
+            }
+            if (consumer) {
+                check(consumer, 'diagnosticRuntimeClasspath', expected)
             }
         }
     }
