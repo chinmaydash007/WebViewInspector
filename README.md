@@ -12,18 +12,18 @@
 
 ## See it in Afterframe
 
-[Afterframe](sample/) is an Android sample with four WebView scenarios. **Basic** discovers visible WebViews after a single app-wide install. **Advanced** adds a record of the URL and headers passed to the explicit load helper.
+[Afterframe](sample/) is an Android sample with four WebView scenarios. Each demo starts with **Locate on page**, which outlines the selected WebView. **Basic** discovers visible WebViews after a single app-wide install. **Advanced** adds a record of the URL and headers passed to the explicit load helper.
 
 | Home · Embedded WebViews | Movies · Offline navigation |
 | :---: | :---: |
-| <img src="sample/demo-media/home.gif" width="300" alt="Switching between Now playing and Your watchlist and highlighting the selected WebView"> | <img src="sample/demo-media/movies.gif" width="300" alt="Opening Midnight Local's 6:45 PM showtime and inspecting its query parameters and history"> |
-| Pick between **Now playing** and **Your watchlist**, then use **Locate on page** to highlight the selected WebView. | Follow an offline movie page to a showtime. Inspect the URL and its query parameters, then see both pages in **History**. |
+| <img src="sample/demo-media/home.gif" width="300" alt="Locating Now playing, then inspecting the separate URLs for Now playing and Your watchlist"> | <img src="sample/demo-media/movies.gif" width="300" alt="Locating Midnight Local, then inspecting its 6:45 PM showtime, query parameters, and history"> |
+| Locate **Now playing**, then switch between it and **Your watchlist** to see the two embedded WebView URLs. | Locate the offline movie page, then open a showtime. Inspect its query parameters and find both pages in **History**. |
 | [Watch Home MP4](sample/demo-media/home.mp4) | [Watch Movies MP4](sample/demo-media/movies.mp4) |
 
 | Headers · Explicit app loads | Browser · Live navigation |
 | :---: | :---: |
-| <img src="sample/demo-media/headers.gif" width="300" alt="Matching a synthetic demo header to the httpbin receipt and checking a second load without supplied headers"> | <img src="sample/demo-media/browser.gif" width="300" alt="Opening google.com, visiting About, and reviewing Back and Forward in Inspector History"> |
-| Match a demo header in **App loads** to the live httpbin receipt, then send a request without extra headers. **App loads** shows what the app supplied. The receipt shows what httpbin received. | Open `google.com` and visit **About**. Use **Back** and **Forward**, then review the navigation in **History**. |
+| <img src="sample/demo-media/headers.gif" width="300" alt="Locating the httpbin receipt, matching a synthetic demo header, then checking a load without supplied headers"> | <img src="sample/demo-media/browser.gif" width="300" alt="Locating the Google homepage, then visiting About and reviewing Back and Forward in Inspector History"> |
+| Locate the live receipt, then compare a new request with **App loads** and send another without extra headers. **App loads** shows what the app supplied. The receipt shows what httpbin received. | Locate the Google homepage, then enter `google.com` and visit **About**. Use **Back** and **Forward**, then review the navigation in **History**. |
 | [Watch Headers MP4](sample/demo-media/headers.mp4) | [Watch Browser MP4](sample/demo-media/browser.mp4) |
 
 To try it, open the repo in Android Studio with JDK 17 and Android SDK 36,
