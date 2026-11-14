@@ -87,7 +87,8 @@ class NavigationHistoryTest {
         ).perform(scrollTo(), click())
         assertEquals(server.base + server.middlePath, clipboard())
         clearClipboard()
-        onView(withId(R.id.wvi_copy_history)).inRoot(isDialog()).perform(click())
+        // The system clipboard preview can cover the footer after copying the intermediate step.
+        ui { assertTrue(dialogView(R.id.wvi_copy_history).performClick()) }
         val timeline = clipboard()
         assertTrue(timeline.contains("Navigation events"))
         assertTrue(timeline.contains(server.base + "/redirect-one"))
