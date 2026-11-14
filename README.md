@@ -4,8 +4,8 @@
 
 **See current URLs, navigation history, and app-supplied headers in your Android WebViews.**
 
-[Maven Central 0.4.0](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/0.4.0/)
-· [Production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/0.4.0/)
+[Maven Central 0.4.1](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/0.4.1/)
+· [Production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/0.4.1/)
 · [Apache 2.0](LICENSE)
 
 </div>
@@ -36,8 +36,8 @@ WebView Inspector supports Android API 24 and later. Use `google()` and
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.0")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.0")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.1")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.1")
 }
 ```
 

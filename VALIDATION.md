@@ -1,5 +1,28 @@
 # Standalone validation
 
+## Published 0.4.1 — 14 November 2026
+
+Both artifacts are available on Maven Central. All ten primary files (AARs, POMs,
+Gradle metadata, sources and documentation) matched the signed release bundle in
+anonymous downloads. The full AAR contains the dark mode resources, and the full
+source JAR contains the Close icon alignment fix.
+
+The [signed dry run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/43600824822) and the
+[prepared release run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/43602410283)
+passed standalone checks and the API 24 and 36 native gates, including the 320 dp
+light and dark suites at 160% font scale. The prepared release reused the exact signed
+bundle and built the debug, minified diagnostic and no-op release variants of the
+independent Java consumer from public Maven repositories.
+
+Central reported **PUBLISHED**. The GitHub repository and CI evidence remain
+private. The `v0.4.1` release assets record the signed bundle, tagged source identity,
+checksums and deployment receipt.
+
+Local checks also passed: 41 JVM tests, 33 publisher/content guard tests, lint with
+zero errors, API 24 and 36 native suites, and exact URL copying in the minified Java
+consumer. Both production APKs excluded inspector resources, implementation and
+WebKit. The local emulators' settings were restored after testing.
+
 ## Inspector clipboard feedback — 14 November 2026
 
 - The JDK 17 non-publishing gate passed, including lint, the independent Java consumer,
