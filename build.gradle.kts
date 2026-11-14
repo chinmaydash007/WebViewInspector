@@ -112,7 +112,7 @@ subprojects {
                 dependsOn("dokkaGeneratePublicationHtml")
                 archiveClassifier.set("javadoc")
                 from(layout.buildDirectory.dir("dokka/html"))
-                from(rootProject.file("README.md"))
+                from(rootProject.file("USAGE.md")) { rename { "README.md" } }
                 from(rootProject.file("LICENSE"))
                 from(rootProject.file("NOTICE"))
                 from(rootProject.file("CONTRIBUTING.md"))
@@ -139,7 +139,7 @@ subprojects {
             isPreserveFileTimestamps = false
             isReproducibleFileOrder = true
             if (name == "sourceReleaseJar" || name.contains("sources", ignoreCase = true)) {
-                from(rootProject.file("README.md"))
+                from(rootProject.file("USAGE.md")) { rename { "README.md" } }
                 from(rootProject.file("LICENSE"))
                 from(rootProject.file("NOTICE"))
                 from(rootProject.file("CONTRIBUTING.md"))
