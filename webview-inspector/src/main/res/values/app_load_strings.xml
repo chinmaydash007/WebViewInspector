@@ -19,5 +19,4 @@
     <string name="wvi_app_load_expand">%1$s, %2$d headers, %3$s. Expand app load</string>
     <string name="wvi_app_load_collapse">%1$s, %2$d headers, %3$s. Collapse app load</string>
     <string name="wvi_app_loads_saved">Saved app loads · WebView %1$d</string>
-    <string name="wvi_app_load_copied">Copied app-load inputs</string>
 </resources>

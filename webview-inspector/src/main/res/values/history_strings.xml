@@ -35,7 +35,5 @@
     <string name="wvi_copy_history">Copy history · WebView %1$d</string>
     <string name="wvi_clear_history">Clear history</string>
     <string name="wvi_history_memory">Stored only for this app session.</string>
-    <string name="wvi_recorded_copied">Recorded URL copied · WebView %1$d</string>
-    <string name="wvi_history_copied">History copied · WebView %1$d</string>
     <string name="wvi_clipboard_unavailable">The clipboard could not accept this content. Try copying an individual URL.</string>
 </resources>

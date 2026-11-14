@@ -37,6 +37,9 @@ flowchart TD
     CaptureStore --> Snapshot
     Sheet --> LoadsPanel["AppLoadsPanel: app-supplied URLs and headers"]
     Session --> HistoryCopy["HistoryClipboardCopier: saved values"]
+    Session --> AppLoadCopy["AppLoadClipboardCopier: saved inputs"]
+    Floating --> CopyFeedback["Copy feedback on the pressed control"]
+    Sheet --> CopyFeedback
     Locate --> Floating
     Sheet --> Presentation["UrlPresentation: display only"]
 ```
@@ -83,7 +86,7 @@ All package names below are relative to `com.webviewinspector.internal`.
 | `actions` | `UrlClipboardCopier`, `HistoryClipboardCopier`, `AppLoadClipboardCopier`, `LocateHighlighter` | Live copying/highlighting validates the selected view; saved copying reads explicit raw values. |
 | `ui.floating` | `FloatingOverlay`, `FloatingDragController` | Render the control/outline and handle movement, snapping, insets, keyboard, and accessibility movement. |
 | `ui.sheet` | `InspectorSheet`, `TargetPicker`, `CurrentUrlPanel`, `InspectorFooter`, `HistoryPanel`, `AppLoadsPanel`, `SettingsSheet` | Coordinate the Focused native UI, render immutable state and own transient child windows. Send actions through callbacks. |
-| `ui.common` | `BottomSheetFactory`, `InspectorSheetLayout`, `SheetDragGuard`, `SheetScrollView`, View extensions | Construct library-themed dialog chrome, coordinate content/sheet gestures, and share View styling. No selection, polling, or URL access. |
+| `ui.common` | `BottomSheetFactory`, `InspectorSheetLayout`, `SheetDragGuard`, `SheetScrollView`, View extensions | Construct library-themed dialog chrome, coordinate content/sheet gestures, and share View styling and copy confirmation. No selection, polling, or URL access. |
 | `util` | `UrlPresentation`, `HistoryPresentation`, `AppLoadsPresentation` | Display-only URL/query formatting, date labels and saved-input text formatting. Raw URL/header strings are never decoded for copying. |
 
 ## Installation, discovery, and rendering
@@ -207,12 +210,17 @@ sequenceDiagram
         Copier->>WebView: read current raw URL
         WebView-->>Copier: original string
         Copier->>Clipboard: setPrimaryClip(original string)
+        Copier-->>Session: clipboard write result
+        Session-->>UI: success or failure
+        opt Clipboard write succeeded
+            UI->>UI: confirm on the pressed control
+        end
     else Selected instance disappeared
         Session-->>UI: render unavailable selection
     end
 ```
 
-The copier checks visibility again and does nothing for an unavailable view or null URL. It never copies the sheet's cached text or invokes `UrlPresentation`. Encoding, plus signs, repeated parameters, fragments, and original character case remain untouched. Android 13+ provides its own clipboard confirmation; older versions receive the existing toast.
+The copier checks visibility again and skips unavailable views and null URLs. Encoding, plus signs, repeated parameters, fragments, and original character case remain untouched. All three copiers return the clipboard write result. A rejected write displays the error toast. A successful write lets the pressed control request a platform haptic after checking the ringer mode and Do Not Disturb. On API 24–32 the control owns a one-second checkmark and TalkBack announcement. The checkmark resets on rebinding or detachment. Android 13+ can display its own clipboard confirmation, with App loads still marked sensitive.
 
 ## Locate flow
 

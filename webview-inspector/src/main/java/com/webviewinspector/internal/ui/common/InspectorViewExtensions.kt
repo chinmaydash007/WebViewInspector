@@ -57,7 +57,7 @@ internal fun Context.label(
 internal fun Context.icon(
     drawable: Int,
     description: String,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
 ): ImageButton =
     ImageButton(this).also { button ->
         button.setImageResource(drawable)
@@ -65,7 +65,7 @@ internal fun Context.icon(
         button.background = shape(color(R.color.wvi_surface), radius = ICON_CORNER_RADIUS_DP)
         button.contentDescription = description
         button.isFocusable = true
-        button.setOnClickListener { onClick() }
+        if (onClick != null) button.setOnClickListener { onClick() }
         button.layoutParams = LinearLayout.LayoutParams(dp(ICON_TOUCH_SIZE_DP), dp(ICON_TOUCH_SIZE_DP))
     }
 

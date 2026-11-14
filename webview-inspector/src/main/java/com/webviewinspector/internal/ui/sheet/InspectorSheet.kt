@@ -43,14 +43,14 @@ private const val CLOSE_ICON_TRAILING_SPACE_DP = 18
 internal class InspectorSheet(
     activity: Activity,
     select: (Long) -> Unit,
-    copy: () -> Unit,
+    copy: () -> Boolean,
     locate: () -> Unit,
     private val presentation: InspectorSheetState,
-    copyRecordedUrl: (Long, Int?) -> Unit,
-    copyHistory: () -> Unit,
+    copyRecordedUrl: (Long, Int?) -> Boolean,
+    copyHistory: () -> Boolean,
     clearHistory: () -> Unit,
-    copyAppLoad: (Long, AppLoadCopyPart) -> Unit,
-    copyAppLoads: () -> Unit,
+    copyAppLoad: (Long, AppLoadCopyPart) -> Boolean,
+    copyAppLoads: () -> Boolean,
     clearAppLoads: () -> Unit,
 ) {
     val dialog = BottomSheetFactory.create(activity.inspectorTheme())

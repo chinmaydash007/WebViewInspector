@@ -28,9 +28,11 @@ import com.webviewinspector.internal.state.NavigationHistorySnapshot
 import com.webviewinspector.internal.state.NavigationOutcome
 import com.webviewinspector.internal.state.NavigationRecord
 import com.webviewinspector.internal.state.TargetSheetState
+import com.webviewinspector.internal.ui.common.clearCopyFeedback
 import com.webviewinspector.internal.ui.common.color
 import com.webviewinspector.internal.ui.common.dp
 import com.webviewinspector.internal.ui.common.padding
+import com.webviewinspector.internal.ui.common.setCopyAction
 import com.webviewinspector.internal.ui.common.shape
 import com.webviewinspector.internal.util.HistoryDates
 import com.webviewinspector.internal.util.HistoryPresentation
@@ -45,7 +47,7 @@ internal class HistoryPanel(
     private val context: Context,
     private val presentation: InspectorSheetState,
     private val scroll: NestedScrollView,
-    private val copyRecordedUrl: (Long, Int?) -> Unit,
+    private val copyRecordedUrl: (Long, Int?) -> Boolean,
     about: () -> Unit,
     private val contentChanged: () -> Unit,
 ) {
@@ -256,8 +258,8 @@ internal class HistoryPanel(
                 }
             }
         private val copy =
-            context.focusedIcon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy_recorded)) {
-                copyRecordedUrl(recordId, null)
+            context.focusedIcon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy_recorded)).apply {
+                setCopyAction { copyRecordedUrl(recordId, null) }
             }
         private val details = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         private val steps = mutableListOf<LinearLayout>()
@@ -289,6 +291,8 @@ internal class HistoryPanel(
 
         fun render(value: NavigationRecord) {
             if (record == value) return
+            if (record?.rawUrl != value.rawUrl) copy.clearCopyFeedback()
+            val previousSteps = record?.steps.orEmpty()
             record = value
             val rawUrl = value.rawUrl
             val gap = value.kind == HistoryRecordKind.GAP
@@ -317,6 +321,7 @@ internal class HistoryPanel(
                         )
                     }
                 val heading = stepView.getChildAt(0) as ViewGroup
+                if (previousSteps.getOrNull(index)?.rawUrl != step.rawUrl) heading.getChildAt(1).clearCopyFeedback()
                 (heading.getChildAt(0) as TextView).text =
                     "${HistoryPresentation.step(context, value, index)} · ${HistoryPresentation.time(step.atMillis)}"
                 heading.getChildAt(1).contentDescription =
@@ -340,9 +345,13 @@ internal class HistoryPanel(
                             LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f),
                         )
                         addView(
-                            context.focusedIcon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy_recorded)) {
-                                copyRecordedUrl(recordId, index)
-                            },
+                            context
+                                .focusedIcon(
+                                    R.drawable.wvi_ic_copy,
+                                    context.getString(R.string.wvi_copy_recorded),
+                                ).apply {
+                                    setCopyAction { copyRecordedUrl(recordId, index) }
+                                },
                         )
                     },
                 )

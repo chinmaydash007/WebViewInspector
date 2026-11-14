@@ -70,6 +70,7 @@ def main():
             run('navigation-prerequisite', [PREFIX + 'ReleasePrerequisitesTest'], 1)
         if not args.skip_normal:
             run('normal', NORMAL if args.api == 36 else FALLBACK, 27 if args.api == 36 else 14)
+            run('clipboard-feedback', [PREFIX + 'ClipboardFeedbackTest'], 3)
         if args.api == 36:
             width = int(re.findall(r'(\d+)x\d+', shell('wm', 'size'))[-1])
             shell('wm', 'density', str(round(width * 160 / 320)))

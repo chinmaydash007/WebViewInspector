@@ -25,6 +25,7 @@ import com.webviewinspector.internal.state.TargetSheetState
 import com.webviewinspector.internal.ui.common.color
 import com.webviewinspector.internal.ui.common.dp
 import com.webviewinspector.internal.ui.common.padding
+import com.webviewinspector.internal.ui.common.setCopyAction
 import com.webviewinspector.internal.ui.common.shape
 import com.webviewinspector.internal.util.HistoryPresentation
 import com.webviewinspector.internal.util.UrlPresentation
@@ -38,7 +39,7 @@ internal class AppLoadsPanel(
     private val context: Context,
     private val presentation: InspectorSheetState,
     private val scroll: NestedScrollView,
-    private val copy: (Long, AppLoadCopyPart) -> Unit,
+    private val copy: (Long, AppLoadCopyPart) -> Boolean,
     about: () -> Unit,
     private val contentChanged: () -> Unit,
 ) {
@@ -219,8 +220,8 @@ internal class AppLoadsPanel(
             detailsBuilt = true
             details.addView(rawText(record.rawUrl))
             details.addView(
-                context.focusedButton(context.getString(R.string.wvi_app_load_copy_url)) {
-                    copy(record.id, AppLoadCopyPart.Url)
+                context.focusedButton(context.getString(R.string.wvi_app_load_copy_url)).apply {
+                    setCopyAction { copy(record.id, AppLoadCopyPart.Url) }
                 },
             )
             if (record.headers.isEmpty()) {
@@ -235,8 +236,8 @@ internal class AppLoadsPanel(
                 )
             } else {
                 details.addView(
-                    context.focusedButton(context.getString(R.string.wvi_app_load_copy_headers)) {
-                        copy(record.id, AppLoadCopyPart.Headers)
+                    context.focusedButton(context.getString(R.string.wvi_app_load_copy_headers)).apply {
+                        setCopyAction { copy(record.id, AppLoadCopyPart.Headers) }
                     },
                 )
             }
@@ -251,12 +252,13 @@ internal class AppLoadsPanel(
                             LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f),
                         )
                         addView(
-                            context.focusedIcon(
-                                R.drawable.wvi_ic_copy,
-                                context.getString(R.string.wvi_app_load_copy_value, header.name),
-                            ) {
-                                copy(record.id, AppLoadCopyPart.HeaderValue(index))
-                            },
+                            context
+                                .focusedIcon(
+                                    R.drawable.wvi_ic_copy,
+                                    context.getString(R.string.wvi_app_load_copy_value, header.name),
+                                ).apply {
+                                    setCopyAction { copy(record.id, AppLoadCopyPart.HeaderValue(index)) }
+                                },
                         )
                     },
                 )

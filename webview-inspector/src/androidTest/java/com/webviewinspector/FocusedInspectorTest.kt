@@ -301,17 +301,23 @@ class FocusedInspectorTest {
                     state = state.copy(selectedId = id, history = histories.getValue(id), historyNumber = id.toInt())
                     sheet.render(state)
                 },
-                copy = { copiedId = state.selectedId },
+                copy = {
+                    copiedId = state.selectedId
+                    copiedId != null
+                },
                 locate = {},
                 presentation = preferences,
-                copyRecordedUrl = { _, _ -> },
-                copyHistory = { copiedId = state.history?.key?.targetId },
+                copyRecordedUrl = { _, _ -> false },
+                copyHistory = {
+                    copiedId = state.history?.key?.targetId
+                    copiedId != null
+                },
                 clearHistory = {
                     state = state.copy(history = state.history!!.copy(records = emptyList(), discardedCount = 0))
                     sheet.render(state)
                 },
-                copyAppLoad = { _, _ -> },
-                copyAppLoads = {},
+                copyAppLoad = { _, _ -> false },
+                copyAppLoads = { false },
                 clearAppLoads = {},
             )
         sheet.render(state)

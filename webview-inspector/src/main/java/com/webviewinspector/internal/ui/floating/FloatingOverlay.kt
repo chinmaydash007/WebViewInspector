@@ -14,11 +14,13 @@ import com.webviewinspector.R
 import com.webviewinspector.internal.state.FloatingPosition
 import com.webviewinspector.internal.state.InspectorState
 import com.webviewinspector.internal.ui.common.bold
+import com.webviewinspector.internal.ui.common.clearCopyFeedback
 import com.webviewinspector.internal.ui.common.color
 import com.webviewinspector.internal.ui.common.dp
 import com.webviewinspector.internal.ui.common.icon
 import com.webviewinspector.internal.ui.common.label
 import com.webviewinspector.internal.ui.common.padding
+import com.webviewinspector.internal.ui.common.setCopyAction
 import com.webviewinspector.internal.ui.common.shape
 
 /**
@@ -31,13 +33,14 @@ internal class FloatingOverlay(
     context: Context,
     position: FloatingPosition,
     open: () -> Unit,
-    copy: () -> Unit,
+    copy: () -> Boolean,
 ) : FrameLayout(context) {
     private val control = LinearLayout(context)
     private val title = context.label(size = TITLE_SIZE_SP).bold()
     private val domain = context.label(size = DOMAIN_SIZE_SP, muted = true)
     private val opener = LinearLayout(context)
-    private val copyButton = context.icon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy), copy)
+    private val copyButton =
+        context.icon(R.drawable.wvi_ic_copy, context.getString(R.string.wvi_copy)).apply { setCopyAction(copy) }
     private val grip =
         context.label("⠿", size = GRIP_SIZE_SP, muted = true).apply {
             gravity = Gravity.CENTER
@@ -107,9 +110,11 @@ internal class FloatingOverlay(
     fun render(state: InspectorState) {
         visibility = if (state.targets.isEmpty()) GONE else VISIBLE
         if (lastState == state) return
+        val selected = state.selected
+        val previous = lastState?.selected
+        if (previous?.id != selected?.id || previous?.url != selected?.url) copyButton.clearCopyFeedback()
         lastState = state
 
-        val selected = state.selected
         title.text = selected?.let {
             context.getString(R.string.wvi_selection, it.number, state.targets.size)
         } ?: context.getString(R.string.wvi_select_count, state.targets.size)

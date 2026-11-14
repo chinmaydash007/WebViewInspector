@@ -81,6 +81,8 @@ load helpers keep their signatures.
 
 Drag the floating control to an edge and tap its selected domain. Choose a WebView in the dropdown, inspect/copy its original Current URL, expand query parameters, or Locate its bounds. History shows newest-first navigation records and reported outcomes, with individual raw-URL copying, redirect steps, local-date groups and saved history after selection loss. Copy actions stay pinned. More contains Clear history and About capture.
 
+Successful copies give a short haptic in Ring or Vibrate mode when Do Not Disturb is off and Android touch feedback is enabled. On Android 12L and older, the pressed Copy control briefly shows a checkmark and announces “Copied to clipboard” for TalkBack. Android 13 and newer can show their system clipboard confirmation.
+
 ComponentActivity, AppCompatActivity, and non-Material host themes are supported through a library-themed native BottomSheetDialog. Content scrolls to the top before a separate downward gesture can dismiss the sheet. Native WebViews hosted by Compose are supported; Compose itself is not required by consumers.
 
 ## Compatibility and privacy

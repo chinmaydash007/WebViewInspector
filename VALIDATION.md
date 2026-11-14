@@ -1,5 +1,20 @@
 # Standalone validation
 
+## Inspector clipboard feedback — 14 November 2026
+
+- The JDK 17 non-publishing gate passed, including lint, the independent Java consumer,
+  and full/no-op facade and publication checks.
+- API 24 passed all 14 existing native cases and the three clipboard feedback cases.
+  API 36 with WebView 157.0.8103.50 passed the navigation prerequisite, all 27 native
+  cases, 19 light and 12 dark narrow-screen cases, and all three clipboard feedback
+  cases. Copies preserved exact input strings. The feedback cases checked the old
+  Android checkmark, its timeout and cleanup, the accessibility announcement, and
+  clipboard preservation on a rejected write.
+- API 36 vibration service history recorded a single confirmation in Ring and Vibrate.
+  Silent and all three DND filters produced no request. Android suppressed the pulse
+  when touch feedback was disabled. A rejected write produced no confirmation request.
+  The emulators' settings were restored. Physical vibration was not measured.
+
 ## Afterframe press feedback and showtime rendering — 14 November 2026
 
 - Afterframe uses neutral gray press feedback masked to the native controls' shapes

@@ -8,22 +8,25 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.button.MaterialButton
 import com.webviewinspector.R
 import com.webviewinspector.internal.state.InspectorState
 import com.webviewinspector.internal.state.InspectorTab
+import com.webviewinspector.internal.ui.common.clearCopyFeedback
 import com.webviewinspector.internal.ui.common.color
 import com.webviewinspector.internal.ui.common.dp
 import com.webviewinspector.internal.ui.common.padding
+import com.webviewinspector.internal.ui.common.setCopyAction
 import com.webviewinspector.internal.ui.common.shape
 
 /** Pinned native actions. The sheet owns this component and explicitly dismisses its focusable menu. */
 internal class InspectorFooter(
     private val context: Context,
-    copyUrl: () -> Unit,
-    copyHistory: () -> Unit,
+    copyUrl: () -> Boolean,
+    copyHistory: () -> Boolean,
     clearHistory: () -> Unit,
-    copyAppLoads: () -> Unit,
+    copyAppLoads: () -> Boolean,
     clearAppLoads: () -> Unit,
     about: () -> Unit,
 ) {
@@ -66,6 +69,7 @@ internal class InspectorFooter(
                 clearAppLoads()
             }.apply { id = R.id.wvi_clear_app_loads }
     private var popup: PopupWindow? = null
+    private var lastState: InspectorState? = null
 
     init {
         val actions =
@@ -89,6 +93,15 @@ internal class InspectorFooter(
         state: InspectorState,
         tab: InspectorTab,
     ) {
+        val previous = lastState
+        if (state.selected != previous?.selected || tab != InspectorTab.CURRENT_URL) copyUrlButton.clearCopyFeedback()
+        if (state.history != previous?.history || tab != InspectorTab.HISTORY) copyHistoryButton.clearCopyFeedback()
+        if (state.appLoads != previous?.appLoads ||
+            tab != InspectorTab.APP_LOADS
+        ) {
+            copyAppLoadsButton.clearCopyFeedback()
+        }
+        lastState = state
         val number = state.selected?.number ?: state.historyNumber
         copyUrlButton.text =
             number?.let { context.getString(R.string.wvi_copy_url, it) } ?: context.getString(R.string.wvi_copy)
@@ -114,15 +127,13 @@ internal class InspectorFooter(
 
     private fun primary(
         id: Int,
-        action: () -> Unit,
+        action: () -> Boolean,
     ): MaterialButton =
-        context.focusedButton("", action).apply {
+        context.focusedButton("").apply {
             this.id = id
             maxLines = 2
             cornerRadius = context.dp(12)
-            icon =
-                androidx.core.content.ContextCompat
-                    .getDrawable(context, R.drawable.wvi_ic_copy)
+            icon = AppCompatResources.getDrawable(context, R.drawable.wvi_ic_copy)
             iconSize = context.dp(18)
             iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
             val states = arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf())
@@ -138,6 +149,7 @@ internal class InspectorFooter(
                 )
             setTextColor(foreground)
             iconTint = foreground
+            setCopyAction(action)
         }
 
     private fun showMenu() {

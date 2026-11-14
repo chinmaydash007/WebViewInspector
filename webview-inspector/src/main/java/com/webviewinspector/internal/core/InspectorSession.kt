@@ -176,11 +176,11 @@ internal class InspectorSession(
                     val state = snapshot()
                     val record = state.history?.records?.firstOrNull { it.id == recordId }
                     val rawUrl = if (stepIndex == null) record?.rawUrl else record?.steps?.getOrNull(stepIndex)?.rawUrl
-                    if (rawUrl != null) historyCopier.copyUrl(rawUrl, state.historyNumber ?: 1)
+                    rawUrl != null && historyCopier.copyUrl(rawUrl, state.historyNumber ?: 1)
                 },
                 copyHistory = {
                     val state = snapshot()
-                    state.history?.let { historyCopier.copyTimeline(it, state.historyNumber ?: 1) }
+                    state.history?.let { historyCopier.copyTimeline(it, state.historyNumber ?: 1) } ?: false
                 },
                 clearHistory = {
                     snapshot().history?.let { history ->
@@ -199,15 +199,15 @@ internal class InspectorSession(
                                 is AppLoadCopyPart.HeaderValue -> it.headers.getOrNull(part.index)?.value
                             }
                         }
-                    text?.let(appLoadCopier::copy)
+                    text?.let(appLoadCopier::copy) ?: false
                 },
                 copyAppLoads = {
                     val state = snapshot()
-                    state.appLoads?.let {
+                    state.appLoads?.takeIf { it.records.isNotEmpty() }?.let {
                         appLoadCopier.copy(
                             AppLoadsPresentation.export(it, state.historyNumber ?: 1),
                         )
-                    }
+                    } ?: false
                 },
                 clearAppLoads = {
                     snapshot().appLoads?.let { loads ->
@@ -233,13 +233,14 @@ internal class InspectorSession(
     }
 
     /** Rescans before resolving the selected identity; the copier then re-reads that same view. */
-    private fun copy() {
+    private fun copy(): Boolean {
         discoverTargets()
-        val target = registry.selected() ?: return
-        val webView = target.reference.get()?.takeIf(detector::isVisible) ?: return
+        val target = registry.selected() ?: return false
+        val webView = target.reference.get()?.takeIf(detector::isVisible) ?: return false
         val number = registry.targets.indexOf(target) + 1
-        clipboardCopier.copy(webView, number)
+        val copied = clipboardCopier.copy(webView, number)
         render()
+        return copied
     }
 
     private fun locate() {

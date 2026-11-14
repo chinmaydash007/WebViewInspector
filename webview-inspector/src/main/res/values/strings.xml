@@ -26,6 +26,6 @@
     <string name="wvi_unavailable">Selected WebView is no longer visible. Choose another WebView.</string>
     <string name="wvi_parameters">Query parameters · %1$d</string>
     <string name="wvi_copy_note">Copies the complete URL, including query parameters</string>
-    <string name="wvi_copied">Full URL copied · WebView %1$d</string>
+    <string name="wvi_copied_to_clipboard">Copied to clipboard</string>
     <string name="wvi_located">WebView %1$d highlighted on this page</string>
 </resources>

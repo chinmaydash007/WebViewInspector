@@ -1,10 +1,7 @@
 package com.webviewinspector.internal.actions
 
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
-import android.os.Build
-import android.widget.Toast
 import com.webviewinspector.R
 import com.webviewinspector.internal.state.HistoryRecordKind
 import com.webviewinspector.internal.state.NavigationHistorySnapshot
@@ -17,15 +14,13 @@ internal class HistoryClipboardCopier(
     fun copyUrl(
         rawUrl: String,
         number: Int,
-    ) {
-        copy(rawUrl, number, R.string.wvi_recorded_copied)
-    }
+    ): Boolean = copyText(rawUrl, number)
 
     fun copyTimeline(
         history: NavigationHistorySnapshot,
         number: Int,
-    ) {
-        if (history.records.isEmpty()) return
+    ): Boolean {
+        if (history.records.isEmpty()) return false
         val text =
             buildString {
                 appendLine(context.getString(R.string.wvi_timeline_title, number))
@@ -62,23 +57,14 @@ internal class HistoryClipboardCopier(
                     }
                 }
             }
-        copy(text, number, R.string.wvi_history_copied)
+        return copyText(text, number)
     }
 
-    private fun copy(
+    private fun copyText(
         text: String,
         number: Int,
-        confirmation: Int,
-    ) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        try {
-            clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.wvi_view_number, number), text))
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                Toast.makeText(context, context.getString(confirmation, number), Toast.LENGTH_SHORT).show()
-            }
-        } catch (_: RuntimeException) {
-            // Binder/clipboard limits can reject a very large timeline. Never truncate or log URLs.
-            Toast.makeText(context, R.string.wvi_clipboard_unavailable, Toast.LENGTH_SHORT).show()
-        }
+    ): Boolean {
+        val label = context.getString(R.string.wvi_view_number, number)
+        return context.writeInspectorClip(ClipData.newPlainText(label, text))
     }
 }

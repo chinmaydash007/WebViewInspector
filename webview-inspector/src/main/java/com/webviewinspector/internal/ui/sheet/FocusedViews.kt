@@ -32,7 +32,7 @@ internal fun Context.focusedLabel(
 internal fun Context.focusedIcon(
     drawable: Int,
     description: String,
-    action: () -> Unit,
+    action: (() -> Unit)? = null,
 ): ImageButton =
     ImageButton(this).apply {
         setImageResource(drawable)
@@ -42,13 +42,13 @@ internal fun Context.focusedIcon(
         contentDescription = description
         background =
             RippleDrawable(ColorStateList.valueOf(color(R.color.wvi_tint)), null, shape(color(R.color.wvi_surface)))
-        setOnClickListener { action() }
+        if (action != null) setOnClickListener { action() }
         layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
     }
 
 internal fun Context.focusedButton(
     text: String,
-    action: () -> Unit,
+    action: (() -> Unit)? = null,
 ): MaterialButton =
     MaterialButton(this, null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
         this.text = text
@@ -61,7 +61,7 @@ internal fun Context.focusedButton(
         insetBottom = 0
         setTextColor(color(R.color.wvi_primary))
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-        setOnClickListener { action() }
+        if (action != null) setOnClickListener { action() }
     }
 
 internal fun Context.focusedDivider(): View =
