@@ -7,7 +7,7 @@ if [[ -n "${VALIDATION_WEBKIT_VERSION:-}" ]]; then
   set -- --init-script "$PWD/scripts/validation-webkit.init.gradle" "-PvalidationWebkitVersion=$VALIDATION_WEBKIT_VERSION"
 fi
 ./gradlew --no-daemon "$@" :webview-inspector:testDebugUnitTest :webview-inspector:lintDebug \
-  :webview-inspector-no-op:lintDebug :sample:lintDebug \
+  :webview-inspector-no-op:lintDebug :sample:testDebugUnitTest :sample:lintDebug \
   :webview-inspector:assembleDebugAndroidTest :sample:assembleDebug :sample:assembleRelease stageRelease
 python3 scripts/check_api.py
 python3 scripts/bundle.py

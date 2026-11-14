@@ -1,0 +1,192 @@
+:root {
+  --ink: #171c23;
+  --muted: #455264;
+  --primary: #0756b4;
+  --on-primary: #fff;
+  --surface: #fcfdff;
+  --container: #ebf0f7;
+  --blue: #d2e7fd;
+  --violet: #eae2fc;
+  --lilac: #dfd1fa;
+  --outline: #728195;
+  --press: rgba(64, 64, 64, .25);
+}
+body.dark {
+  color-scheme: dark;
+  --ink: #eaf0f9;
+  --muted: #b8c6d8;
+  --primary: #adcfff;
+  --on-primary: #002e61;
+  --surface: #1d2531;
+  --container: #273240;
+  --blue: #294667;
+  --violet: #362d4a;
+  --lilac: #504069;
+  --outline: #8492a6;
+  --press: rgba(224, 224, 224, .25);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: transparent;
+  font: 1rem/1.45 Roboto, Arial, sans-serif;
+}
+main { width: 100%; max-width: 700px; margin: 0 auto; padding: 0 16px 2px; }
+body.full main { padding-top: 12px; padding-bottom: 20px; }
+body.watchlist-page main { padding-top: 12px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { line-height: 1.2; font-weight: 600; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1rem; }
+a {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+a:focus { outline: 2px solid var(--primary); outline-offset: -2px; }
+a:focus:not(:focus-visible) { outline: none; }
+a:active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: var(--press);
+}
+svg { flex: 0 0 auto; vertical-align: middle; }
+.meta { display: block; color: var(--muted); font-size: .875rem; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; }
+.home-heading { margin-bottom: 12px; }
+.city { display: inline-flex; align-items: center; min-height: 28px; color: var(--muted); font-size: .875rem; }
+.city svg { margin-right: 4px; }
+.posters { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.film {
+  display: flex;
+  flex: 0 0 calc(50% - 5px);
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--blue);
+}
+.film.midnight-local { flex-basis: 100%; margin-bottom: 10px; }
+.film.the-last-signal { background: var(--violet); }
+.poster {
+  display: block;
+  width: 100%;
+  padding-top: 64%;
+  background: #263b4f url(posters.jpg) no-repeat;
+  background-size: 300% auto;
+}
+.poster.midnight-local { background-position: 0 62%; }
+.poster.the-last-signal { background-position: 50% 54%; }
+.poster.blue-hour { background-position: 100% 48%; }
+.film.midnight-local .poster { padding-top: 49%; }
+.film-caption {
+  display: flex;
+  flex: 1 0 auto;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 54px;
+  padding: 8px 12px;
+}
+.film-caption strong, .watch-row strong { display: block; line-height: 1.25; font-weight: 600; }
+.film.midnight-local strong { font-size: 1.25rem; }
+.panel { border-radius: 24px; background: var(--surface); padding: 14px; }
+.watchlist h2 { margin-bottom: 8px; }
+.watch-row {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 16px;
+  background: var(--container);
+}
+.watch-row + .watch-row { margin-top: 6px; }
+.watch-row .poster { flex: 0 0 58px; height: 48px; padding: 0; margin-right: 10px; border-radius: 12px; }
+.watch-row svg { margin-left: auto; }
+.empty { display: flex; align-items: center; }
+.empty h2 { margin-bottom: 3px; }
+.empty-icon {
+  display: inline-flex;
+  flex: 0 0 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: var(--ink);
+}
+.film-nav, .times { display: flex; flex-wrap: wrap; margin-right: -6px; }
+.film-nav > *, .times > * { margin-right: 6px; margin-bottom: 6px; }
+.film-nav { margin-bottom: 6px; }
+.button, .chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  text-align: center;
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.button svg { margin-right: 6px; }
+.chip { background: var(--violet); font-weight: 500; padding-right: 10px; padding-left: 10px; }
+.chip[aria-current="page"] { background: var(--lilac); font-weight: 700; }
+.primary { background: var(--primary); color: var(--on-primary); }
+.primary:focus { outline-color: var(--on-primary); }
+.tonal { background: var(--violet); }
+.outlined { border-color: var(--outline); color: var(--primary); }
+.hero {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 24px;
+  background: var(--violet);
+}
+.hero .poster { flex: 0 0 32%; height: auto; padding: 0; margin-right: 12px; border-radius: 14px; }
+.hero .poster::before { content: ""; display: block; padding-top: 144%; }
+.hero > div { min-width: 0; padding: 4px 0; }
+.hero h1 { margin-bottom: 5px; }
+.hero .button { margin-top: 10px; }
+.movie-section { margin-top: 12px; }
+.movie-section > p { margin-top: 5px; }
+.showtimes { margin: 16px 0 8px; }
+.cinema { padding: 10px 12px 4px; border-radius: 16px; background: var(--container); }
+.cinema + .cinema { margin-top: 8px; }
+.times { margin-top: 5px; }
+.showtime-hero { margin-top: 12px; padding: 8px; border-radius: 24px; background: var(--violet); }
+.showtime-hero .poster { padding-top: 53%; border-radius: 16px; }
+.showtime-hero > div { padding: 9px 6px 6px; }
+.detail { margin-top: 12px; }
+.detail h2 { margin: 2px 0 12px; font-size: 2rem; }
+.detail h3 { padding-top: 12px; border-top: 1px solid var(--outline); }
+.detail h3 + p { margin-top: 4px; }
+@media (max-width: 340px) {
+  main { padding-right: 12px; padding-left: 12px; }
+  .hero { align-items: flex-start; }
+  .hero .poster { flex-basis: 26%; margin-right: 9px; }
+}
+.motion.full:not(.showtime) main { animation: page-enter 180ms ease-out both; }
+.motion.watchlist-page main { animation: content-enter 180ms ease-out both; }
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes content-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion.full:not(.showtime) main, .motion.watchlist-page main { animation: none; }
+}

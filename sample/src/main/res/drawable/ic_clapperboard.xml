@@ -1,0 +1,8 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="34dp" android:height="34dp" android:viewportWidth="34" android:viewportHeight="34">
+    <path android:fillColor="@color/sample_accent"
+        android:pathData="M9,0H25Q34,0 34,9V25Q34,34 25,34H9Q0,34 0,25V9Q0,0 9,0Z" />
+    <path android:strokeColor="@color/sample_on_accent" android:strokeWidth="1.5"
+        android:strokeLineJoin="round" android:strokeLineCap="round"
+        android:pathData="M9,15H25V23Q25,25 23,25H11Q9,25 9,23ZM9,15L8,11L23,7L24,11ZM12,10L15,13M18,8L21,11M9,19H25" />
+</vector>

@@ -1,5 +1,81 @@
 # Standalone validation
 
+## Afterframe press feedback and showtime rendering — 14 November 2026
+
+- Afterframe uses neutral gray press feedback masked to the native controls' shapes
+  and the local movie links' corner radii. On API 36, light and dark screenshots
+  showed bounded feedback on the navigation indicator, Settings, film tiles,
+  watchlist rows and showtime links.
+- On API 36 with WebView 157.0.8103.50, a 12-tap run per build measured Midnight
+  Local's 6:45 PM link from ADB tap dispatch to the first contentful paint probe.
+  The first open measured 179 ms before and 208 ms after. Repeat medians were
+  144 ms before and 166 ms after, with observed maxima of 179 ms and 636 ms
+  respectively across all taps. The updated showtime pages made zero separate CSS
+  requests and painted at full opacity. The timing run did not establish a speedup.
+- A follow-up WebView trace measured click dispatch to navigation start at 0.1–8 ms.
+  In the slowest traced navigation, HTML arrived at 48 ms and WebView recorded a
+  paint at 228 ms. It reported first contentful paint at 824 ms, with a gap before
+  frame presentation. The trace and timing samples are in the local build reports.
+- Midnight Local and The Last Signal showtimes opened and returned to their listings
+  on API 24 and 36 in debug and minified release. API 24 ran offline. The API 36
+  Inspector clipboard probe matched the exact showtime URL. The JDK 17 standalone
+  gate and minified no-op isolation check passed.
+
+## Afterframe Material 3 redesign — 14 November 2026
+
+- The JDK 17 standalone gate passed. Sample Lint reported zero errors. The minified
+  release APK contains no Inspector runtime resources, implementation, or WebKit.
+- On API 36, Home exposed both embedded WebViews. Saving and removing films updated
+  the watchlist, including its empty state. The exact showtime URL clipboard smoke and
+  minified Java consumer smoke passed.
+- Both Headers send modes matched the live endpoint and Inspector App loads on API 36.
+  Browser accepted HTTPS, rejected HTTP, and preserved its open page, forward stack,
+  and unfinished address through rotation. All four tabs were checked in light mode
+  and in dark mode with 1.6× font scale and animations disabled.
+- On API 24, the film detail and showtime rendered offline, and Headers showed its
+  error and Retry state. The API 24 minified release rendered Movies. On API 36, the
+  minified release exercised all four tabs, the live receipt, and HTTPS browsing.
+
+## Afterframe feature packages — 14 November 2026
+
+- The standalone verification gate passed, including the Browser URL tests and debug and
+  minified no-op builds. Sample lint reported zero errors.
+- On API 24 and 36, Home exposed two independent Inspector targets. Opening a poster,
+  saving and removing a film, switching tabs, and restoring the Movies page and back stack
+  after rotation worked. The exact showtime URL clipboard smoke passed on API 36.
+- Browser retained its page and navigation across tab switches and rotation on both API
+  levels. Inspector Current URL and History worked, and the copied URL preserved the query
+  encoding and fragment. Home, Movies and Browser also passed on the no-op release.
+- On API 36, the Headers receipt matched the three captured demo headers. The URL-only
+  load produced a zero-header Inspector entry and the echo omitted all demo headers.
+  The minified no-op build also displayed the live receipt. On API 24, the older provider
+  showed Retry after the endpoint response failed to render.
+
+## Afterframe Browser tab — 14 November 2026
+
+- The standalone gate passed, including three URL validation tests and both sample build types.
+- On API 36, following a link and using Back and Forward produced navigation history. On
+  API 24 with the older provider, Browser showed observed URL changes. Both emulators
+  retained the page across tab switches and copied an encoded URL with its fragment exactly.
+- On API 36, keyboard Go loaded the page and hid the keyboard. Rotating the Activity
+  retained the selected tab, the unfinished address and the browser’s forward stack.
+- The minified no-op sample browsed on API 24. HTTP input and a mismatched HTTPS certificate
+  showed inline errors. The separate native redirect fixture verified real redirect grouping
+  and exact clipboard contents on API 36.
+
+## Afterframe sample — 14 November 2026
+
+- The standalone verification gate passed, including debug and minified no-op release
+  builds. On API 36, the compatibility smoke copied the showtime URL exactly. Real
+  redirect grouping and exact intermediate URL copying remain in the native fixture.
+- On API 36, both embedded cards were inspectable. Saving a film in Movies updated Home.
+  The HTTPS response matched the Inspector’s captured run, and a second request using
+  the URL-only helper echoed no demo headers. The minified no-op build also received all
+  three demo headers.
+- The API 24 emulator passed all 14 native cases. Home and Movies rendered and watchlist
+  updates worked with WebView 53. The live endpoint response did not render on that
+  provider. Afterframe showed **Retry**.
+
 ## Published 0.4.0 — 10 November 2026
 
 Both artifacts are available on Maven Central. All ten primary files, including

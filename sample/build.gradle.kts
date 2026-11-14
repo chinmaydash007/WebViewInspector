@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.compose)
 }
+
 android {
     val samplePackage = providers.gradleProperty("INSPECTOR_PACKAGE").get() + ".sample"
     namespace = samplePackage
@@ -10,8 +10,7 @@ android {
     defaultConfig {
         applicationId = samplePackage
         minSdk = 24
-        targetSdk =
-            35
+        targetSdk = 35
         versionCode = 1
         versionName = project.version.toString()
     }
@@ -19,8 +18,7 @@ android {
         debug { applicationIdSuffix = ".debug" }
         release {
             isMinifyEnabled = true
-            signingConfig =
-                signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
@@ -28,14 +26,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    buildFeatures { compose = true }
+    buildFeatures { viewBinding = true }
 }
 kotlin { jvmToolchain(17) }
+
 dependencies {
     debugImplementation(project(":webview-inspector"))
     releaseImplementation(project(":webview-inspector-no-op"))
     implementation(libs.appcompat)
-    implementation(libs.activity.compose)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.foundation)
+    implementation(libs.material)
+    implementation(libs.core)
+    testImplementation(libs.junit)
 }

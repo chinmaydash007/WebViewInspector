@@ -1,0 +1,26 @@
+<resources>
+    <color name="sample_bg">#161E29</color>
+    <color name="sample_ripple">#40E0E0E0</color>
+    <color name="sample_app_bar">#1D2938</color>
+    <color name="sample_surface">#1D2531</color>
+    <color name="sample_container">#273240</color>
+    <color name="sample_navigation">#202A37</color>
+    <color name="sample_text">#EAF0F9</color>
+    <color name="sample_muted">#B8C6D8</color>
+    <color name="sample_accent">#ADCFFF</color>
+    <color name="sample_on_accent">#002E61</color>
+    <color name="sample_tint">#294667</color>
+    <color name="sample_on_tint">#D9EBFF</color>
+    <color name="sample_indicator">#205362</color>
+    <color name="sample_on_indicator">#B7EFF9</color>
+    <color name="sample_border">#8492A6</color>
+    <color name="sample_movies_bg">#201C2D</color>
+    <color name="sample_movies_bar">#292338</color>
+    <color name="sample_browser_bg">#17252A</color>
+    <color name="sample_browser_bar">#1D3035</color>
+    <color name="sample_error">#FFB3B9</color>
+    <color name="sample_error_container">#50262F</color>
+    <color name="sample_on_error_container">#FFD9DD</color>
+    <color name="sample_success_container">#1F3E32</color>
+    <color name="sample_on_success_container">#B7EACE</color>
+</resources>

@@ -93,6 +93,30 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 - Retention is 100 records per WebView, 500 process-wide and 2 MiB of URL text. Whole oldest records are evicted without truncating URLs. Activity destruction, disabling and uninstall clear their owned records.
 - App loads have a separate budget of 100 records per WebView, 500 process-wide and 2 MiB UTF-8 URL/header text, including pending captures. Whole oldest calls are evicted with a discarded count. Collected pending instances are pruned; bound saved records last until Activity cleanup or eviction. No-op owns no capture store or inspector UI; its load helpers only delegate.
 
+## Try Afterframe
+
+Run the `sample` app in Android Studio. The Material 3 interface follows system light and
+dark mode. Debug uses the full inspector. The minified release uses no-op and runs the same
+sample tabs.
+
+- **Home** mixes native app chrome with two embedded WebViews, Now playing and Your watchlist.
+  Open the floating Inspector to switch targets or use **Locate on page**.
+- **Movies** uses one WebView between the native app bar and tabs. Select a film or follow a
+  showtime link and inspect its URL or History. The movie pages work offline. Saved films
+  are stored locally and appear in Home’s watchlist.
+- **Headers** loads [httpbin.org/dump/request](https://httpbin.org/dump/request) directly in its WebView.
+  Send the fixed synthetic demo headers and compare the returned request text with **App loads**.
+  Match the `X-Demo-Run` value with the run in the recorded URL. **Send without headers**
+  makes a fresh request using the URL-only helper. Its receipt can still show browser
+  defaults, while the corresponding App loads entry shows no supplied headers. An internet
+  connection and a WebView provider that can render the live response are required for
+  this tab. If the response fails to render, Afterframe offers **Retry**.
+- **Browser** opens a pasted HTTPS URL or hostname in a single WebView. Follow links or
+  use Back and Forward, then open **Inspector → History** to see the navigation. If the
+  picker shows a prior target, select the Browser WebView. Its address bar follows the
+  current page, and its browser back stack stays available while switching tabs. WebView
+  providers without navigation events show sampled URL changes.
+
 ## Develop and validate
 
 Use JDK 17 and Android SDK 36. From the repository root:
@@ -140,6 +164,6 @@ python3 scripts/device_tests.py --serial emulator-5554 --api 36
 python3 scripts/device_tests.py --serial emulator-5556 --api 24
 ```
 
-API 36 requires an installed provider supporting navigation events; the prerequisite fails instead of silently skipping event tests. The script restores font, density, night mode and animation settings. It rejects physical devices. The sample uses the full inspector in debug and the no-op artifact in its minified release. Sample pages and real HTTP redirects use loopback, with cleartext exceptions confined to sample/test manifests.
+API 36 requires an installed provider supporting navigation events; the prerequisite fails instead of silently skipping event tests. The script restores font, density, night mode and animation settings. It rejects physical devices. The native navigation tests use a test-only loopback fixture for real HTTP redirects.
 
 Read [architecture](webview-inspector/docs/ARCHITECTURE.md), [release workflow](docs/RELEASING.md), [validation](VALIDATION.md), [contribution guidance](CONTRIBUTING.md), and [maintenance rules](AGENTS.md). Release source/documentation JARs contain this guide and the [Apache 2.0 license](LICENSE), so consumers do not need private GitHub access.

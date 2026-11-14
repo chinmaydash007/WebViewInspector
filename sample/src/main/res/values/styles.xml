@@ -1,1 +1,76 @@
-<resources><style name="SampleTheme" parent="Theme.AppCompat.DayNight.NoActionBar"><item name="colorAccent">#7149BF</item></style></resources>
+<resources>
+    <style name="SampleTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/sample_accent</item>
+        <item name="colorOnPrimary">@color/sample_on_accent</item>
+        <item name="colorPrimaryContainer">@color/sample_tint</item>
+        <item name="colorOnPrimaryContainer">@color/sample_on_tint</item>
+        <item name="colorSecondaryContainer">@color/sample_tint</item>
+        <item name="colorOnSecondaryContainer">@color/sample_on_tint</item>
+        <item name="colorSurface">@color/sample_surface</item>
+        <item name="colorOnSurface">@color/sample_text</item>
+        <item name="colorSurfaceVariant">@color/sample_container</item>
+        <item name="colorOnSurfaceVariant">@color/sample_muted</item>
+        <item name="colorOutline">@color/sample_border</item>
+        <item name="colorError">@color/sample_error</item>
+        <item name="android:windowBackground">@color/sample_bg</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
+    <style name="SampleNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/SampleNavigationIndicator</item>
+        <item name="itemIconTint">@color/tab_foreground</item>
+        <item name="itemRippleColor">@color/sample_ripple</item>
+        <item name="itemTextColor">@color/tab_foreground</item>
+        <item name="backgroundTint">@color/sample_navigation</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemHorizontalTranslationEnabled">false</item>
+        <item name="android:elevation">0dp</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="paddingLeftSystemWindowInsets">false</item>
+        <item name="paddingRightSystemWindowInsets">false</item>
+    </style>
+
+    <style name="SampleNavigationIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/sample_indicator</item>
+    </style>
+
+    <style name="SampleTitle" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/sample_text</item>
+    </style>
+
+    <style name="SampleSectionTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/sample_text</item>
+    </style>
+
+    <style name="SamplePanel" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/sample_surface</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.ExtraLarge</item>
+    </style>
+
+    <style name="SampleButton" parent="Widget.Material3.Button">
+        <item name="rippleColor">@color/sample_ripple</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+    </style>
+
+    <style name="SampleTonalButton" parent="Widget.Material3.Button.TonalButton">
+        <item name="rippleColor">@color/sample_ripple</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+    </style>
+
+    <style name="SampleBrowserArrow" parent="Widget.Material3.Button.IconButton.Filled.Tonal">
+        <item name="rippleColor">@color/sample_ripple</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+    </style>
+</resources>

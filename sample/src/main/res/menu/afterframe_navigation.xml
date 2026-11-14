@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/tab_home" android:icon="@drawable/ic_home" android:title="@string/home" />
+    <item android:id="@+id/tab_movies" android:icon="@drawable/ic_movies" android:title="@string/movies" />
+    <item android:id="@+id/tab_headers" android:icon="@drawable/ic_headers" android:title="@string/headers" />
+    <item android:id="@+id/tab_browser" android:icon="@drawable/ic_browser" android:title="@string/browser" />
+</menu>

@@ -1,5 +1,6 @@
-"""Smoke-test the minified Java consumer and exact redirect URL copying in sample debug."""
+"""Smoke-test the minified Java consumer and exact showtime URL copying in sample debug."""
 import re
+import shlex
 import subprocess
 import time
 import xml.etree.ElementTree as ET
@@ -33,7 +34,13 @@ class Emulator:
         deadline = time.monotonic() + 45
         last_xml = ''
         while time.monotonic() < deadline:
-            dump = self.command('shell', 'uiautomator', 'dump', remote_xml, timeout=20)
+            try:
+                dump = self.command('shell', 'uiautomator', 'dump', remote_xml, timeout=20)
+            except subprocess.CalledProcessError as error:
+                if error.returncode != 137:
+                    raise
+                time.sleep(0.25)
+                continue
             if remote_xml not in dump:
                 continue
             last_xml = self.command('exec-out', 'cat', remote_xml)
@@ -74,25 +81,27 @@ def smoke(device, root, namespace, output):
         find(consumer, 'Java consumer inspector sheet', has_id('wvi_history_tab'))
         device.start(root / 'sample/build/outputs/apk/debug/sample-debug.apk',
                      sample, sample_namespace + '.MainActivity')
-        device.tap(find(sample, 'XML demo', contains('text', 'Advanced with real redirects')))
-        device.tap(find(sample, 'redirect link', contains('text', 'Navigate through two redirects')))
+        device.tap(find(sample, 'Movies tab', has_id('tab_movies')))
+        device.tap(find(sample, '6:45 PM showtime', contains('text', '6:45 PM')))
         device.tap(find(sample, 'inspector button', has_id('wvi_open')))
+        device.tap(find(sample, 'WebView picker', has_id('wvi_target_picker')))
+        device.tap(find(sample, 'showtime WebView', contains('content-desc', '/afterframe/showtime.html')))
         device.tap(find(sample, 'History tab', has_id('wvi_history_tab')))
-        device.tap(find(sample, 'grouped redirect history', contains('content-desc', '/destination, 2 redirects · Committed')))
-        middle = find(sample, 'original intermediate URL',
-                      lambda node: node.get('content-desc', '').endswith('/redirect-two?encoded=%2f%2F'))
-        expected_url = middle.attrib['content-desc'].split(': ', 1)[1]
-        device.tap(middle)
+        showtime_url = ('https://appassets.androidplatform.net/afterframe/showtime.html'
+                        '?film=midnight-local&cinema=marquee&time=18%3A45')
+        device.tap(find(sample, 'showtime history', contains('content-desc', '/showtime.html')))
+        device.tap(find(sample, 'copy exact showtime URL',
+                        lambda node: node.get('content-desc') == f'Copy recorded URL: {showtime_url}'))
         result = device.shell(
             'am', 'instrument', '-w', '-r', '-e', 'class', namespace + '.AppClipboardProbeTest#copiedAppUrlMatchesExactly',
-            '-e', 'wviExpectedUrl', expected_url, test_package + '/androidx.test.runner.AndroidJUnitRunner',
+            '-e', 'wviExpectedUrl', shlex.quote(showtime_url), test_package + '/androidx.test.runner.AndroidJUnitRunner',
         )
         (output / 'smoke-clipboard.log').write_text(result)
         if 'OK (1 test)' not in result or re.search(r'INSTRUMENTATION_STATUS_CODE: -[1234]\b|FAILURES!!!|INSTRUMENTATION_FAILED', result):
             raise RuntimeError(f'The debug sample did not copy the exact URL. See {output / "smoke-clipboard.log"}')
         (output / 'smoke.txt').write_text(
-            'The minified Java consumer opened the inspector. The debug sample grouped two redirects '
-            'and copied the original intermediate URL exactly.\n',
+            'The minified Java consumer opened the inspector. Afterframe recorded a showtime link '
+            'and copied its original URL exactly.\n',
         )
     finally:
         for package in (consumer, sample):

@@ -55,6 +55,22 @@ inventories before any signed bundle is uploaded.
 
 A host installs the facade once from Application.onCreate. Settings may use `showSettings(Activity)` or an app-owned toggle calling `isEnabled()` / `setEnabled()`. The host does not own discovery or restore a separate persisted value over process state.
 
+Afterframe is one sample module under `com.webviewinspector.sample`. `MainActivity` owns the
+Material 3 navigation and coordinates screen selection, Android Back, saved state and disposal.
+Each tab keeps its WebViews across tab switches and disposes its own views when the Activity
+is destroyed. The offline movie HTML mirrors the native theme's light and dark color roles.
+The sample uses native transitions and local CSS for motion.
+
+| Sample package | Responsibility |
+|---|---|
+| `home` and `movies` | Home owns the two embedded WebViews and deferred watchlist refresh. The Home scroll view sizes its contents to the embedded pages. Movies owns the full-page WebView and its back stack. The Activity opens the film selected on Home and connects watchlist changes to Home's refresh. |
+| `catalog` | Film and cinema data, plus the local watchlist store. |
+| `moviecontent` | Local URL routing, HTML rendering from catalog data and watchlist snapshots, and the shared WebView client that serves those pages and assets. |
+| `headers` | Explicit facade loads to an HTTPS echo endpoint, receipt display, retry and timeout cleanup. |
+| `browser` | HTTPS address validation, tab controls, browser history state and WebView callbacks. Ordinary WebView loads demonstrate Basic capture. |
+
+The instrumentation fixture exercises real HTTP redirects.
+
 ## Package responsibilities
 
 All package names below are relative to `com.webviewinspector.internal`.

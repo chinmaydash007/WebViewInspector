@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Afterframe</string>
+    <string name="home">Home</string>
+    <string name="movies">Movies</string>
+    <string name="headers">Headers</string>
+    <string name="browser">Browser</string>
+    <string name="browser_address">HTTPS address</string>
+    <string name="browser_go">Go</string>
+    <string name="browser_back">Previous web page</string>
+    <string name="browser_forward">Next web page</string>
+    <string name="browser_start">Enter an HTTPS URL to open a page.</string>
+    <string name="browser_invalid_address">Enter a valid HTTPS URL or hostname.</string>
+    <string name="browser_blocked_link">Only HTTPS links can open here.</string>
+    <string name="browser_popup">Pop-up windows are unavailable in Browser.</string>
+    <string name="browser_download">Downloads are unavailable in Browser.</string>
+    <string name="browser_load_error">Couldn’t load this page. Check the address or try again.</string>
+    <string name="browser_tls_error">Couldn’t verify this site’s certificate.</string>
+    <string name="browser_http_error">The site returned HTTP %1$d.</string>
+    <string name="inspector_settings">Inspector settings</string>
+    <string name="headers_summary">Send a sample request to httpbin.org and compare the response with Inspector App loads.</string>
+    <string name="headers_summary_release">Send a sample request and see the headers httpbin.org received.</string>
+    <string name="send_headers">Send demo headers</string>
+    <string name="send_without_headers">Send without headers</string>
+    <string name="receipt_title">Endpoint response</string>
+    <string name="receipt_idle">Send a request to see the endpoint’s response here.</string>
+    <string name="receipt_loading">Waiting for the endpoint…</string>
+    <string name="receipt_loaded">httpbin.org · Headers received</string>
+    <string name="receipt_error">Couldn’t load the response. Check your connection and retry.</string>
+    <string name="receipt_retry">Retry</string>
+    <bool name="show_inspector_settings">false</bool>
+</resources>
