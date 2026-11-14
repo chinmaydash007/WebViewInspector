@@ -16,6 +16,7 @@
         <item name="colorSurface">@color/wvi_surface</item>
         <item name="colorOnSurface">@color/wvi_text</item>
         <item name="android:colorBackground">@color/wvi_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
         <item name="bottomSheetStyle">@style/WviBottomSheetStyle</item>
     </style>
     <style name="WviBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">

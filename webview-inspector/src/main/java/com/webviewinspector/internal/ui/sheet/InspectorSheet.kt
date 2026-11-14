@@ -32,6 +32,9 @@ import com.webviewinspector.internal.ui.common.inspectorTheme
 import com.webviewinspector.internal.ui.common.padding
 import com.webviewinspector.internal.ui.common.shape
 
+private const val HEADER_HORIZONTAL_INSET_DP = 20
+private const val CLOSE_ICON_TRAILING_SPACE_DP = 18
+
 /**
  * Main-thread coordinator for the Focused inspector. It renders immutable snapshots into native
  * collaborators without discovering WebViews or performing clipboard operations itself.
@@ -129,7 +132,13 @@ internal class InspectorSheet(
         val heading =
             LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
-                padding(horizontal = 20, vertical = 0)
+                // Include the space around the centered glyph in the shared header inset.
+                setPaddingRelative(
+                    context.dp(HEADER_HORIZONTAL_INSET_DP),
+                    0,
+                    context.dp(HEADER_HORIZONTAL_INSET_DP - CLOSE_ICON_TRAILING_SPACE_DP),
+                    0,
+                )
                 addView(
                     context
                         .focusedLabel(
@@ -151,7 +160,7 @@ internal class InspectorSheet(
         header.addView(
             LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
-                padding(horizontal = 20, vertical = 0)
+                padding(horizontal = HEADER_HORIZONTAL_INSET_DP, vertical = 0)
                 addView(
                     context.focusedLabel(activity.javaClass.simpleName, size = 12f, muted = true).apply {
                         maxLines = 1
