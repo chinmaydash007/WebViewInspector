@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — Pending Maven Central verification
+
+- Improve border contrast in dark mode and keep the inspector sheet on its intended surface color.
+- Align the Close icon with the sheet's trailing content edge while preserving its touch target.
+- Confirm successful clipboard copies with haptic feedback when allowed by system settings. On Android 12L and older, also show a brief checkmark and announce the copy for accessibility.
+- No integration changes are required when upgrading from 0.4.0. Keep the full and no-op artifacts on the same version.
+
 ## 0.4.0 — 10 November 2026
 
 - Version 0.4.0 moves both facades to `com.webviewinspector.WebViewInspector`. Update imports and recompile when upgrading. Both artifacts retain the Maven group `io.github.chinmaydash007`.

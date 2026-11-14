@@ -2,18 +2,18 @@
 
 A floating Android inspector for native WebViews. **Basic** discovers full-page, embedded, subclassed, Compose `AndroidView`, and RecyclerView/Epoxy WebViews centrally, showing current URLs and navigation history. **Advanced** adds explicit app-load URL/header snapshots when developers use the load helper. Neither replaces WebView clients or injects JavaScript.
 
-**Latest published version:** `0.4.0`. Both artifacts are available on Maven Central. All ten primary files match the signed release bundle. See [validation](VALIDATION.md).
+Check the available versions on Maven Central for the [full inspector](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/) and [production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/). See [validation](VALIDATION.md) for verified releases.
 
 The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
 
 ## Integrate
 
-Use `google()` and `mavenCentral()` for dependencies. Select exactly one artifact per app variant.
+Use `google()` and `mavenCentral()` for dependencies. Select exactly one artifact per app variant and use the same published version for both artifacts.
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.0")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.0")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.1")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.1")
 }
 ```
 
@@ -70,7 +70,7 @@ lines); URL/value copying is exact. Timeline export adds timestamps and capture 
 Android 13+ system clipboard previews are marked sensitive; the inspector still shows
 full values and the copied text is unchanged.
 
-### Upgrade to 0.4.0
+### Upgrade from a version earlier than 0.4.0
 
 Update both artifact versions together, replace the previous facade import with
 `com.webviewinspector.WebViewInspector`, and recompile consumers. The package rename
@@ -88,7 +88,7 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 ## Compatibility and privacy
 
 - Android API 24+. Tested build baseline: JDK 17, Gradle 8.13, AGP 8.12.0, Kotlin 2.2.0 and compile SDK 36. Older consumer toolchains are not claimed as tested.
-- The 0.4.0 full artifact declares WebKit 1.15.0 as the minimum and supports apps that resolve 1.16.0.
+- The full artifact declares WebKit 1.15.0 as the minimum and supports apps that resolve 1.16.0.
 - Runtime feature detection uses the experimental navigation listener in 1.15 or the stable listener in 1.16. The inspector uses labelled 500 ms observed-URL sampling when the provider lacks support. Initial discovery cannot recover earlier redirects, and sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
 - Scope is visible native WebViews in the active Activity hierarchy. Separate popup/dialog windows, external browsers/UPI apps and iframe URLs are excluded.
 - URLs and explicitly supplied headers remain in memory until copied. No logging, persistence, upload or analytics. Automatic cookies and request bodies are not collected. Query decoding is display-only; clipboard text remains exact.
