@@ -2,7 +2,7 @@
 
 Read README.md, docs/RELEASING.md, VALIDATION.md and the implementation architecture before changes. User instructions take precedence.
 
-- This repository MUST remain private. Never change visibility, create a public GitHub Pages site, or publish GitHub releases/assets outside this private repository. Central publication is explicitly public, including sources and documentation.
+- GitHub and Maven Central releases are public. Publish only from the original publisher-owned GitHub repository. Never change repository visibility or create a GitHub Pages site without the owner's request.
 - Preserve the five original Java/Kotlin facade methods plus both synchronous loadUrl overloads, with full/no-op parity. Runtime implementation belongs to internal responsibility packages; preserve API 24, instance identity, exact raw copying, lifecycle cleanup, focus and scroll-before-dismiss.
 - Basic needs no host-screen changes. Advanced captures only explicit load-helper URL/header inputs; never replace clients/settings/bridges, inject JavaScript, inspect other requests, or log/persist/upload inputs. No analytics. Both helpers must forward the original load exactly once even when capture is disabled or fails; no-op delegates without recording.
 - Use the self-contained version catalog. No dependency on another checkout, private Maven repository, app/helper module, or local absolute path. Compile against WebKit 1.15.0 and publish it as the minimum. Validate both 1.15.0 and 1.16.0 when changing navigation compatibility.
@@ -12,7 +12,7 @@ Read README.md, docs/RELEASING.md, VALIDATION.md and the implementation architec
 - Root formatting covers full/no-op, sample, tests and the independent Java consumer. Exclude generated/build outputs, caches, `.tools`, `.idea` and Git metadata; Python/XML/YAML/Markdown/JSON/properties remain outside automatic formatting. Preserve local IDE metadata. Keep formatting dependencies in root build tooling, not consumer plugins or published runtime dependencies.
 - Android Lint runs for full/no-op, sample and the Java consumer. Preserve its current severity policy: errors fail checks, warnings remain reported. Keep signatures, immutable release assets and publishing safeguards independent of formatting.
 - Sample and test code never ships in AARs. The independent consumer uses Maven coordinates without Compose or a Kotlin Gradle plugin.
-- Publishing requires the tested version tag and exact signed bundle. Never replace released assets, retag a release, overwrite Central coordinates, or automatically retry an ambiguous upload. Keep source/version/deployment hashes in private release evidence.
+- Publishing requires the tested version tag and exact signed bundle. Never replace released assets, retag a release, overwrite Central coordinates, or automatically retry an ambiguous upload. Record the source commit, bundle hash, and deployment receipt without credentials or private signing material.
 - Credentials and private signing keys stay outside Git and outside logs. Keep the public signing key and fingerprint only. Fork/PR validation never receives publishing secrets.
 - Preserve pending publication status until Central download verification passes. Never substitute local-Maven success for Central availability. Do not migrate a consuming app before both public coordinates work.
 - Prefer clear named variables and readable Kotlin/Python. Add tests for lifecycle or publication invariants rather than mirroring simple implementation statements. Update diagrams and docs when ownership changes.

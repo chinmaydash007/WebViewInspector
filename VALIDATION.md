@@ -14,9 +14,8 @@ light and dark suites at 160% font scale. The prepared release reused the exact 
 bundle and built the debug, minified diagnostic and no-op release variants of the
 independent Java consumer from public Maven repositories.
 
-Central reported **PUBLISHED**. The GitHub repository and CI evidence remain
-private. The `v0.4.1` release assets record the signed bundle, tagged source identity,
-checksums and deployment receipt.
+Central reported **PUBLISHED**. The `v0.4.1` release assets record the signed bundle,
+tagged source identity, checksums and deployment receipt.
 
 Local checks also passed: 41 JVM tests, 33 publisher/content guard tests, lint with
 zero errors, API 24 and 36 native suites, and exact URL copying in the minified Java

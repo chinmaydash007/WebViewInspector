@@ -21,6 +21,7 @@ jobs:
         with:
           ref: ${{ inputs.source_ref || github.ref }}
           fetch-depth: 0
+          persist-credentials: false
       - name: Apply the current keyboard test harness to unchanged tagged runtime
         env:
           HARNESS_REF: ${{ github.sha }}
@@ -62,18 +63,21 @@ jobs:
           adb -s emulator-5554 logcat -v threadtime ImeTracker:V InputMethodManagerService:V InputMethodManager:V '*:S' > "$evidence/ime-logcat.txt" 2>&1 &
           task_ime_logcat_pid=$!
           trap 'kill "$task_ime_logcat_pid" 2>/dev/null || true' EXIT
+          record_keyboard_state() {
+            adb -s emulator-5554 shell dumpsys input_method | grep -oE '\b((mCurMethodId|mSelectedMethodId)=[[:alnum:]_.]+/[[:alnum:]_.$]+|(mInputShown|mShowRequested|mSystemReady)=(true|false)|(mImeWindowVis|mCurTokenDisplayId)=(-?[0-9]+|0x[0-9a-fA-F]+))\b' > "$evidence/input-method-failure.txt" || true
+          }
           if [ "$test_api" = 36 ]; then
             python3 scripts/install_ci_webview.py --serial emulator-5554
             adb -s emulator-5554 install --no-incremental -r webview-inspector/build/outputs/apk/androidTest/debug/webview-inspector-debug-androidTest.apk
             adb -s emulator-5554 shell am instrument -w -r -e class "${inspector_package}.WebViewInspectorTest#keyboardInsetsAccessibilityAndActualRotation" "${test_package}/androidx.test.runner.AndroidJUnitRunner" > "$evidence/keyboard-preflight.log"
             adb -s emulator-5554 pull "/sdcard/Android/data/${test_package}/files/." "$evidence/keyboard-preflight-screenshots" >/dev/null 2>&1 || true
             if ! grep -q 'OK (1 test)' "$evidence/keyboard-preflight.log" || grep -Eq 'INSTRUMENTATION_STATUS_CODE: -[1234]|FAILURES!!!|INSTRUMENTATION_FAILED' "$evidence/keyboard-preflight.log"; then
-              adb -s emulator-5554 shell dumpsys input_method > "$evidence/input-method-failure.txt"
+              record_keyboard_state
               exit 1
             fi
           fi
           if ! python3 scripts/device_tests.py --serial emulator-5554 --api "$test_api"; then
-            adb -s emulator-5554 shell dumpsys input_method > "$evidence/input-method-failure.txt"
+            record_keyboard_state
             exit 1
           fi
           SCRIPT

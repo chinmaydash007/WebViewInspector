@@ -3,10 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing version tag with a signed private release draft
+        description: Existing version tag with a signed GitHub release draft
         type: string
         required: true
-        default: v0.1.0
 permissions:
   contents: read
 concurrency:
@@ -14,13 +13,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   validate:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository_id == '1432998628' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
+          ref: refs/tags/${{ inputs.release_tag }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -32,10 +32,10 @@ jobs:
       - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - run: bash scripts/verify.sh
   devices:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository_id == '1432998628' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/devices.yml
     with:
-      source_ref: ${{ inputs.release_tag }}
+      source_ref: refs/tags/${{ inputs.release_tag }}
   publish:
     needs: [validate, devices]
     runs-on: ubuntu-latest
@@ -47,6 +47,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -62,7 +63,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 scripts/release.py restore --tag "$RELEASE_TAG"
-      - name: Publish private GitHub draft and signed Central bundle
+      - name: Publish GitHub draft and signed Central bundle
         env:
           GITHUB_TOKEN: ${{ github.token }}
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}

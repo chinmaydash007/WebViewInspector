@@ -65,10 +65,23 @@ class ReleaseTests(unittest.TestCase):
                 release.release_for('v0.1.0', 'synthetic')
             self.assertEqual(1, github.call_count)
 
-    def test_public_repository_is_rejected(self):
-        with patch.object(release, 'github', return_value={'private': False}):
-            with self.assertRaisesRegex(ValueError, 'PRIVATE'):
-                release.require_private_repository('synthetic-token')
+    def test_release_repository_accepts_the_original_regardless_of_visibility(self):
+        for private in (True, False):
+            with self.subTest(private=private):
+                api_repo = {'id': release.REPOSITORY_ID, 'private': private}
+                with patch.object(release, 'github', return_value=api_repo) as github:
+                    release.require_release_repository('synthetic-token')
+                github.assert_called_once_with('/repos/' + release.REPOSITORY, 'synthetic-token')
+
+    def test_other_public_repository_is_rejected_before_restore_or_publish(self):
+        api_repo = {'id': release.REPOSITORY_ID + 1, 'private': False}
+        with patch.object(release, 'github', return_value=api_repo), tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'release'
+            for operation in (release.restore, release.publish):
+                with self.subTest(operation=operation.__name__):
+                    with self.assertRaisesRegex(ValueError, 'original WebViewInspector'):
+                        operation('v0.4.1', output, 'synthetic-token')
+            self.assertFalse(output.exists())
 
     def test_version_tag_and_commit_must_match(self):
         with self.assertRaisesRegex(ValueError, 'tag'):
@@ -147,7 +160,7 @@ class ReleaseTests(unittest.TestCase):
             for name in ['bundle.zip', 'publication-manifest.json', 'SHA256SUMS']:
                 (folder / name).write_text('fixture')
             with contextlib.ExitStack() as stack:
-                stack.enter_context(patch.object(release, 'require_private_repository'))
+                stack.enter_context(patch.object(release, 'require_release_repository'))
                 stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
                 stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
                 stack.enter_context(patch.object(release, 'release_for', return_value={'draft': False, 'id': 1, 'body': ''}))
@@ -170,7 +183,7 @@ class ReleaseTests(unittest.TestCase):
             for name in ['bundle.zip', 'publication-manifest.json', 'SHA256SUMS']:
                 (folder / name).write_text('fixture')
             with contextlib.ExitStack() as stack:
-                stack.enter_context(patch.object(release, 'require_private_repository'))
+                stack.enter_context(patch.object(release, 'require_release_repository'))
                 stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
                 stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
                 stack.enter_context(patch.object(release, 'release_for', return_value={'draft': False}))
@@ -184,14 +197,14 @@ class ReleaseTests(unittest.TestCase):
     def test_publishing_a_draft_requires_explicit_opt_in(self):
         with tempfile.TemporaryDirectory() as directory, contextlib.ExitStack() as stack:
             folder = Path(directory)
-            stack.enter_context(patch.object(release, 'require_private_repository'))
+            stack.enter_context(patch.object(release, 'require_release_repository'))
             stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'commit')))
             stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=({'sha256': 'digest'}, folder / 'bundle.zip')))
             stack.enter_context(patch.object(release, 'release_for', return_value={'draft': True}))
             change = stack.enter_context(patch.object(release, 'github'))
             upload = stack.enter_context(patch.object(release, 'upload_bundle'))
             stack.enter_context(patch.dict(release.os.environ, {'CENTRAL_USERNAME': 'fixture', 'CENTRAL_PASSWORD': 'fixture'}))
-            with self.assertRaisesRegex(ValueError, 'private GitHub Release'):
+            with self.assertRaisesRegex(ValueError, 'GitHub Release'):
                 release.publish('v0.1.0', folder, 'synthetic')
             change.assert_not_called()
             upload.assert_not_called()
@@ -202,7 +215,7 @@ class ReleaseTests(unittest.TestCase):
             for name in ['bundle.zip', 'publication-manifest.json', 'SHA256SUMS']:
                 (folder / name).write_text('fixture')
             manifest = {'sha256': 'digest'}
-            stack.enter_context(patch.object(release, 'require_private_repository'))
+            stack.enter_context(patch.object(release, 'require_release_repository'))
             stack.enter_context(patch.object(release, 'tagged_source', return_value=(LEGACY_PROPERTIES, 'tagged-commit')))
             validate = stack.enter_context(patch.object(release, 'validate_saved_bundle', return_value=(manifest, folder / 'bundle.zip')))
             stack.enter_context(patch.object(release, 'release_for', return_value={'draft': True, 'id': 1, 'body': ''}))

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Private GitHub release assets -> one signed, public Maven Central deployment.
+"""Publish signed GitHub release assets in one Maven Central deployment.
 
 No publishing on imports, ordinary builds or restore. Publication requires the publish command,
 a matching tag/commit, valid signed bundle and explicit Central credentials.
@@ -21,6 +21,7 @@ import zipfile
 from bundle import ARTIFACTS, ROOT, properties, validate_publication
 
 REPOSITORY = os.environ.get('GITHUB_REPOSITORY', 'chinmaydash007/WebViewInspector')
+REPOSITORY_ID = 1432998628
 CENTRAL = 'https://central.sonatype.com/api/v1/publisher'
 MAVEN = 'https://repo.maven.apache.org/maven2/'
 
@@ -56,7 +57,7 @@ def github(path, token, method='GET', data=None):
 def validate_tag(tag, version, expected_commit):
     if tag != 'v' + version or version.endswith('-SNAPSHOT'):
         raise ValueError('Release tag and VERSION_NAME must match a non-snapshot version.')
-    actual = subprocess.check_output(['git', 'rev-parse', tag + '^{commit}'], cwd=ROOT, text=True).strip()
+    actual = subprocess.check_output(['git', 'rev-parse', 'refs/tags/' + tag + '^{commit}'], cwd=ROOT, text=True).strip()
     if actual != expected_commit:
         raise ValueError('Release tag does not identify the built commit.')
 
@@ -78,10 +79,11 @@ def tagged_source(tag):
     return tagged_properties, commit
 
 
-def require_private_repository(token):
+def require_release_repository(token):
+    """Bind release operations to the original repository, including after a rename."""
     repo = github('/repos/' + REPOSITORY, token)
-    if repo.get('private') is not True:
-        raise ValueError('Release requires the GitHub repository to remain PRIVATE.')
+    if repo.get('id') != REPOSITORY_ID:
+        raise ValueError('Release operations require the original WebViewInspector GitHub repository.')
 
 
 def release_for(tag, token):
@@ -114,7 +116,7 @@ def upload_asset(release, name, data, token):
 
 
 def restore(tag, output, token):
-    require_private_repository(token)
+    require_release_repository(token)
     release = release_for(tag, token)
     output.mkdir(parents=True, exist_ok=True)
     for asset in release['assets']:
@@ -211,7 +213,7 @@ def verify_downloads(manifest, timeout=1800):
 
 
 def publish(tag, output, token, *, publish_draft=False):
-    require_private_repository(token)
+    require_release_repository(token)
     tagged_properties, commit = tagged_source(tag)
     version = tagged_properties['VERSION_NAME']
     manifest, bundle = validate_saved_bundle(output, tagged_properties, commit)
@@ -222,7 +224,7 @@ def publish(tag, output, token, *, publish_draft=False):
     credential = base64.b64encode((username + ':' + password).encode()).decode()
     release = release_for(tag, token)
     if release['draft'] and not publish_draft:
-        raise ValueError('Publish the private GitHub Release to trigger Central publication.')
+        raise ValueError('Publish the GitHub Release to trigger Central publication.')
     for name in [bundle.name, 'publication-manifest.json', 'SHA256SUMS']:
         upload_asset(release, name, (output / name).read_bytes(), token)
     deployment_file = output / 'deployment.json'
@@ -236,7 +238,7 @@ def publish(tag, output, token, *, publish_draft=False):
     if release['draft']:
         # The dedicated workflow uses GITHUB_TOKEN, so this does not enqueue another release workflow.
         release = github('/repos/' + REPOSITORY + '/releases/' + str(release['id']), token, 'PATCH', {'draft': False})
-        require_private_repository(token)
+        require_release_repository(token)
     if not deployment_file.exists():
         # Persist intent before POST. A lost response must never cause an automatic duplicate upload.
         intent.write_text(json.dumps({'sha256': manifest['sha256'], 'version': version}, indent=2) + '\n')
@@ -250,14 +252,14 @@ def publish(tag, output, token, *, publish_draft=False):
     note = '\n\nMaven Central: publication and exact-file download verification passed for both artifacts at `' + version + '`.'
     if note.strip() not in (release.get('body') or ''):
         github('/repos/' + REPOSITORY + '/releases/' + str(release['id']), token, 'PATCH', {'body': (release.get('body') or '') + note})
-    require_private_repository(token)
+    require_release_repository(token)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['restore', 'publish'])
     parser.add_argument('--tag', required=True)
-    parser.add_argument('--publish-draft', action='store_true', help='Publish the existing private draft after validation; intended for the prepared-release workflow.')
+    parser.add_argument('--publish-draft', action='store_true', help='Publish the existing draft after validation in the prepared-release workflow.')
     args = parser.parse_args()
     token = os.environ.get('GITHUB_TOKEN')
     if not token:

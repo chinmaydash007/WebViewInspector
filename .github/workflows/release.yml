@@ -10,11 +10,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   validate:
+    if: github.repository_id == '1432998628' && (github.event_name == 'release' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -26,6 +28,7 @@ jobs:
       - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - run: bash scripts/verify.sh
   devices:
+    if: github.repository_id == '1432998628' && (github.event_name == 'release' || github.ref == 'refs/heads/main')
     uses: ./.github/workflows/devices.yml
   publish:
     needs: [validate, devices]
@@ -36,6 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,16 +49,17 @@ jobs:
           packages: platform-tools
       - uses: gradle/actions/setup-gradle@v4
       - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
-      - name: Verify private repository and release ref
+      - name: Verify release repository and source
         env:
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
           python3 - <<'PY'
           import os, subprocess, sys
           sys.path.insert(0, 'scripts')
           import release
-          release.require_private_repository(os.environ['GITHUB_TOKEN'])
+          release.require_release_repository(os.environ['GITHUB_TOKEN'])
           if os.environ.get('RELEASE_TAG'):
               release.validate_tag(os.environ['RELEASE_TAG'], release.properties()['VERSION_NAME'], subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip())
           PY
