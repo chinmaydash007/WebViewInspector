@@ -2,10 +2,14 @@ package com.webviewinspector
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Rect
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
@@ -53,10 +57,12 @@ class FocusedInspectorTest {
     @Test fun pinnedActionsTargetPickerAndContentSizedCurrentWorkInBothHosts() {
         for (host in listOf(ComposeInspectorHost::class.java, XmlInspectorHost::class.java)) {
             withSheet(host) {
+                ui { assertNavigationBarClearance() }
                 val currentHeight = ui { sheet.dialog.findViewById<View>(R.id.wvi_sheet)!!.height }
                 onView(withId(R.id.wvi_query_toggle)).inRoot(isDialog()).perform(scrollTo(), click())
                 assertTrue(ui { sheet.dialog.findViewById<View>(R.id.wvi_query_values)!!.isShown })
                 onView(withId(R.id.wvi_history_tab)).inRoot(isDialog()).perform(click())
+                ui { assertNavigationBarClearance() }
                 val historyHeight = ui { sheet.dialog.findViewById<View>(R.id.wvi_sheet)!!.height }
                 assertTrue(
                     "Current URL should fit its content; History uses the larger cap",
@@ -345,6 +351,31 @@ class FocusedInspectorTest {
     )
 
     private fun bounds(id: Int): Rect = Rect().also { sheet.dialog.findViewById<View>(id)!!.getGlobalVisibleRect(it) }
+
+    private fun assertNavigationBarClearance() {
+        val host = requireNotNull(activity)
+        val windowBottom =
+            if (Build.VERSION.SDK_INT >= 30) {
+                host.windowManager.currentWindowMetrics.bounds.bottom
+            } else {
+                @Suppress("DEPRECATION")
+                Point().also { host.windowManager.defaultDisplay.getRealSize(it) }.y
+            }
+        val surface =
+            requireNotNull(sheet.dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet))
+        val footer = requireNotNull(sheet.dialog.findViewById<View>(R.id.wvi_sheet_footer))
+        val insets = requireNotNull(ViewCompat.getRootWindowInsets(surface))
+        val safeBottom =
+            insets.getInsets(WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.displayCutout()).bottom
+        assertEquals("The sheet surface should reach the window bottom", windowBottom, bottomOnScreen(surface))
+        assertEquals(
+            "The footer should end above the navigation area",
+            windowBottom - safeBottom,
+            bottomOnScreen(footer),
+        )
+    }
+
+    private fun bottomOnScreen(view: View): Int = IntArray(2).also(view::getLocationOnScreen)[1] + view.height
 
     private fun text(view: View): String =
         when (view) {

@@ -194,7 +194,7 @@ internal class InspectorSheet(
         content.addView(history.view)
         content.addView(appLoads.view)
         layout.setSections(header, content, footer.view)
-        dialog.setContentView(layout)
+        BottomSheetFactory.setContent(dialog, layout)
         dialog.setTitle(context.getString(R.string.wvi_focused_title))
         renderTabs()
     }

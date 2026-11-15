@@ -1,5 +1,22 @@
 # Standalone validation
 
+## Inspector navigation bar insets — 15 November 2026
+
+- The JDK 17 non-publishing gate passed, including formatting, lint, facade
+  parity, publication checks, and the independent Java consumer builds.
+- API 24 passed 14 native cases and three clipboard cases with software navigation
+  buttons enabled. API 36 passed the navigation prerequisite, all 27 normal cases
+  at 1080×1920, three clipboard cases, and the 19 light and 12 dark cases at
+  320 dp and 160% font scale. The tests check that the sheet surface reaches the
+  window bottom and that the pinned footer ends above the system inset in
+  Current URL and History. Rotation, exact copying and scroll before swipe
+  dismissal also passed. Emulator settings were restored.
+- Afterframe screenshots on API 36 show the sheet surface behind the gesture
+  handle and three-button navigation in light and dark mode. Developer Tools
+  shares the same treatment. API 24 screenshots show the legacy tint keeping
+  the white system buttons readable. Local evidence is in
+  `build/reports/sheet-insets/`.
+
 ## Published 0.4.1 — 14 November 2026
 
 Both artifacts are available on Maven Central. All ten primary files (AARs, POMs,

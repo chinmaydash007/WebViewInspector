@@ -73,7 +73,7 @@ class BottomSheetGestureTest {
                                 .toInt()
                     }
                 layout.setSections(body, content, footer)
-                dialog.setContentView(layout)
+                BottomSheetFactory.setContent(dialog, layout)
                 dialog.show()
                 BottomSheetFactory.expand(dialog)
             }

@@ -44,7 +44,12 @@ flowchart TD
     Sheet --> Presentation["UrlPresentation: display only"]
 ```
 
-Arrows describe ownership or data flow. The session constructs collaborators and supplies callbacks; UI callbacks return to the session rather than importing `core`. `ui.common` supplies native View styling and Material dialog construction to both sheets and the floating control.
+Arrows describe ownership or data flow. The session constructs collaborators and supplies callbacks; UI callbacks return to the session rather than importing `core`. `ui.common` supplies native View styling and owns both Material sheets' edge-to-edge window setup.
+
+The sheet theme uses a non-floating window so Android can lay it out behind the
+navigation bar. A content wrapper keeps controls clear of navigation and cutout
+insets without changing the host Activity window. On API 24–25, the wrapper
+tints the inset area so the system's white navigation buttons stay readable.
 
 Only the facade is supported public API: five original methods and two synchronous loadUrl overloads. All implementation types live below `com.webviewinspector.internal` and are Kotlin `internal`. There are no ViewModels, repositories or injected JavaScript. Basic has no per-screen integration; Advanced explicitly opts load calls into capture.
 

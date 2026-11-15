@@ -48,7 +48,7 @@ internal class SettingsSheet(
                 padding(horizontal = 0, vertical = DESCRIPTION_PADDING_DP)
             },
         )
-        dialog.setContentView(BottomSheetFactory.scroll(dialog, body))
+        BottomSheetFactory.setContent(dialog, BottomSheetFactory.scroll(dialog, body))
     }
 
     private companion object {

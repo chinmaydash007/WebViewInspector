@@ -2,6 +2,7 @@
     <color name="wvi_primary">#7047BD</color>
     <color name="wvi_on_primary">#FFFFFF</color>
     <color name="wvi_surface">#FFFFFF</color>
+    <color name="wvi_legacy_navigation_scrim">#99000000</color>
     <color name="wvi_background">#F7F7FA</color>
     <color name="wvi_text">#24232D</color>
     <color name="wvi_muted">#6C6A7B</color>
