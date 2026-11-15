@@ -1,5 +1,19 @@
 # Standalone validation
 
+## Published 0.4.2 — 15 November 2026
+
+Both artifacts are available on Maven Central. Anonymous downloads of the AARs,
+POMs, Gradle metadata, sources and documentation for both artifacts matched all
+ten SHA-256 checksums in the signed release manifest.
+
+The [signed dry run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/43671143660)
+and [release workflow](https://github.com/chinmaydash007/WebViewInspector/actions/runs/43687745410)
+passed standalone validation and the API 24 and 36 native gates on `4cf0b2a`.
+The release workflow reused the verified dry-run bundle in one Central deployment
+and built the debug, minified diagnostic and no-op release variants of the
+independent Java consumer from public Maven repositories. The signed bundle,
+manifest, checksums and deployment receipt are attached to the [GitHub Release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.4.2).
+
 ## Inspector navigation bar insets — 15 November 2026
 
 - The JDK 17 non-publishing gate passed, including formatting, lint, facade

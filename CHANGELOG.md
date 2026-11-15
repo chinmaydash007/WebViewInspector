@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.4.2 (unreleased)
+## 0.4.2 — 15 November 2026
 
 - Draw the Inspector and Settings sheets behind the system navigation bar while keeping controls clear of navigation and display cutout insets.
 - Match navigation icon contrast to the sheet surface on API 26 and later. Tint the navigation area on API 24–25 to keep the system's white buttons readable.
+- Both artifacts are available on Maven Central. All ten primary files match the signed release bundle. See [validation](VALIDATION.md).
 
 ## 0.4.1 — 14 November 2026
 

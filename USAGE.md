@@ -12,8 +12,8 @@ Use `google()` and `mavenCentral()` for dependencies. Select exactly one artifac
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.1")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.1")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.2")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.2")
 }
 ```
 
