@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 (unreleased)
+
+- Draw the Inspector and Settings sheets behind the system navigation bar while keeping controls clear of navigation and display cutout insets.
+- Match navigation icon contrast to the sheet surface on API 26 and later. Tint the navigation area on API 24–25 to keep the system's white buttons readable.
+
 ## 0.4.1 — 14 November 2026
 
 - Improve border contrast in dark mode and keep the inspector sheet on its intended surface color.
