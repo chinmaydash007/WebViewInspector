@@ -51,9 +51,10 @@ override fun onCreate() {
 }
 ```
 
-Open a screen with a WebView and tap the floating Inspector. The unreleased Live/Recent
+Open a screen with a WebView and tap the floating Inspector. The upcoming 0.5.0 Live/Recent
 chooser keeps captured history available across Activities after the first discovery,
 including screens without WebViews. Published 0.4.2 retains the earlier picker behavior.
+See the [0.5.0 release notes](docs/releases/0.5.0.md) for the pending release and its validation status.
 Use the optional load
 helper to see app-supplied inputs under **App loads**.
 

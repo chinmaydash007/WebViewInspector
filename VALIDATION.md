@@ -1,5 +1,19 @@
 # Standalone validation
 
+## 0.5.0 release preparation — 21 November 2026
+
+- `VERSION_NAME` is 0.5.0 for both artifacts. The versioned JDK 17
+  non-publishing gate passed: root formatting, 45 library and three sample JVM
+  tests, Android Lint, seven-method facade parity, 34 publication/content guard
+  tests and independent Java consumer debug, minified diagnostic and no-op
+  release builds. Local evidence: `build/reports/segmented-motion/verify-0.5.0.log`.
+- Release notes are prepared in `docs/releases/0.5.0.md`. The GitHub release
+  remains a draft while cloud native validation and the signed dry run are
+  pending. Local API 36 graphics-driver limitations are recorded below.
+- No release tag, signed release assets or Central deployment have been created
+  for 0.5.0. Public download verification is pending; 0.4.2 remains the latest
+  verified published version in the installation examples.
+
 ## Unreleased segmented selection motion — 21 November 2026
 
 - The JDK 17 non-publishing gate passed with the final runtime: root formatting,

@@ -4,7 +4,11 @@ A floating Android inspector for native WebViews. **Basic** discovers full-page,
 
 Check the available versions on Maven Central for the [full inspector](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/) and [production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/). See [validation](VALIDATION.md) for verified releases.
 
-The GitHub repository, GitHub Releases and CI assets stay **private**. Maven Central AARs, complete source JARs and documentation are **public**. No public GitHub Pages site is configured.
+The GitHub repository, GitHub Releases and CI assets are **public**, as are Maven Central AARs, complete source JARs and documentation. No GitHub Pages site is configured.
+
+The Live/Recent behavior in this guide is prepared for **0.5.0**, whose publication
+is pending. The dependency examples below retain **0.4.2**, the latest version
+verified on Maven Central. See the [0.5.0 release notes](docs/releases/0.5.0.md).
 
 ## Integrate
 
