@@ -20,15 +20,20 @@
   API 36's keyboard preflight, navigation prerequisite, 33 normal and three
   clipboard cases, plus 25 light/18 dark cases at 320 dp and 160% font scale.
   Both jobs retained device evidence and restored emulator settings.
-- Release notes are prepared in `docs/releases/0.5.0.md`, with a
-  [GitHub release draft](https://github.com/chinmaydash007/WebViewInspector/releases)
-  and [draft PR](https://github.com/chinmaydash007/WebViewInspector/pull/1).
-  The source still needs to reach `main` and pass the signed dry run before
-  tagging or publishing. Local API 36 graphics-driver limitations are recorded
-  below; the completed cloud matrix covers those regression suites.
-- No release tag, signed release assets or Central deployment have been created
-  for 0.5.0. Public download verification is pending; 0.4.2 remains the latest
-  verified published version in the installation examples.
+- The [signed dry run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44928864265)
+  passed for the merged `main` source. [PR #1](https://github.com/chinmaydash007/WebViewInspector/pull/1)
+  is merged, and the annotated `v0.5.0` tag identifies source
+  `b43cb7d09fd892bf970c00f5fb69d77b4b7b5d16`.
+- The [GitHub release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.5.0)
+  was published at `2026-11-21T17:31:27Z`, before the Central workflow. Its
+  signed bundle, manifest and checksums match the verified dry-run assets.
+- Signed bundle SHA-256:
+  `ed015eb339e7ad5b127387eed0bfba8660c2aeda675f4aa8ba5f535b25ddb19d`.
+- Central accepted deployment `87c0a585-a2c9-4df7-a363-65d5dcbaaeff`
+  for both artifacts. The [release workflow](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44930514013)
+  passed standalone and API 24/36 gates and is waiting for publication and
+  exact public-download verification. Central verification remains pending;
+  0.4.2 stays in the installation examples until both coordinates are verified.
 
 ## Unreleased segmented selection motion — 21 November 2026
 
