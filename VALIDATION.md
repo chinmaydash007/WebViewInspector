@@ -7,9 +7,19 @@
   tests, Android Lint, seven-method facade parity, 34 publication/content guard
   tests and independent Java consumer debug, minified diagnostic and no-op
   release builds. Local evidence: `build/reports/segmented-motion/verify-0.5.0.log`.
-- Release notes are prepared in `docs/releases/0.5.0.md`. The GitHub release
-  remains a draft while cloud native validation and the signed dry run are
-  pending. Local API 36 graphics-driver limitations are recorded below.
+- [Standalone GitHub validation](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922105879)
+  passed for source `80477a23dc7761c35c60a7bd7f36b43518380981`.
+  [Cloud Android compatibility](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922483769)
+  also passed on that source: API 24's 20 native and three clipboard cases;
+  API 36's keyboard preflight, navigation prerequisite, 33 normal and three
+  clipboard cases, plus 25 light/18 dark cases at 320 dp and 160% font scale.
+  Both jobs retained device evidence and restored emulator settings.
+- Release notes are prepared in `docs/releases/0.5.0.md`, with a
+  [GitHub release draft](https://github.com/chinmaydash007/WebViewInspector/releases/tag/untagged-14d2ded309d31e3dc46e)
+  and [draft PR](https://github.com/chinmaydash007/WebViewInspector/pull/1).
+  The source still needs to reach `main` and pass the signed dry run before
+  tagging or publishing. Local API 36 graphics-driver limitations are recorded
+  below; the completed cloud matrix covers those regression suites.
 - No release tag, signed release assets or Central deployment have been created
   for 0.5.0. Public download verification is pending; 0.4.2 remains the latest
   verified published version in the installation examples.
@@ -34,9 +44,9 @@
   renderer attempts ended with QEMU main-loop/vCPU watchdog stalls. A software
   attempt stalled in the existing recycled-WebViews case; the native trace
   shows the UI waiting for HWUI and RenderThread blocked in the emulator's
-  `qemu_pipe_read` / OpenGL driver. Full API 36 normal-suite success remains
+  `qemu_pipe_read` / OpenGL driver. Full local API 36 normal-suite success remains
   unverified. A presentation-only retry also stalled in the existing
-  settings/rotation case, so the complete large-font suites remain unverified
+  settings/rotation case, so the complete local large-font suites remain unverified
   for this refinement. No CI cases or failure guards were removed.
 - Original emulator density, font, night, keyboard and animation settings were
   compared after restoration. ADB was returned to its unrooted state after
