@@ -84,11 +84,14 @@ class RecentWebViewsTest {
     @Test fun destroyedPaymentActivityRemainsInspectableOnNativeConfirmation() =
         withNativeAfterPayment(capture = true) { native ->
             onView(withId(R.id.wvi_open)).perform(click())
+            assertChooserTabs(liveCount = 0, recentCount = 1, showingRecent = true)
             screenshot("recent-native-chooser")
             assertTrue(dialog(R.id.wvi_recent_tab).isSelected)
             onView(withId(R.id.wvi_live_tab)).inRoot(isDialog()).perform(click())
+            assertChooserTabs(liveCount = 0, recentCount = 1, showingRecent = false)
             assertTrue(text(dialog(R.id.wvi_webviews_panel)).contains("No visible WebViews"))
             onView(withId(R.id.wvi_view_recent)).inRoot(isDialog()).perform(click())
+            assertChooserTabs(liveCount = 0, recentCount = 1, showingRecent = true)
             choose(1, "payment.example", "/checkout")
             screenshot("recent-saved-payment")
             assertEquals(PAYMENT_RECENT_URL, text(dialog(R.id.wvi_current_url)))
@@ -111,9 +114,16 @@ class RecentWebViewsTest {
             native.onActivity { it.captureUnseen() }
             native.onActivity { assertFalse(it.findViewById<View>(R.id.wvi_overlay)?.isShown == true) }
         }
-        withNativeAfterPayment {
+        withNativeAfterPayment { native ->
             onView(withId(R.id.wvi_open)).perform(click())
             assertTrue(text(dialog(R.id.wvi_webviews_panel)).contains("Not observed on screen"))
+            val recent = dialog(R.id.wvi_recent_tab)
+            ui {
+                assertTrue(recent.requestFocusFromTouch())
+                native.captureUnseen()
+            }
+            assertChooserTabs(liveCount = 0, recentCount = 3, showingRecent = true)
+            assertTrue(ui { recent.hasFocus() })
             choose(1, "helper.example", "/unseen")
             assertTrue(dialog(R.id.wvi_app_loads_panel).isShown)
             clickDialog(R.id.wvi_copy_app_loads)
@@ -129,6 +139,7 @@ class RecentWebViewsTest {
         withNativeAfterPayment { native ->
             onView(withId(R.id.wvi_open)).perform(click())
             onView(withId(R.id.wvi_clear_recent)).inRoot(isDialog()).perform(click())
+            assertChooserTabs(liveCount = 0, recentCount = 0, showingRecent = true)
             assertTrue(text(dialog(R.id.wvi_webviews_panel)).contains("No recent WebViews yet"))
             screenshot("recent-empty")
             pressBack()
@@ -172,6 +183,7 @@ class RecentWebViewsTest {
         await { original?.findViewById<View>(R.id.wvi_open)?.isShown == true }
         if (capture) {
             onView(withId(R.id.wvi_open)).perform(click())
+            assertChooserTabs(liveCount = 1, recentCount = 0, showingRecent = false)
             screenshot("recent-live-chooser")
             pressBack()
         }
@@ -186,6 +198,60 @@ class RecentWebViewsTest {
             destination.moveToState(Lifecycle.State.RESUMED)
             await { native.findViewById<View>(R.id.wvi_open)?.isShown == true }
             test(native)
+        }
+    }
+
+    private fun assertChooserTabs(
+        liveCount: Int,
+        recentCount: Int,
+        showingRecent: Boolean,
+    ) {
+        val live = dialog(R.id.wvi_live_tab)
+        val recent = dialog(R.id.wvi_recent_tab)
+        ui {
+            val touchHeight = 48 * application.resources.displayMetrics.density
+            assertTrue(live.height >= touchHeight.toInt())
+            assertEquals(live.height, recent.height)
+            assertTrue(kotlin.math.abs(live.width - recent.width) <= 1)
+            assertEquals(!showingRecent, live.isSelected)
+            assertEquals(showingRecent, recent.isSelected)
+            assertEquals(application.getString(R.string.wvi_live_count, liveCount), live.contentDescription)
+            assertEquals(application.getString(R.string.wvi_recent_count, recentCount), recent.contentDescription)
+            listOf(live, recent).forEach { tab ->
+                val info = tab.createAccessibilityNodeInfo()
+                assertEquals(tab.isSelected, info.isSelected)
+                assertEquals(tab.isSelected, info.collectionItemInfo.isSelected)
+                assertEquals(
+                    application.getString(R.string.wvi_tab_role),
+                    androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+                        .wrap(info)
+                        .roleDescription,
+                )
+                assertLabelsFit(tab)
+                val content = (tab as android.view.ViewGroup).getChildAt(0) as android.widget.LinearLayout
+                val label = content.getChildAt(0)
+                val badge = content.getChildAt(1)
+                val horizontal = content.orientation == android.widget.LinearLayout.HORIZONTAL
+                val gap =
+                    if (horizontal) {
+                        maxOf(badge.left - label.right, label.left - badge.right)
+                    } else {
+                        badge.top -
+                            label.bottom
+                    }
+                val minimumGap = (if (horizontal) 6 else 2) * application.resources.displayMetrics.density
+                assertTrue("Tab label and badge need a visible gap", gap >= minimumGap.toInt() - 1)
+            }
+        }
+    }
+
+    private fun assertLabelsFit(view: View) {
+        if (view is TextView) {
+            val layout = requireNotNull(view.layout)
+            assertTrue(layout.height <= view.height - view.paddingTop - view.paddingBottom)
+            assertTrue(layout.getLineWidth(0) <= view.width - view.paddingLeft - view.paddingRight + 1)
+        } else if (view is android.view.ViewGroup) {
+            for (index in 0 until view.childCount) assertLabelsFit(view.getChildAt(index))
         }
     }
 

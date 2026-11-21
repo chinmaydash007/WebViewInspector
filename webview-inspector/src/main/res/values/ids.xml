@@ -1,4 +1,5 @@
 <resources>
+    <item name="wvi_tab_indicator" type="id" />
     <item name="wvi_webviews_panel" type="id" />
     <item name="wvi_live_tab" type="id" />
     <item name="wvi_recent_tab" type="id" />

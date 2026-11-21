@@ -2,6 +2,10 @@
     <string name="wvi_webviews">WebViews</string>
     <string name="wvi_live_count">Live · %1$d</string>
     <string name="wvi_recent_count">Recent · %1$d</string>
+    <string name="wvi_live_label">Live</string>
+    <string name="wvi_recent_label">Recent</string>
+    <string name="wvi_tab_count">%1$d</string>
+    <string name="wvi_tab_role">Tab</string>
     <string name="wvi_visible_now">Visible now</string>
     <string name="wvi_no_live">No visible WebViews</string>
     <string name="wvi_no_live_body">This screen has no visible WebViews. Saved records are available in Recent.</string>

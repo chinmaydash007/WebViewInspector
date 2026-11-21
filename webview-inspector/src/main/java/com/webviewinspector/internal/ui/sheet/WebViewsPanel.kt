@@ -1,7 +1,6 @@
 package com.webviewinspector.internal.ui.sheet
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -27,7 +26,12 @@ internal class WebViewsPanel(
     private val changed: () -> Unit,
     clearRecent: () -> Unit,
 ) {
-    val tabs = LinearLayout(context).apply { padding(horizontal = 20, vertical = 4) }
+    private val segments =
+        WebViewsTabs(context) { recent ->
+            presentation.recentTargets = recent
+            renderLast()
+        }
+    val tabs = segments.view
     val view =
         LinearLayout(context).apply {
             id = R.id.wvi_webviews_panel
@@ -39,8 +43,6 @@ internal class WebViewsPanel(
             id =
                 R.id.wvi_clear_recent
         }
-    private val liveTab = tab(R.id.wvi_live_tab) { presentation.recentTargets = false }
-    private val recentTab = tab(R.id.wvi_recent_tab) { presentation.recentTargets = true }
     private val rows =
         LinearLayout(context).apply {
             id = R.id.wvi_targets
@@ -63,23 +65,12 @@ internal class WebViewsPanel(
     private var state: InspectorState? = null
 
     init {
-        tabs.addView(liveTab, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-        tabs.addView(recentTab, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
         empty.addView(emptyTitle)
         empty.addView(emptyBody)
         empty.addView(viewRecent)
         view.addView(empty)
         view.addView(rows)
     }
-
-    private fun tab(
-        id: Int,
-        action: () -> Unit,
-    ) = context
-        .focusedButton("") {
-            action()
-            renderLast()
-        }.apply { this.id = id }
 
     private fun renderLast() {
         state?.let(::render)
@@ -88,10 +79,7 @@ internal class WebViewsPanel(
 
     fun render(state: InspectorState) {
         this.state = state
-        liveTab.text = context.getString(R.string.wvi_live_count, state.targets.size)
-        recentTab.text = context.getString(R.string.wvi_recent_count, state.recentTargets.size)
-        selectTab(liveTab, !presentation.recentTargets)
-        selectTab(recentTab, presentation.recentTargets)
+        segments.render(state.targets.size, state.recentTargets.size, presentation.recentTargets)
         val items =
             if (presentation.recentTargets) {
                 state.recentTargets.map(::savedRow)
@@ -161,17 +149,6 @@ internal class WebViewsPanel(
             setOnClickListener { select(id) }
             ViewCompat.setScreenReaderFocusable(this, true)
         }
-
-    private fun selectTab(
-        tab: com.google.android.material.button.MaterialButton,
-        selected: Boolean,
-    ) {
-        tab.isSelected = selected
-        val backgroundColor = if (selected) R.color.wvi_tint else R.color.wvi_background
-        tab.backgroundTintList = ColorStateList.valueOf(context.color(backgroundColor))
-        val selectedLabel = if (selected) R.string.wvi_selected else R.string.wvi_unselected
-        ViewCompat.setStateDescription(tab, context.getString(selectedLabel))
-    }
 
     private data class Row(
         val id: Long,

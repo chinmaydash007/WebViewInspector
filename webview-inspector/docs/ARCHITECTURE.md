@@ -36,6 +36,8 @@ flowchart TD
     Sheet --> Layout["InspectorSheetLayout: pinned regions and root drag gate"]
     Sheet --> Picker["TargetPicker: return to WebViews"]
     Sheet --> Chooser["WebViewsPanel: Live and Recent keyed rows"]
+    Chooser --> ChooserTabs["WebViewsTabs: accessible rounded chooser segments"]
+    ChooserTabs --> SlidingTrack["SlidingTabTrack: one moving selection surface"]
     Sheet --> Current["CurrentUrlPanel: URL and availability states"]
     Sheet --> Footer["InspectorFooter: copy and More actions"]
     Sheet --> HistoryPanel["HistoryPanel: stable native record rows"]
@@ -145,6 +147,18 @@ Hidden/detached targets and inactive sessions remove subscriptions and mark a ga
 ## Focused sheet composition
 
 ### Live and Recent retention
+
+`WebViewsPanel` owns `WebViewsTabs`, which renders equal-width native segments
+with separate count badges and one accessible tab per segment. Counts update
+existing Views to preserve focus. `SlidingTabTrack` moves one decorative surface
+behind fixed labels over 200 ms; repeated count updates leave motion alone and
+rapid selection changes continue from the current position. Resizing and RTL
+changes snap to the measured tab; hiding or detaching cancels motion. The track
+honors the system animator setting, including API 24's disabled-motion fallback.
+Press feedback uses a faint neutral fade rather than an expanding ripple. The
+surface, feedback and keyboard focus border use library light/dark colors;
+labels and badges stack when needed at larger font sizes. This presentation
+owns no discovery or retention state.
 
 The archive holds only weak targets, original scope IDs, plain screen names and timestamps. It derives summaries from the two stores without another raw-text cache. Activity destruction removes its registry, overlay and subscriptions, while the record stores remain accessible through the process catalogue. Oldest inactive target eviction (500 entries) removes both histories and app loads. Clear recent WebViews removes non-live targets only. Disable/uninstall clears the catalogue, both record stores and the discovery latch.
 

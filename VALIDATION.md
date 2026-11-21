@@ -1,5 +1,63 @@
 # Standalone validation
 
+## Unreleased segmented selection motion — 21 November 2026
+
+- The JDK 17 non-publishing gate passed with the final runtime: root formatting,
+  45 library and three sample JVM tests, Android Lint, seven-method facade parity,
+  34 publication/content guard tests and all independent Java consumer variants.
+  A subsequent test-fixture refinement also passed formatting, lint and native
+  test compilation.
+- API 24 passed 20 native and three clipboard cases. Two dedicated real-frame
+  motion cases passed on API 24 and API 36. The final motion fixture also passed
+  on API 36 at 320 dp / 160% font in light and dark mode. These cases check
+  intermediate slide positions, rapid reversal without jumping, count updates,
+  RTL/size changes, detach/reattach cleanup and disabled animation settings.
+- The sample recording shows a single selection surface sliding beneath fixed
+  labels and faint neutral press feedback without an expanding ripple. The
+  updated debug sample was installed and launched on the user-selected USB
+  phone. Device security settings were left unchanged.
+- The full API 36 normal suite was attempted but did not complete. Two hardware
+  renderer attempts ended with QEMU main-loop/vCPU watchdog stalls. A software
+  attempt stalled in the existing recycled-WebViews case; the native trace
+  shows the UI waiting for HWUI and RenderThread blocked in the emulator's
+  `qemu_pipe_read` / OpenGL driver. Full API 36 normal-suite success remains
+  unverified. A presentation-only retry also stalled in the existing
+  settings/rotation case, so the complete large-font suites remain unverified
+  for this refinement. No CI cases or failure guards were removed.
+- Original emulator density, font, night, keyboard and animation settings were
+  compared after restoration. ADB was returned to its unrooted state after
+  collecting the native trace. Both task-started emulators were stopped; their
+  temporary idle-sleep assertions ended with their processes.
+- Local evidence is in `build/reports/segmented-motion/`, including
+  `verify-final.log`, motion logs, the sample video and the emulator/native
+  traces. This UI-only refinement remains unpublished.
+
+## Unreleased rounded Live/Recent tabs — 21 November 2026
+
+- The JDK 17 non-publishing gate passed after the final spacing correction:
+  root formatting, 45 library and three sample JVM tests, Android Lint,
+  seven-method facade parity, 34 publication/content guard tests, and independent
+  Java consumer debug, minified diagnostic and no-op release builds.
+- The explicitly selected API 24 emulator passed 18 native and three clipboard
+  cases. API 36 passed its navigation prerequisite, 31 normal and three clipboard
+  cases, plus the 23 light/16 dark cases at 320 dp and 160% font scale.
+- Phone preview exposed a relative-margin resolution difference. After fixing
+  label/badge spacing, the four Recent lifecycle cases passed again on API 24
+  and in four API 36 configurations: normal light/dark and 320 dp / 160% font
+  light/dark. Assertions cover equal touch-target heights of at least 48 dp,
+  selected/count accessibility, label clipping, visible badge spacing, empty
+  states and focus preservation while counts change. Final screenshots were
+  visually reviewed in all four API 36 configurations.
+- Original emulator density, font, night, keyboard and animation settings were
+  compared after restoration; both task-started emulators were stopped. The
+  updated debug sample was installed and launched on the user-selected USB
+  phone. Its security settings block automated taps; the user manually opened
+  the first preview, and the final spacing correction was then reinstalled.
+- Evidence is retained in `build/reports/segmented-tabs/`, including
+  `verify-spacing.log`, the full native suites, and the final focused layout
+  matrix. No public API, dependency or navigation-compatibility changes were
+  made. This refinement remains unpublished.
+
 ## Unreleased Live and Recent WebViews — 21 November 2026
 
 - The JDK 17 non-publishing gate passed with WebKit 1.15.0 and 1.16.0: root

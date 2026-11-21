@@ -15,12 +15,12 @@ PACKAGE = NAMESPACE + '.test'
 RUNNER = PACKAGE + '/androidx.test.runner.AndroidJUnitRunner'
 PREFIX = NAMESPACE + '.'
 NORMAL = [PREFIX + name for name in ['WebViewInspectorTest', 'NavigationHistoryTest', 'BottomSheetGestureTest', 'FocusedInspectorTest']]
-NORMAL += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
+NORMAL += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest', PREFIX + 'WebViewsTabsMotionTest']
 FALLBACK = [PREFIX + 'FocusedInspectorTest'] + [PREFIX + 'NavigationHistoryTest#' + name for name in ['historyIsolationClearUnavailableSelectionAndPauseResume', 'unsupportedListenerFallbackUsesTheSameNativeHistoryAndCopyActions']]
-FALLBACK += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
+FALLBACK += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest', PREFIX + 'WebViewsTabsMotionTest']
 NARROW = [PREFIX + 'WebViewInspectorTest#' + name for name in ['composeWithPlatformThemeSupportsSelectionExactCopyAndBack', 'xmlDuplicateIdsSelectionUnavailableAndCurrentUrl', 'settingsToggleTouchPassthroughRotationAndCleanup', 'dragClampsAndPositionSurvivesActivityRecreation']]
 NARROW += [PREFIX + 'BottomSheetGestureTest', PREFIX + 'NavigationHistoryTest#expandedHistoryRetainsFocusAndScrollWhileNewNavigationsArrive', PREFIX + 'FocusedInspectorTest']
-NARROW += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
+NARROW += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest', PREFIX + 'WebViewsTabsMotionTest']
 
 
 def main():
@@ -69,16 +69,16 @@ def main():
             shell('settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1')
             run('navigation-prerequisite', [PREFIX + 'ReleasePrerequisitesTest'], 1)
         if not args.skip_normal:
-            run('normal', NORMAL if args.api == 36 else FALLBACK, 31 if args.api == 36 else 18)
+            run('normal', NORMAL if args.api == 36 else FALLBACK, 33 if args.api == 36 else 20)
             run('clipboard-feedback', [PREFIX + 'ClipboardFeedbackTest'], 3)
         if args.api == 36:
             width = int(re.findall(r'(\d+)x\d+', shell('wm', 'size'))[-1])
             shell('wm', 'density', str(round(width * 160 / 320)))
             shell('settings', 'put', 'system', 'font_scale', '1.6')
             shell('cmd', 'uimode', 'night', 'no')
-            run('narrow-large-font-light', NARROW, 23)
+            run('narrow-large-font-light', NARROW, 25)
             shell('cmd', 'uimode', 'night', 'yes')
-            run('narrow-large-font-dark', [PREFIX + 'FocusedInspectorTest', PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest'], 16)
+            run('narrow-large-font-dark', [PREFIX + 'FocusedInspectorTest', PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest', PREFIX + 'WebViewsTabsMotionTest'], 18)
     finally:
         for key in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
             shell('settings', 'delete' if settings[key] == 'null' else 'put', 'global', key, *([] if settings[key] == 'null' else [settings[key]]))

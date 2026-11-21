@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add Live and Recent WebViews with saved URLs, navigation history and explicit app-load inputs across Activity changes and destruction.
+- Use a rounded Live/Recent segmented control with a sliding selection surface, separate count badges, subtle press feedback and accessible selected states.
 - Keep the floating Inspector available on foreground app screens after the first visible WebView is detected, even when no WebViews or saved records remain.
 - Include explicit helper captures from never-discovered WebViews in Recent, labelled as app-supplied inputs.
 - Assign session-stable WebView numbers; retain bounded records in memory until clearing, eviction, disable/uninstall or process death. No public API or integration changes.
