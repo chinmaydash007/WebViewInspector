@@ -143,10 +143,13 @@ class NavigationHistoryTest {
         assertTrue(clipboard().contains(next))
         clearClipboard()
         onView(withId(R.id.wvi_current_tab)).inRoot(isDialog()).perform(click())
-        assertFalse(ui { dialogView(R.id.wvi_copy_url).isEnabled })
+        assertTrue(ui { dialogView(R.id.wvi_copy_url).isEnabled })
+        ui { assertTrue(dialogView(R.id.wvi_copy_url).performClick()) }
+        assertEquals(next, clipboard())
+        assertFalse(ui { dialogView(R.id.wvi_locate).isEnabled })
         onView(withId(R.id.wvi_history_tab)).inRoot(isDialog()).perform(click())
         pressBack()
-        onView(withId(R.id.wvi_open)).perform(click())
+        openInspectorDetails()
         captureSheetRoot()
         assertTrue(ui { dialogView(R.id.wvi_history_panel).visibility == View.VISIBLE })
         pressBack()
@@ -154,7 +157,7 @@ class NavigationHistoryTest {
         scenario.moveToState(Lifecycle.State.RESUMED)
         ui { activity.views[1].visibility = View.VISIBLE }
         Thread.sleep(1200)
-        onView(withId(R.id.wvi_open)).perform(click())
+        openInspectorDetails()
         captureSheetRoot()
         selectTarget("WebView 2, $domain, /secondary")
         await { historyText().contains("Recording gap") }
@@ -245,11 +248,11 @@ class NavigationHistoryTest {
 
     private fun selectTarget(description: String) {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-        onView(withContentDescription(description)).inRoot(isPlatformPopup()).perform(click())
+        onView(withContentDescription(description)).inRoot(isDialog()).perform(click())
     }
 
     private fun openHistory() {
-        onView(withId(R.id.wvi_open)).perform(click())
+        openInspectorDetails()
         onView(withId(R.id.wvi_history_tab)).inRoot(isDialog()).perform(click())
         captureSheetRoot()
     }

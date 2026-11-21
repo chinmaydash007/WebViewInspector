@@ -1,5 +1,124 @@
 # Standalone validation
 
+## 0.5.0 release preparation — 21 November 2026
+
+- The README's four MP4/GIF pairs were refreshed from the reviewed recordings,
+  with a fifth pair demonstrating Live 0, Recent and saved inspection. The
+  recordings use the selected, already running API 37 sample emulator.
+  Candidate hashes matched before copying, and all ten exports decoded without
+  errors. System settings were unchanged; the endpoint's network address is
+  obscured in the Headers recording. Demo media remains outside Maven archives.
+- `VERSION_NAME` is 0.5.0 for both artifacts. The versioned JDK 17
+  non-publishing gate passed: root formatting, 45 library and three sample JVM
+  tests, Android Lint, seven-method facade parity, 34 publication/content guard
+  tests and independent Java consumer debug, minified diagnostic and no-op
+  release builds. Local evidence: `build/reports/segmented-motion/verify-0.5.0.log`.
+- [Standalone GitHub validation](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922105879)
+  passed for source `80477a23dc7761c35c60a7bd7f36b43518380981`.
+  [Cloud Android compatibility](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922483769)
+  also passed on that source: API 24's 20 native and three clipboard cases;
+  API 36's keyboard preflight, navigation prerequisite, 33 normal and three
+  clipboard cases, plus 25 light/18 dark cases at 320 dp and 160% font scale.
+  Both jobs retained device evidence and restored emulator settings.
+- Release notes are prepared in `docs/releases/0.5.0.md`, with a
+  [GitHub release draft](https://github.com/chinmaydash007/WebViewInspector/releases)
+  and [draft PR](https://github.com/chinmaydash007/WebViewInspector/pull/1).
+  The source still needs to reach `main` and pass the signed dry run before
+  tagging or publishing. Local API 36 graphics-driver limitations are recorded
+  below; the completed cloud matrix covers those regression suites.
+- No release tag, signed release assets or Central deployment have been created
+  for 0.5.0. Public download verification is pending; 0.4.2 remains the latest
+  verified published version in the installation examples.
+
+## Unreleased segmented selection motion — 21 November 2026
+
+- The JDK 17 non-publishing gate passed with the final runtime: root formatting,
+  45 library and three sample JVM tests, Android Lint, seven-method facade parity,
+  34 publication/content guard tests and all independent Java consumer variants.
+  A subsequent test-fixture refinement also passed formatting, lint and native
+  test compilation.
+- API 24 passed 20 native and three clipboard cases. Two dedicated real-frame
+  motion cases passed on API 24 and API 36. The final motion fixture also passed
+  on API 36 at 320 dp / 160% font in light and dark mode. These cases check
+  intermediate slide positions, rapid reversal without jumping, count updates,
+  RTL/size changes, detach/reattach cleanup and disabled animation settings.
+- The sample recording shows a single selection surface sliding beneath fixed
+  labels and faint neutral press feedback without an expanding ripple. The
+  updated debug sample was installed and launched on the user-selected USB
+  phone. Device security settings were left unchanged.
+- The full API 36 normal suite was attempted but did not complete. Two hardware
+  renderer attempts ended with QEMU main-loop/vCPU watchdog stalls. A software
+  attempt stalled in the existing recycled-WebViews case; the native trace
+  shows the UI waiting for HWUI and RenderThread blocked in the emulator's
+  `qemu_pipe_read` / OpenGL driver. Full local API 36 normal-suite success remains
+  unverified. A presentation-only retry also stalled in the existing
+  settings/rotation case, so the complete local large-font suites remain unverified
+  for this refinement. No CI cases or failure guards were removed.
+- Original emulator density, font, night, keyboard and animation settings were
+  compared after restoration. ADB was returned to its unrooted state after
+  collecting the native trace. Both task-started emulators were stopped; their
+  temporary idle-sleep assertions ended with their processes.
+- Local evidence is in `build/reports/segmented-motion/`, including
+  `verify-final.log`, motion logs, the sample video and the emulator/native
+  traces. This UI-only refinement remains unpublished.
+
+## Unreleased rounded Live/Recent tabs — 21 November 2026
+
+- The JDK 17 non-publishing gate passed after the final spacing correction:
+  root formatting, 45 library and three sample JVM tests, Android Lint,
+  seven-method facade parity, 34 publication/content guard tests, and independent
+  Java consumer debug, minified diagnostic and no-op release builds.
+- The explicitly selected API 24 emulator passed 18 native and three clipboard
+  cases. API 36 passed its navigation prerequisite, 31 normal and three clipboard
+  cases, plus the 23 light/16 dark cases at 320 dp and 160% font scale.
+- Phone preview exposed a relative-margin resolution difference. After fixing
+  label/badge spacing, the four Recent lifecycle cases passed again on API 24
+  and in four API 36 configurations: normal light/dark and 320 dp / 160% font
+  light/dark. Assertions cover equal touch-target heights of at least 48 dp,
+  selected/count accessibility, label clipping, visible badge spacing, empty
+  states and focus preservation while counts change. Final screenshots were
+  visually reviewed in all four API 36 configurations.
+- Original emulator density, font, night, keyboard and animation settings were
+  compared after restoration; both task-started emulators were stopped. The
+  updated debug sample was installed and launched on the user-selected USB
+  phone. Its security settings block automated taps; the user manually opened
+  the first preview, and the final spacing correction was then reinstalled.
+- Evidence is retained in `build/reports/segmented-tabs/`, including
+  `verify-spacing.log`, the full native suites, and the final focused layout
+  matrix. No public API, dependency or navigation-compatibility changes were
+  made. This refinement remains unpublished.
+
+## Unreleased Live and Recent WebViews — 21 November 2026
+
+- The JDK 17 non-publishing gate passed with WebKit 1.15.0 and 1.16.0: root
+  formatting, 45 library and three sample JVM tests, Android Lint, seven-method
+  full/no-op facade parity, 34 publication/content guard tests, and independent
+  Java consumer debug, minified diagnostic and no-op release builds. Dependency
+  resolution and release-APK isolation checks passed. Both dependency lanes
+  produced identical full/no-op AAR hashes; publication still compiles against
+  and declares WebKit 1.15.0 as its minimum.
+- Each WebKit lane passed the explicitly selected API 24 emulator's 18 native and
+  three clipboard cases. API 36 passed its navigation prerequisite, 31 normal
+  cases, three clipboard cases, and the 23 light/16 dark cases at 320 dp and
+  160% font scale. Exact URL copying passed in the minified Java consumer and
+  the offline Afterframe showtime flow.
+- The new lifecycle cases use synthetic URLs and real Activity transitions.
+  They cover payment Activity destruction followed by a native confirmation
+  screen, helper-only captures that never became visible, saved URL/header
+  copying, separate instance identities, background/resume, clearing, disable
+  and uninstall. An authenticated payment/backend flow was not exercised.
+- Local API 36 validation uses official Chromium ARM64 158.0.8124.0, snapshot
+  revision 1726605, with recorded APK SHA-256
+  `e5f973811e59fdef875c258aa8798b112facec086174c0cd4474519229956168`.
+  Software-renderer attempts stalled inside the emulator graphics driver; the
+  completed lanes use the host GPU renderer. Original density, font, night mode,
+  keyboard and animation settings were checked against the saved originals.
+  API 36's original provider was reselected and both task-created emulators were
+  stopped after validation.
+- Evidence: `build/reports/webkit-compat/matrix-6qnstciy/` and
+  `build/reports/live-recent/`. Both WebKit lanes completed successfully. This
+  working-tree change has not been published.
+
 ## Published 0.4.2 — 15 November 2026
 
 Both artifacts are available on Maven Central. Anonymous downloads of the AARs,

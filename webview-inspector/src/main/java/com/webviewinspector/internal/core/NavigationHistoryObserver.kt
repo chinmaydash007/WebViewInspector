@@ -51,7 +51,7 @@ internal class NavigationHistoryObserver<T : Any>(
         targets.forEach { target ->
             if (bindings.containsKey(target.id)) return@forEach
             val view = target.reference.get()?.takeIf(isVisible) ?: return@forEach
-            val binding = Binding(HistoryTargetKey(activityScope, target.id), view)
+            val binding = Binding(target.key(activityScope), view)
             bindings[target.id] = binding
             store.open(binding.key, binding.mode, clock())
             binding.cleanup =

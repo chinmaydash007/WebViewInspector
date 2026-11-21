@@ -12,7 +12,7 @@
 
 ## See it in Afterframe
 
-[Afterframe](sample/) is an Android sample with four WebView scenarios. Each demo starts with **Locate on page**, which outlines the selected WebView. **Basic** discovers visible WebViews after a single app-wide install. **Advanced** adds a record of the URL and headers passed to the explicit load helper.
+[Afterframe](sample/) is an Android sample with four WebView scenarios. The four screen demos start with **Locate on page**, which outlines the selected WebView, and show the updated **Live** and **Recent** chooser. **Basic** discovers visible WebViews after a single app-wide install. **Advanced** adds a record of the URL and headers passed to the explicit load helper.
 
 | Home · Embedded WebViews | Movies · Offline navigation |
 | :---: | :---: |
@@ -23,8 +23,14 @@
 | Headers · Explicit app loads | Browser · Live navigation |
 | :---: | :---: |
 | <img src="sample/demo-media/headers.gif" width="300" alt="Locating the httpbin receipt, matching a synthetic demo header, then checking a load without supplied headers"> | <img src="sample/demo-media/browser.gif" width="300" alt="Locating the Google homepage, then visiting About and reviewing Back and Forward in Inspector History"> |
-| Locate the live receipt, then compare a new request with **App loads** and send another without extra headers. **App loads** shows what the app supplied. The receipt shows what httpbin received. | Locate the Google homepage, then enter `google.com` and visit **About**. Use **Back** and **Forward**, then review the navigation in **History**. |
+| Locate the live receipt, then compare a new request with **App loads** and send another without extra headers. **App loads** shows what the app supplied. The receipt shows what httpbin received; its network address is obscured in the recording. | Locate the Google homepage and visit **About**. Use **Back** and **Forward**, then review the navigation in **History**. |
 | [Watch Headers MP4](sample/demo-media/headers.mp4) | [Watch Browser MP4](sample/demo-media/browser.mp4) |
+
+| Live and Recent · No visible WebViews |
+| :---: |
+| <img src="sample/demo-media/live-recent.gif" width="300" alt="Opening the floating Inspector with no visible WebViews, switching from Live 0 to Recent 3, and inspecting a saved URL and history"> |
+| After leaving a WebView, open the floating Inspector on a screen with none visible. Switch between **Live · 0** and **Recent**, then inspect a saved URL and **History**. |
+| [Watch Live and Recent MP4](sample/demo-media/live-recent.mp4) |
 
 To try it, open the repo in Android Studio with JDK 17 and Android SDK 36,
 then run the `sample` **debug** variant. Headers and Browser need internet access.
@@ -51,7 +57,11 @@ override fun onCreate() {
 }
 ```
 
-Open a screen with a WebView and tap the floating Inspector. Use the optional load
+Open a screen with a WebView and tap the floating Inspector. The upcoming 0.5.0 Live/Recent
+chooser keeps captured history available across Activities after the first discovery,
+including screens without WebViews. Published 0.4.2 retains the earlier picker behavior.
+See the [0.5.0 release notes](docs/releases/0.5.0.md) for the pending release and its validation status.
+Use the optional load
 helper to see app-supplied inputs under **App loads**.
 
 ```kotlin

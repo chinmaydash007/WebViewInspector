@@ -62,6 +62,8 @@ internal data class NavigationHistorySnapshot(
 /** Activity-owned presentation preferences survive sheet dismissal and pause, but own no Views. */
 internal class InspectorSheetState {
     var tab = InspectorTab.CURRENT_URL
+    var choosingTarget = true
+    var recentTargets = false
     val expandedRecordIds = mutableSetOf<Long>()
     private val targets =
         object : LinkedHashMap<Long, TargetSheetState>(16, 0.75f, true) {

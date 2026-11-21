@@ -8,13 +8,18 @@ import java.lang.ref.WeakReference
  * The Activity session accesses this registry on the main thread. Resource IDs, adapter positions,
  * and value equality never identify a target. A missing selection requires an explicit new choice.
  */
-internal class TargetRegistry<T : Any> {
+internal class TargetRegistry<T : Any>(
+    private val resolveTarget: ((T) -> Target<T>)? = null,
+) {
     internal class Target<T : Any>(
         val id: Long,
         view: T,
+        private val originScope: Long? = null,
     ) {
         val reference = WeakReference(view)
-        var number = 0
+        val number = id.toInt()
+
+        fun key(activityScope: Long): HistoryTargetKey = HistoryTargetKey(originScope ?: activityScope, id)
     }
 
     private val knownTargets = mutableListOf<Target<T>>()
@@ -36,11 +41,11 @@ internal class TargetRegistry<T : Any> {
     fun refresh(visibleViews: List<T>) {
         knownTargets.removeAll { it.reference.get() == null }
         targets =
-            visibleViews.mapIndexed { index, view ->
+            visibleViews.map { view ->
                 val target =
-                    knownTargets.firstOrNull { it.reference.get() === view }
+                    resolveTarget?.invoke(view)
+                        ?: knownTargets.firstOrNull { it.reference.get() === view }
                         ?: Target(id = ++nextId, view = view).also(knownTargets::add)
-                target.number = index + 1
                 target
             }
 
@@ -62,6 +67,11 @@ internal class TargetRegistry<T : Any> {
     }
 
     fun selected(): Target<T>? = targets.firstOrNull { it.id == selectedId }
+
+    fun deselect() {
+        selectedId = null
+        hasSelectedBefore = true
+    }
 
     /** Releases references and selection. A discarded registry is not reused by the controller. */
     fun clear() {

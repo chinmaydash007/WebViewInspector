@@ -104,14 +104,19 @@ internal class InspectorFooter(
         lastState = state
         val number = state.selected?.number ?: state.historyNumber
         copyUrlButton.text =
-            number?.let { context.getString(R.string.wvi_copy_url, it) } ?: context.getString(R.string.wvi_copy)
+            if (state.selected == null && state.inspectedTarget != null) {
+                context.getString(R.string.wvi_copy_recorded)
+            } else {
+                number?.let { context.getString(R.string.wvi_copy_url, it) } ?: context.getString(R.string.wvi_copy)
+            }
         copyHistoryButton.text =
             number?.let { context.getString(R.string.wvi_copy_history, it) }
                 ?: context.getString(R.string.wvi_copy_history_generic)
         copyAppLoadsButton.text =
             number?.let { context.getString(R.string.wvi_copy_app_loads, it) }
                 ?: context.getString(R.string.wvi_copy_app_loads_generic)
-        copyUrlButton.isEnabled = state.selected?.url != null
+        copyUrlButton.isEnabled =
+            state.selected?.url != null || (state.selected == null && state.inspectedTarget?.url != null)
         copyHistoryButton.isEnabled = state.history?.records?.isNotEmpty() == true
         clear.isEnabled = copyHistoryButton.isEnabled || (state.history?.discardedCount ?: 0) > 0
         copyAppLoadsButton.isEnabled = state.appLoads?.records?.isNotEmpty() == true

@@ -108,17 +108,28 @@ internal class FloatingOverlay(
     }
 
     fun render(state: InspectorState) {
-        visibility = if (state.targets.isEmpty()) GONE else VISIBLE
+        visibility = if (state.hasDetectedWebView) VISIBLE else GONE
         if (lastState == state) return
         val selected = state.selected
         val previous = lastState?.selected
         if (previous?.id != selected?.id || previous?.url != selected?.url) copyButton.clearCopyFeedback()
         lastState = state
 
-        title.text = selected?.let {
-            context.getString(R.string.wvi_selection, it.number, state.targets.size)
-        } ?: context.getString(R.string.wvi_select_count, state.targets.size)
-        domain.text = selected?.domain ?: context.getString(R.string.wvi_choose)
+        title.text =
+            if (state.targets.isEmpty()) {
+                context.getString(R.string.wvi_focused_title)
+            } else {
+                selected?.let {
+                    context.getString(R.string.wvi_selection, it.number, state.targets.size)
+                } ?: context.getString(R.string.wvi_select_count, state.targets.size)
+            }
+        domain.text =
+            if (state.targets.isEmpty()) {
+                context.getString(R.string.wvi_recent_count, state.recentTargets.size)
+            } else {
+                selected?.domain
+                    ?: context.getString(R.string.wvi_choose)
+            }
         opener.contentDescription = "${title.text}, ${domain.text}, ${context.getString(R.string.wvi_open)}"
         copyButton.isEnabled = selected?.url != null
         copyButton.alpha = if (copyButton.isEnabled) 1f else DISABLED_ALPHA

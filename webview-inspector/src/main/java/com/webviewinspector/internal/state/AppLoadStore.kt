@@ -6,7 +6,8 @@ import java.lang.ref.WeakReference
  * Process-owned, main-thread app-load snapshots, independent of navigation capture.
  * Undiscovered instances remain weak pending entries under the same record/text budgets.
  * Binding adds Activity/target identity without making a target visible or selecting it.
- * The controller clears known scopes on destruction and all entries on disable/uninstall.
+ * The controller binds helper captures immediately and retains saved inputs across Activity
+ * destruction. Clearing, catalogue eviction and disable/uninstall release the records.
  */
 internal class AppLoadStore<T : Any>(
     private val perTargetLimit: Int = 100,
@@ -79,6 +80,17 @@ internal class AppLoadStore<T : Any>(
         }
     }
 
+    /** One pruning pass for a catalogue render, rather than one scan per historical target. */
+    fun snapshots(): Map<HistoryTargetKey, AppLoadsSnapshot> {
+        prune()
+        return entries
+            .mapNotNull { entry ->
+                entry.key?.let { key ->
+                    key to AppLoadsSnapshot(key, entry.records.asReversed().map(StoredRecord::record), entry.discarded)
+                }
+            }.toMap()
+    }
+
     /** Clears only inspector app loads, retaining Advanced capability for the live weak instance. */
     fun clear(key: HistoryTargetKey) {
         entries.firstOrNull { it.key == key }?.let {
@@ -89,6 +101,10 @@ internal class AppLoadStore<T : Any>(
 
     fun removeScope(scope: Long) {
         entries.removeAll { it.ownerScope == scope }
+    }
+
+    fun remove(key: HistoryTargetKey) {
+        entries.removeAll { it.key == key }
     }
 
     fun clearAll() = entries.clear()

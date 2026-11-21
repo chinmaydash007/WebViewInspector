@@ -1,0 +1,25 @@
+<resources>
+    <string name="wvi_webviews">WebViews</string>
+    <string name="wvi_live_count">Live · %1$d</string>
+    <string name="wvi_recent_count">Recent · %1$d</string>
+    <string name="wvi_live_label">Live</string>
+    <string name="wvi_recent_label">Recent</string>
+    <string name="wvi_tab_count">%1$d</string>
+    <string name="wvi_tab_role">Tab</string>
+    <string name="wvi_visible_now">Visible now</string>
+    <string name="wvi_no_live">No visible WebViews</string>
+    <string name="wvi_no_live_body">This screen has no visible WebViews. Saved records are available in Recent.</string>
+    <string name="wvi_no_recent">No recent WebViews yet</string>
+    <string name="wvi_no_recent_body">Captured pages will appear here after you leave them.</string>
+    <string name="wvi_view_recent">View recent WebViews</string>
+    <string name="wvi_clear_recent">Clear recent WebViews</string>
+    <string name="wvi_app_supplied_only">App-supplied inputs · Not observed on screen</string>
+    <string name="wvi_record_counts">History · %1$d · App loads · %2$d</string>
+    <string name="wvi_no_recorded_url">No URL recorded</string>
+    <string name="wvi_last_url">Last URL</string>
+    <string name="wvi_last_recorded_url">Last recorded URL</string>
+    <string name="wvi_last_supplied_url">Last app-supplied URL</string>
+    <string name="wvi_locate_unavailable">Locate unavailable</string>
+    <string name="wvi_selected">Selected</string>
+    <string name="wvi_unselected">Not selected</string>
+</resources>

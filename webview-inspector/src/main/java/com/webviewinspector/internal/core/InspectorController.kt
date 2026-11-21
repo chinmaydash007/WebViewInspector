@@ -13,6 +13,7 @@ import android.webkit.WebView
 import com.webviewinspector.internal.state.AppLoadStore
 import com.webviewinspector.internal.state.FloatingPosition
 import com.webviewinspector.internal.state.InspectorActivityState
+import com.webviewinspector.internal.state.InspectorArchive
 import com.webviewinspector.internal.state.NavigationHistoryStore
 import com.webviewinspector.internal.ui.common.BottomSheetFactory
 import com.webviewinspector.internal.ui.sheet.SettingsSheet
@@ -37,6 +38,7 @@ internal class InspectorController(
     private val activityStates = WeakHashMap<Activity, InspectorActivityState>()
     private val historyStore = NavigationHistoryStore()
     private val appLoads = AppLoadStore<WebView>()
+    private val archive = InspectorArchive(historyStore, appLoads)
     private var nextActivityScope = 0L
     private val position = FloatingPosition()
     private var session: InspectorSession? = null
@@ -63,8 +65,7 @@ internal class InspectorController(
             session?.dispose()
             session = null
             activityStates.clear()
-            historyStore.clearAll()
-            appLoads.clearAll()
+            archive.clearAll()
         }
     }
 
@@ -79,17 +80,28 @@ internal class InspectorController(
         if (owner?.isDestroyed == true) return
         val scope =
             owner?.let { activity ->
-                activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) }.scope
+                activityState(activity).scope
             }
+        val now = System.currentTimeMillis()
+        val target = archive.target(view, scope ?: 0, owner?.javaClass?.simpleName, now)
         appLoads.capture(
             view,
             rawUrl = url,
             headers = headers,
-            atMillis = System.currentTimeMillis(),
+            atMillis = now,
             ownerScope = scope,
         )
+        appLoads.bind(view, target.key(scope ?: 0))
+        archive.prune(session?.liveTargetIds().orEmpty())
         session?.capturedLoadsChanged()
     }
+
+    private fun activityState(activity: Activity): InspectorActivityState =
+        activityStates.getOrPut(activity) {
+            val scope = ++nextActivityScope
+            val name = activity.javaClass.simpleName
+            InspectorActivityState(scope) { view -> archive.target(view, scope, name, System.currentTimeMillis()) }
+        }
 
     private fun activityOwner(context: Context): Activity? {
         var current = context
@@ -130,9 +142,10 @@ internal class InspectorController(
             InspectorSession(
                 activity = activity,
                 position = position,
-                activityState = activityStates.getOrPut(activity) { InspectorActivityState(++nextActivityScope) },
+                activityState = activityState(activity),
                 historyStore = historyStore,
                 appLoads = appLoads,
+                archive = archive,
                 settingsOwnFocus = {
                     settings?.dialog?.isShowing == true && settingsOwner?.get() === activity
                 },
@@ -186,8 +199,6 @@ internal class InspectorController(
         detach(activity)
         activityStates.remove(activity)?.let { state ->
             state.registry.clear()
-            historyStore.removeScope(state.scope)
-            appLoads.removeScope(state.scope)
         }
     }
 
@@ -212,8 +223,7 @@ internal class InspectorController(
         main.removeCallbacksAndMessages(null)
         session?.dispose()
         session = null
-        historyStore.clearAll()
-        appLoads.clearAll()
+        archive.clearAll()
         settings?.dialog?.dismiss()
         settings = null
         settingsOwner = null
