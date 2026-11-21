@@ -31,9 +31,14 @@
   `ed015eb339e7ad5b127387eed0bfba8660c2aeda675f4aa8ba5f535b25ddb19d`.
 - Central accepted deployment `87c0a585-a2c9-4df7-a363-65d5dcbaaeff`
   for both artifacts. The [release workflow](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44930514013)
-  passed standalone and API 24/36 gates and is waiting for publication and
-  exact public-download verification. Central verification remains pending;
-  0.4.2 stays in the installation examples until both coordinates are verified.
+  passed standalone and API 24/36 gates. Both one-hour publication waits timed
+  out while Central remained `PUBLISHING`; the second attempt resumed the same
+  deployment without uploading again. At `2026-11-21T19:45:11Z`, Central was
+  still processing, and anonymous checks of both 0.5.0 POMs returned HTTP 404.
+  Publication, exact public-download verification and the subsequent public
+  Java consumer builds remain pending. Resume this deployment using its saved
+  receipt; do not upload a replacement bundle. Version 0.4.2 stays in the
+  installation examples until both coordinates are verified.
 
 ## Unreleased segmented selection motion — 21 November 2026
 
