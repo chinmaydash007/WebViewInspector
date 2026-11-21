@@ -17,7 +17,9 @@ import com.webviewinspector.internal.state.AppLoadStore
 import com.webviewinspector.internal.state.FloatingPosition
 import com.webviewinspector.internal.state.HistoryTargetKey
 import com.webviewinspector.internal.state.InspectorActivityState
+import com.webviewinspector.internal.state.InspectorArchive
 import com.webviewinspector.internal.state.InspectorState
+import com.webviewinspector.internal.state.InspectorTab
 import com.webviewinspector.internal.state.NavigationHistoryStore
 import com.webviewinspector.internal.state.TargetInfo
 import com.webviewinspector.internal.ui.common.BottomSheetFactory
@@ -40,6 +42,7 @@ internal class InspectorSession(
     private val historyStore: NavigationHistoryStore,
     private val appLoads: AppLoadStore<WebView>,
     private val settingsOwnFocus: () -> Boolean,
+    private val archive: InspectorArchive<WebView> = InspectorArchive(historyStore, appLoads),
     navigationSource: NavigationEventSource<WebView> = AndroidXNavigationEventSource(),
 ) {
     private val host = WeakReference(activity)
@@ -109,6 +112,16 @@ internal class InspectorSession(
         if (!monitor.isActive || disposed) return
         attachOverlay()
         registry.refresh(detector.discover())
+        archive.detected(
+            registry.targets,
+            activityState.scope,
+            host
+                .get()
+                ?.javaClass
+                ?.simpleName
+                .orEmpty(),
+            System.currentTimeMillis(),
+        )
         historyObserver.sync(registry.targets)
         render()
         highlighter.update()
@@ -117,27 +130,35 @@ internal class InspectorSession(
     private fun snapshot(): InspectorState {
         appLoads.prune()
         registry.targets.forEach { target ->
-            target.reference.get()?.let { appLoads.bind(it, HistoryTargetKey(activityState.scope, target.id)) }
+            target.reference.get()?.let { appLoads.bind(it, target.key(activityState.scope)) }
         }
         val targets =
-            registry.targets.mapIndexed { index, target ->
+            registry.targets.map { target ->
                 val rawUrl =
                     target.reference.get()?.let { webView ->
                         runCatching { webView.url }.getOrNull()
                     }
-                TargetInfo(id = target.id, number = index + 1, url = rawUrl)
+                TargetInfo(id = target.id, number = target.number, url = rawUrl)
             }
-        val historyTarget = registry.lastSelection
-        val history = historyTarget?.let { historyStore.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
-        val loads = historyTarget?.let { appLoads.snapshot(HistoryTargetKey(activityState.scope, it.id)) }
+        val liveIds = liveTargetIds()
+        archive.prune(liveIds)
+        val key = activityState.inspectedKey ?: registry.lastSelection?.key(activityState.scope)
+        val history = key?.let(historyStore::snapshot)
+        val loads = key?.let(appLoads::snapshot)
+        val inspected = key?.let { archive.summary(it.targetId) }
         return InspectorState(
             targets = targets,
             selectedId = registry.selectedId,
             history = history,
-            historyNumber = historyTarget?.number,
+            historyNumber = inspected?.number ?: registry.lastSelection?.number,
             appLoads = loads,
+            recentTargets = archive.recent(liveIds),
+            inspectedTarget = inspected,
+            hasDetectedWebView = archive.hasDetectedWebView,
         )
     }
+
+    fun liveTargetIds(): Set<Long> = registry.targets.map { it.id }.toSet()
 
     /** Explicit capture can refresh the UI immediately; regular polling remains unchanged. */
     fun capturedLoadsChanged() = render()
@@ -166,10 +187,24 @@ internal class InspectorSession(
                 activity = activity,
                 select = { id ->
                     discoverTargets()
-                    registry.select(id)
+                    val target = archive.summary(id)
+                    if (target != null) {
+                        activityState.inspectedKey = target.key
+                        if (id in liveTargetIds()) registry.select(id) else registry.deselect()
+                        activityState.sheet.choosingTarget = false
+                        if (!target.navigationObserved) activityState.sheet.tab = InspectorTab.APP_LOADS
+                    }
                     render()
                 },
-                copy = ::copy,
+                copy = {
+                    val state = snapshot()
+                    if (state.selected != null) {
+                        copy()
+                    } else {
+                        val saved = state.inspectedTarget
+                        saved?.url?.let { historyCopier.copyUrl(it, saved.number) } ?: false
+                    }
+                },
                 locate = ::locate,
                 presentation = activityState.sheet,
                 copyRecordedUrl = { recordId, stepIndex ->
@@ -219,6 +254,11 @@ internal class InspectorSession(
                     }
                     render()
                 },
+                clearRecent = {
+                    archive.clearRecent(liveTargetIds())
+                    if (activityState.inspectedKey?.targetId !in liveTargetIds()) activityState.inspectedKey = null
+                    render()
+                },
             )
         sheet = inspectorSheet
         inspectorSheet.render(snapshot())
@@ -237,7 +277,7 @@ internal class InspectorSession(
         discoverTargets()
         val target = registry.selected() ?: return false
         val webView = target.reference.get()?.takeIf(detector::isVisible) ?: return false
-        val number = registry.targets.indexOf(target) + 1
+        val number = target.number
         val copied = clipboardCopier.copy(webView, number)
         render()
         return copied
@@ -247,7 +287,7 @@ internal class InspectorSession(
         discoverTargets()
         val target = registry.selected() ?: return
         val webView = target.reference.get()?.takeIf(detector::isVisible) ?: return
-        val number = registry.targets.indexOf(target) + 1
+        val number = target.number
         sheet?.dialog?.dismiss()
         highlighter.show(webView, number)
         overlay.announceForAccessibility(overlay.context.getString(R.string.wvi_located, number))

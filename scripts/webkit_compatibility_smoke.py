@@ -74,17 +74,29 @@ def smoke(device, root, namespace, output):
     def find(package, description, matches):
         return device.find(package, description, matches, failed_ui)
 
+    def verify_copied_url(expected_url, log_name):
+        result = device.shell(
+            'am', 'instrument', '-w', '-r', '-e', 'class', namespace + '.AppClipboardProbeTest#copiedAppUrlMatchesExactly',
+            '-e', 'wviExpectedUrl', shlex.quote(expected_url), test_package + '/androidx.test.runner.AndroidJUnitRunner',
+        )
+        (output / log_name).write_text(result)
+        if 'OK (1 test)' not in result or re.search(r'INSTRUMENTATION_STATUS_CODE: -[1234]\b|FAILURES!!!|INSTRUMENTATION_FAILED', result):
+            raise RuntimeError(f'Exact URL copying failed. See {output / log_name}')
+
     try:
         device.start(root / 'consumer-fixture/app/build/outputs/apk/diagnostic/app-diagnostic.apk',
                      consumer, 'example.consumer.ConsumerActivity')
         device.tap(find(consumer, 'Java consumer inspector button', has_id('wvi_open')))
+        device.tap(find(consumer, 'Java consumer Live WebView',
+                        contains('content-desc', ', consumer.example, /start')))
         find(consumer, 'Java consumer inspector sheet', has_id('wvi_history_tab'))
+        device.tap(find(consumer, 'Java consumer copy URL', has_id('wvi_copy_url')))
+        verify_copied_url('https://consumer.example/start?raw=A%2Bb&dup=1&dup=2#raw', 'consumer-clipboard.log')
         device.start(root / 'sample/build/outputs/apk/debug/sample-debug.apk',
                      sample, sample_namespace + '.MainActivity')
         device.tap(find(sample, 'Movies tab', has_id('tab_movies')))
         device.tap(find(sample, '6:45 PM showtime', contains('text', '6:45 PM')))
         device.tap(find(sample, 'inspector button', has_id('wvi_open')))
-        device.tap(find(sample, 'WebView picker', has_id('wvi_target_picker')))
         device.tap(find(sample, 'showtime WebView', contains('content-desc', '/afterframe/showtime.html')))
         device.tap(find(sample, 'History tab', has_id('wvi_history_tab')))
         showtime_url = ('https://appassets.androidplatform.net/afterframe/showtime.html'
@@ -92,16 +104,10 @@ def smoke(device, root, namespace, output):
         device.tap(find(sample, 'showtime history', contains('content-desc', '/showtime.html')))
         device.tap(find(sample, 'copy exact showtime URL',
                         lambda node: node.get('content-desc') == f'Copy recorded URL: {showtime_url}'))
-        result = device.shell(
-            'am', 'instrument', '-w', '-r', '-e', 'class', namespace + '.AppClipboardProbeTest#copiedAppUrlMatchesExactly',
-            '-e', 'wviExpectedUrl', shlex.quote(showtime_url), test_package + '/androidx.test.runner.AndroidJUnitRunner',
-        )
-        (output / 'smoke-clipboard.log').write_text(result)
-        if 'OK (1 test)' not in result or re.search(r'INSTRUMENTATION_STATUS_CODE: -[1234]\b|FAILURES!!!|INSTRUMENTATION_FAILED', result):
-            raise RuntimeError(f'The debug sample did not copy the exact URL. See {output / "smoke-clipboard.log"}')
+        verify_copied_url(showtime_url, 'smoke-clipboard.log')
         (output / 'smoke.txt').write_text(
-            'The minified Java consumer opened the inspector. Afterframe recorded a showtime link '
-            'and copied its original URL exactly.\n',
+            'The minified Java consumer opened Live and copied its original URL exactly. '
+            'Afterframe recorded a showtime link and copied its original URL exactly.\n',
         )
     finally:
         for package in (consumer, sample):

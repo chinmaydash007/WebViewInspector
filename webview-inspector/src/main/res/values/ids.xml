@@ -1,4 +1,9 @@
 <resources>
+    <item name="wvi_webviews_panel" type="id" />
+    <item name="wvi_live_tab" type="id" />
+    <item name="wvi_recent_tab" type="id" />
+    <item name="wvi_view_recent" type="id" />
+    <item name="wvi_clear_recent" type="id" />
     <item type="id" name="wvi_app_loads_tab" />
     <item type="id" name="wvi_app_loads_panel" />
     <item type="id" name="wvi_copy_app_loads" />

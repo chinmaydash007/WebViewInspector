@@ -53,7 +53,8 @@ Open **App loads** for timestamped calls, complete URLs and full header values, 
 Authorization. Copy a URL, individual value, whole header list, or all app loads. Empty
 header maps are explicitly labelled. A Basic target has no captured calls; using the
 helper marks only that instance Advanced. Clearing its app loads retains that capability
-until disable/uninstall or Activity destruction. Multiple Basic/Advanced instances coexist.
+while its identity remains retained; disable/uninstall or catalogue eviction removes it.
+Multiple Basic/Advanced instances coexist.
 Advanced means that at least one helper call was captured; subsequent ordinary
 `webView.loadUrl` calls still do not produce header records.
 
@@ -63,8 +64,10 @@ redirect headers, POST bodies and JavaScript requests are excluded. A captured c
 not evidence of a network request or successful loading. Navigation history remains a
 separate timeline; captured headers are never assigned to another URL by inference.
 
-Records captured before attachment remain weak and bounded until discovery associates
-their exact instance. Saved records remain copyable after live selection disappears.
+Records captured before attachment immediately receive a weak instance identity and
+appear in Recent, even if the WebView is never discovered on screen. Such entries are
+labelled app-supplied inputs and open on App loads; they do not prove navigation.
+Saved records remain copyable after the original WebView or Activity disappears.
 Header copying preserves names, values and captured iteration order (`Name: value`
 lines); URL/value copying is exact. Timeline export adds timestamps and capture limits.
 Android 13+ system clipboard previews are marked sensitive; the inspector still shows
@@ -79,7 +82,11 @@ load helpers keep their signatures.
 
 ## Use the inspector
 
-Drag the floating control to an edge and tap its selected domain. Choose a WebView in the dropdown, inspect/copy its original Current URL, expand query parameters, or Locate its bounds. History shows newest-first navigation records and reported outcomes, with individual raw-URL copying, redirect steps, local-date groups and saved history after selection loss. Copy actions stay pinned. More contains Clear history and About capture.
+The floating control first appears after a visible WebView is discovered. It then remains available across foreground Activities for the current enabled session, including native screens without WebViews and after clearing Recent. Backgrounding hides it; disabling or uninstalling resets it. Re-enabling on a native screen keeps it hidden until a WebView is discovered again.
+
+Drag the floating control to an edge and tap it. The WebViews chooser opens on Live when WebViews are visible, and Recent otherwise. Live lists the active Activity’s visible instances. Recent lists previously observed or explicitly captured instances outside that live list, newest capture first. WebView numbers are stable for the retained instance across this app session, rather than hierarchy positions.
+
+Choose a Live WebView to inspect/copy its original Current URL, expand query parameters, or Locate its bounds. Choose a Recent entry to inspect its Last URL, History or App loads. Last URL copying uses the saved original string; Locate and floating quick-copy require an explicitly selected visible instance. Returning instances require explicit reselection through Live. Use WebViews above the details to return to the chooser. Clear recent WebViews clears non-live entries and both kinds of captured records without clearing browser history or hiding Inspector. History shows newest-first navigation records and reported outcomes, with individual raw-URL copying, redirect steps, local-date groups and saved history after selection loss. Copy actions stay pinned. More contains Clear history and About capture.
 
 Successful copies give a short haptic in Ring or Vibrate mode when Do Not Disturb is off and Android touch feedback is enabled. On Android 12L and older, the pressed Copy control briefly shows a checkmark and announces “Copied to clipboard” for TalkBack. Android 13 and newer can show their system clipboard confirmation.
 
@@ -92,8 +99,8 @@ ComponentActivity, AppCompatActivity, and non-Material host themes are supported
 - Runtime feature detection uses the experimental navigation listener in 1.15 or the stable listener in 1.16. The inspector uses labelled 500 ms observed-URL sampling when the provider lacks support. Initial discovery cannot recover earlier redirects, and sampling can miss rapid changes. Reported commitment does not prove successful page rendering.
 - Scope is visible native WebViews in the active Activity hierarchy. Separate popup/dialog windows, external browsers/UPI apps and iframe URLs are excluded.
 - URLs and explicitly supplied headers remain in memory until copied. No logging, persistence, upload or analytics. Automatic cookies and request bodies are not collected. Query decoding is display-only; clipboard text remains exact.
-- Retention is 100 records per WebView, 500 process-wide and 2 MiB of URL text. Whole oldest records are evicted without truncating URLs. Activity destruction, disabling and uninstall clear their owned records.
-- App loads have a separate budget of 100 records per WebView, 500 process-wide and 2 MiB UTF-8 URL/header text, including pending captures. Whole oldest calls are evicted with a discarded count. Collected pending instances are pruned; bound saved records last until Activity cleanup or eviction. No-op owns no capture store or inspector UI; its load helpers only delegate.
+- Retention is 100 records per WebView, 500 process-wide and 2 MiB of URL text. Whole oldest records are evicted without truncating URLs. Activity destruction releases live resources while saved records remain. Disabling, uninstalling or process death clears all records.
+- App loads have a separate budget of 100 records per WebView, 500 process-wide and 2 MiB UTF-8 URL/header text, including pending captures. Whole oldest calls are evicted with a discarded count. Helper inputs are bound immediately to a weak process identity; saved records survive collection and Activity destruction until clearing or eviction. Inactive catalogue entries and per-Activity target preferences are bounded to 500 each; catalogue eviction removes the whole target from both record stores. No-op owns no capture store or inspector UI; its load helpers only delegate.
 
 For build and device verification, see [contributing](CONTRIBUTING.md) and
 [validation](VALIDATION.md). See the [architecture](webview-inspector/docs/ARCHITECTURE.md)

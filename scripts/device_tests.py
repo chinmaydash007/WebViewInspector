@@ -15,12 +15,12 @@ PACKAGE = NAMESPACE + '.test'
 RUNNER = PACKAGE + '/androidx.test.runner.AndroidJUnitRunner'
 PREFIX = NAMESPACE + '.'
 NORMAL = [PREFIX + name for name in ['WebViewInspectorTest', 'NavigationHistoryTest', 'BottomSheetGestureTest', 'FocusedInspectorTest']]
-NORMAL += [PREFIX + 'AppLoadsTest']
+NORMAL += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
 FALLBACK = [PREFIX + 'FocusedInspectorTest'] + [PREFIX + 'NavigationHistoryTest#' + name for name in ['historyIsolationClearUnavailableSelectionAndPauseResume', 'unsupportedListenerFallbackUsesTheSameNativeHistoryAndCopyActions']]
-FALLBACK += [PREFIX + 'AppLoadsTest']
+FALLBACK += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
 NARROW = [PREFIX + 'WebViewInspectorTest#' + name for name in ['composeWithPlatformThemeSupportsSelectionExactCopyAndBack', 'xmlDuplicateIdsSelectionUnavailableAndCurrentUrl', 'settingsToggleTouchPassthroughRotationAndCleanup', 'dragClampsAndPositionSurvivesActivityRecreation']]
 NARROW += [PREFIX + 'BottomSheetGestureTest', PREFIX + 'NavigationHistoryTest#expandedHistoryRetainsFocusAndScrollWhileNewNavigationsArrive', PREFIX + 'FocusedInspectorTest']
-NARROW += [PREFIX + 'AppLoadsTest']
+NARROW += [PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest']
 
 
 def main():
@@ -69,16 +69,16 @@ def main():
             shell('settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1')
             run('navigation-prerequisite', [PREFIX + 'ReleasePrerequisitesTest'], 1)
         if not args.skip_normal:
-            run('normal', NORMAL if args.api == 36 else FALLBACK, 27 if args.api == 36 else 14)
+            run('normal', NORMAL if args.api == 36 else FALLBACK, 31 if args.api == 36 else 18)
             run('clipboard-feedback', [PREFIX + 'ClipboardFeedbackTest'], 3)
         if args.api == 36:
             width = int(re.findall(r'(\d+)x\d+', shell('wm', 'size'))[-1])
             shell('wm', 'density', str(round(width * 160 / 320)))
             shell('settings', 'put', 'system', 'font_scale', '1.6')
             shell('cmd', 'uimode', 'night', 'no')
-            run('narrow-large-font-light', NARROW, 19)
+            run('narrow-large-font-light', NARROW, 23)
             shell('cmd', 'uimode', 'night', 'yes')
-            run('narrow-large-font-dark', [PREFIX + 'FocusedInspectorTest', PREFIX + 'AppLoadsTest'], 12)
+            run('narrow-large-font-dark', [PREFIX + 'FocusedInspectorTest', PREFIX + 'AppLoadsTest', PREFIX + 'RecentWebViewsTest'], 16)
     finally:
         for key in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
             shell('settings', 'delete' if settings[key] == 'null' else 'put', 'global', key, *([] if settings[key] == 'null' else [settings[key]]))

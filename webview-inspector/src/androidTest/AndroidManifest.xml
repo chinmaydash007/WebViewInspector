@@ -2,6 +2,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <application android:theme="@style/WviTestPlatformTheme" android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/wvi_test_network_security">
+        <activity android:name="com.webviewinspector.RecentPaymentHost" android:exported="true" />
+        <activity android:name="com.webviewinspector.RecentNativeHost" android:exported="true" />
         <activity android:name="com.webviewinspector.AdvancedInspectorHost" android:exported="true" />
         <activity android:name="com.webviewinspector.NavigationHistoryHost" android:exported="true" />
         <activity android:name="com.webviewinspector.ComposeInspectorHost" android:exported="true"

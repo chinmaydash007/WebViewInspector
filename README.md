@@ -51,7 +51,10 @@ override fun onCreate() {
 }
 ```
 
-Open a screen with a WebView and tap the floating Inspector. Use the optional load
+Open a screen with a WebView and tap the floating Inspector. The unreleased Live/Recent
+chooser keeps captured history available across Activities after the first discovery,
+including screens without WebViews. Published 0.4.2 retains the earlier picker behavior.
+Use the optional load
 helper to see app-supplied inputs under **App loads**.
 
 ```kotlin

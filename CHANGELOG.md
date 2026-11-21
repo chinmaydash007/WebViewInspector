@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add Live and Recent WebViews with saved URLs, navigation history and explicit app-load inputs across Activity changes and destruction.
+- Keep the floating Inspector available on foreground app screens after the first visible WebView is detected, even when no WebViews or saved records remain.
+- Include explicit helper captures from never-discovered WebViews in Recent, labelled as app-supplied inputs.
+- Assign session-stable WebView numbers; retain bounded records in memory until clearing, eviction, disable/uninstall or process death. No public API or integration changes.
+
 ## 0.4.2 — 15 November 2026
 
 - Draw the Inspector and Settings sheets behind the system navigation bar while keeping controls clear of navigation and display cutout insets.

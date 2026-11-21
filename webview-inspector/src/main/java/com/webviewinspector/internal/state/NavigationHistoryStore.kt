@@ -4,7 +4,8 @@ import java.security.MessageDigest
 
 /**
  * Process-owned bounded history, containing only immutable values and target keys, never Views.
- * The controller calls it on the main thread. Scope removal/destruction and uninstall release data.
+ * The controller calls it on the main thread. Clearing, catalogue eviction and uninstall release
+ * data; Activity destruction releases live subscriptions while preserving saved history.
  * Tests can use smaller limits without depending on Android or WebKit.
  */
 internal class NavigationHistoryStore(
@@ -176,6 +177,10 @@ internal class NavigationHistoryStore(
 
     fun removeScope(scope: Long) {
         histories.keys.removeAll { it.activityScope == scope }
+    }
+
+    fun remove(key: HistoryTargetKey) {
+        histories.remove(key)
     }
 
     fun clearAll() = histories.clear()

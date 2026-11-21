@@ -28,6 +28,13 @@ internal class CurrentUrlPanel(
             padding(20)
         }
     private val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    private val urlHeading =
+        context
+            .focusedLabel(
+                context.getString(R.string.wvi_full_url),
+                size = 12f,
+                medium = true,
+            ).asHeading()
     private val empty =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -81,7 +88,7 @@ internal class CurrentUrlPanel(
 
     init {
         content.addView(
-            context.focusedLabel(context.getString(R.string.wvi_full_url), size = 12f, medium = true).asHeading(),
+            urlHeading,
             spaced(bottom = 10),
         )
         content.addView(url, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
@@ -106,12 +113,20 @@ internal class CurrentUrlPanel(
     ) {
         this.preferences = preferences
         val target = state.selected
-        val rawUrl = target?.url
+        val rawUrl = target?.url ?: state.inspectedTarget?.url?.takeIf { target == null }
+        urlHeading.setText(
+            when {
+                target != null -> R.string.wvi_full_url
+                state.inspectedTarget?.urlFromAppLoad == true -> R.string.wvi_last_supplied_url
+                else -> R.string.wvi_last_recorded_url
+            },
+        )
         val hasUrl = rawUrl != null
         content.visibility = if (hasUrl) View.VISIBLE else View.GONE
         empty.visibility = if (hasUrl) View.GONE else View.VISIBLE
         locateButton.isEnabled = target != null
-        locateButton.visibility = if (target != null) View.VISIBLE else View.GONE
+        locateButton.visibility = View.VISIBLE
+        locateButton.setText(if (target != null) R.string.wvi_locate else R.string.wvi_locate_unavailable)
         val locateParent = if (hasUrl) content else empty
         if (locateButton.parent !== locateParent) {
             (locateButton.parent as? android.view.ViewGroup)?.removeView(locateButton)

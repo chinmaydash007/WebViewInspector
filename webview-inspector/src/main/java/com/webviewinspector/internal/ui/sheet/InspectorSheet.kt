@@ -52,11 +52,19 @@ internal class InspectorSheet(
     copyAppLoad: (Long, AppLoadCopyPart) -> Boolean,
     copyAppLoads: () -> Boolean,
     clearAppLoads: () -> Unit,
+    clearRecent: () -> Unit = {},
 ) {
     val dialog = BottomSheetFactory.create(activity.inspectorTheme())
     private val context = dialog.context
     private val layout = InspectorSheetLayout(context, dialog.behavior)
-    private val picker = TargetPicker(context, select)
+    private val picker = TargetPicker(context, ::showChooser)
+    private val chooser =
+        WebViewsPanel(context, presentation, { id ->
+            presentation.choosingTarget = false
+            select(id)
+            renderTabs()
+            layout.contentChanged()
+        }, layout::contentChanged, clearRecent)
     private val capture = context.focusedLabel(size = 12f, muted = true).apply { id = R.id.wvi_capture_mode }
     private val current = CurrentUrlPanel(context, locate, { switchTab(InspectorTab.HISTORY) }, layout::contentChanged)
     private val history =
@@ -81,6 +89,7 @@ internal class InspectorSheet(
             about = ::showAbout,
         )
     private val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    private val detailTabs = LinearLayout(context)
     private val currentLabel = context.focusedLabel(context.getString(R.string.wvi_current_tab), medium = true)
     private val historyLabel = context.focusedLabel(context.getString(R.string.wvi_history_tab), medium = true)
     private val historyCount =
@@ -157,6 +166,7 @@ internal class InspectorSheet(
                 )
             }
         header.addView(heading)
+        header.addView(chooser.tabs)
         header.addView(
             LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -181,7 +191,7 @@ internal class InspectorSheet(
             },
         )
         header.addView(
-            LinearLayout(context).apply {
+            detailTabs.apply {
                 padding(horizontal = 20, vertical = 0)
                 gravity = Gravity.BOTTOM
                 addView(currentTab)
@@ -190,10 +200,17 @@ internal class InspectorSheet(
             },
         )
         header.addView(context.focusedDivider())
+        content.addView(chooser.view)
         content.addView(current.view)
         content.addView(history.view)
         content.addView(appLoads.view)
-        layout.setSections(header, content, footer.view)
+        val actions =
+            LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(footer.view)
+                addView(chooser.clear)
+            }
+        layout.setSections(header, content, actions)
         BottomSheetFactory.setContent(dialog, layout)
         dialog.setTitle(context.getString(R.string.wvi_focused_title))
         renderTabs()
@@ -202,11 +219,14 @@ internal class InspectorSheet(
     fun render(state: InspectorState) {
         if (released || lastState == state) return
         val previous = lastState
+        if (previous == null && state.targets.isEmpty()) presentation.recentTargets = true
         val changedTarget = inspectedId(previous) != inspectedId(state)
-        if (changedTarget) saveScroll()
+        if (changedTarget && chooser.view.visibility != View.VISIBLE) saveScroll()
         lastState = state
         picker.render(state)
-        val saved = state.selected == null && state.history != null
+        chooser.render(state)
+        val saved = state.selected == null && state.inspectedTarget != null
+        currentLabel.setText(if (saved) R.string.wvi_last_url else R.string.wvi_current_tab)
         val mode =
             context.getString(
                 when {
@@ -257,6 +277,7 @@ internal class InspectorSheet(
         historyCount.text = (state.history?.records?.count { it.kind != HistoryRecordKind.GAP } ?: 0).toString()
         appLoadsCount.text = (state.appLoads?.records?.size ?: 0).toString()
         footer.render(state, presentation.tab)
+        renderTabs()
         if (previous == null || changedTarget || (previous.selected == null) != (state.selected == null) ||
             (previous.selected?.url == null) != (state.selected?.url == null)
         ) {
@@ -269,17 +290,25 @@ internal class InspectorSheet(
         if (presentation.tab == tab) return
         saveScroll()
         presentation.tab = tab
-        picker.dismiss()
         renderTabs()
         restoreScroll()
     }
 
     private fun renderTabs() {
+        val choosing = presentation.choosingTarget
         val showingHistory = presentation.tab == InspectorTab.HISTORY
         val showingLoads = presentation.tab == InspectorTab.APP_LOADS
-        current.view.visibility = if (presentation.tab == InspectorTab.CURRENT_URL) View.VISIBLE else View.GONE
-        history.view.visibility = if (showingHistory) View.VISIBLE else View.GONE
-        appLoads.view.visibility = if (showingLoads) View.VISIBLE else View.GONE
+        chooser.tabs.visibility = if (choosing) View.VISIBLE else View.GONE
+        chooser.view.visibility = if (choosing) View.VISIBLE else View.GONE
+        picker.view.visibility = if (choosing) View.GONE else View.VISIBLE
+        capture.visibility = if (choosing) View.GONE else View.VISIBLE
+        detailTabs.visibility = if (choosing) View.GONE else View.VISIBLE
+        footer.view.visibility = if (choosing) View.GONE else View.VISIBLE
+        chooser.clear.visibility = if (choosing && presentation.recentTargets) View.VISIBLE else View.GONE
+        current.view.visibility =
+            if (!choosing && presentation.tab == InspectorTab.CURRENT_URL) View.VISIBLE else View.GONE
+        history.view.visibility = if (!choosing && showingHistory) View.VISIBLE else View.GONE
+        appLoads.view.visibility = if (!choosing && showingLoads) View.VISIBLE else View.GONE
         currentTab.isSelected = presentation.tab == InspectorTab.CURRENT_URL
         historyTab.isSelected = showingHistory
         appLoadsTab.isSelected = showingLoads
@@ -296,8 +325,19 @@ internal class InspectorSheet(
                 context.shape(context.color(if (selected) R.color.wvi_tint else R.color.wvi_background), radius = 5)
             badge.setTextColor(context.color(if (selected) R.color.wvi_primary else R.color.wvi_muted))
         }
-        layout.history = showingHistory || showingLoads
+        layout.history = choosing || showingHistory || showingLoads
         lastState?.let { footer.render(it, presentation.tab) }
+    }
+
+    private fun showChooser() {
+        saveScroll()
+        presentation.choosingTarget = true
+        presentation.recentTargets = lastState?.targets?.isEmpty() == true
+        lastState?.let(chooser::render)
+        footer.dismiss()
+        renderTabs()
+        layout.scroll.scrollTo(0, 0)
+        layout.contentChanged()
     }
 
     private fun createTab(
@@ -449,11 +489,13 @@ internal class InspectorSheet(
     }
 
     private fun inspectedId(state: InspectorState?): Long? =
-        state?.selectedId ?: state?.history?.key?.targetId ?: state?.appLoads?.key?.targetId
+        state?.inspectedTarget?.key?.targetId ?: state?.selectedId ?: state?.history?.key?.targetId
+            ?: state?.appLoads?.key?.targetId
 
     private fun preferences(state: InspectorState?): TargetSheetState? = inspectedId(state)?.let(presentation::target)
 
     private fun saveScroll() {
+        if (presentation.choosingTarget) return
         val preferences = preferences(lastState) ?: return
         when (presentation.tab) {
             InspectorTab.HISTORY -> history.saveScroll(preferences)
@@ -464,6 +506,7 @@ internal class InspectorSheet(
 
     private fun restoreScroll() {
         restoreListener?.removeListener()
+        if (presentation.choosingTarget) return
         val preferences = preferences(lastState)
         when (presentation.tab) {
             InspectorTab.HISTORY -> {
@@ -489,7 +532,6 @@ internal class InspectorSheet(
         clearChildFocusRestore()
         restoreListener?.removeListener()
         restoreListener = null
-        picker.dismiss()
         footer.dismiss()
         about?.dismiss()
         about = null

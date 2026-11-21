@@ -50,7 +50,7 @@ class FocusedInspectorTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private lateinit var sheet: InspectorSheet
     private lateinit var state: InspectorState
-    private var preferences = InspectorSheetState()
+    private var preferences = InspectorSheetState().apply { choosingTarget = false }
     private lateinit var histories: Map<Long, NavigationHistorySnapshot>
     private var copiedId: Long? = null
 
@@ -100,7 +100,7 @@ class FocusedInspectorTest {
             assertFalse(ui { sheet.dialog.findViewById<View>(R.id.wvi_copy_url)!!.isEnabled })
             assertTrue(ui { text(sheet.dialog.findViewById(R.id.wvi_target_picker)!!).contains("Select again") })
             onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-            onView(withContentDescription("WebView 1, one.example, /full")).inRoot(isPlatformPopup()).perform(click())
+            onView(withContentDescription("WebView 1, one.example, /full")).inRoot(isDialog()).perform(click())
             assertTrue(ui { sheet.dialog.findViewById<View>(R.id.wvi_copy_url)!!.isEnabled })
             screenshot("focused-returned")
         }
@@ -143,7 +143,7 @@ class FocusedInspectorTest {
             chooseSecond()
             ui { sheet.dialog.findViewById<View>(R.id.wvi_sheet_scroll)!!.scrollTo(0, 140) }
             onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-            onView(withContentDescription("WebView 1, one.example, /full")).inRoot(isPlatformPopup()).perform(click())
+            onView(withContentDescription("WebView 1, one.example, /full")).inRoot(isDialog()).perform(click())
             instrumentation.waitForIdleSync()
             assertEquals(firstScroll, ui { sheet.dialog.findViewById<View>(R.id.wvi_sheet_scroll)!!.scrollY })
             onView(withId(R.id.wvi_current_tab)).inRoot(isDialog()).perform(click())
@@ -263,7 +263,7 @@ class FocusedInspectorTest {
         ActivityScenario.launch(host).use { scenario ->
             scenario.onActivity {
                 activity = it
-                preferences = InspectorSheetState()
+                preferences = InspectorSheetState().apply { choosingTarget = false }
                 WebViewInspector.uninstall()
                 val now = System.currentTimeMillis()
                 histories =
@@ -335,7 +335,7 @@ class FocusedInspectorTest {
 
     private fun chooseSecond() {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-        onView(withContentDescription("WebView 2, two.example, /embedded")).inRoot(isPlatformPopup()).perform(click())
+        onView(withContentDescription("WebView 2, two.example, /embedded")).inRoot(isDialog()).perform(click())
     }
 
     private fun record(

@@ -223,7 +223,10 @@ class AppLoadsTest {
             ui { activity.first.visibility = View.VISIBLE }
             Thread.sleep(1200)
             onView(withId(R.id.wvi_current_tab)).inRoot(isDialog()).perform(click())
-            assertFalse(ui { root.findViewById<View>(R.id.wvi_copy_url).isEnabled })
+            assertTrue(ui { root.findViewById<View>(R.id.wvi_copy_url).isEnabled })
+            assertFalse(ui { root.findViewById<View>(R.id.wvi_locate).isEnabled })
+            assertFalse(ui { activity.findViewById<View>(R.id.wvi_quick_copy).isEnabled })
+            assertTrue(ui { text(root.findViewById(R.id.wvi_copy_url)).contains("Copy recorded URL") })
             selectFirst()
             assertTrue(ui { root.findViewById<View>(R.id.wvi_copy_url).isEnabled })
             onView(withId(R.id.wvi_app_loads_tab)).inRoot(isDialog()).perform(click())
@@ -288,7 +291,7 @@ class AppLoadsTest {
             try {
                 scenario.onActivity { WebViewInspector.loadUrl(it.views[0], APP_URL) }
                 awaitView(R.id.wvi_open)
-                onView(withId(R.id.wvi_open)).perform(click())
+                openInspectorDetails()
                 onView(withId(R.id.wvi_app_loads_panel)).inRoot(isDialog()).check { view, _ -> root = view.rootView }
                 onView(withId(R.id.wvi_app_loads_tab)).inRoot(isDialog()).perform(click())
                 expandFirst()
@@ -296,7 +299,7 @@ class AppLoadsTest {
                 pressBack()
                 scenario.recreate()
                 awaitView(R.id.wvi_open)
-                onView(withId(R.id.wvi_open)).perform(click())
+                openInspectorDetails()
                 onView(withId(R.id.wvi_app_loads_panel)).inRoot(isDialog()).check { view, _ -> root = view.rootView }
                 onView(withId(R.id.wvi_app_loads_tab)).inRoot(isDialog()).perform(click())
                 assertTrue(panelText().contains("No app loads captured"))
@@ -320,7 +323,7 @@ class AppLoadsTest {
     }
 
     private fun openLoads() {
-        onView(withId(R.id.wvi_open)).perform(click())
+        openInspectorDetails()
         onView(withId(R.id.wvi_app_loads_panel)).inRoot(isDialog()).check { view, _ -> root = view.rootView }
         onView(withId(R.id.wvi_app_loads_tab)).inRoot(isDialog()).perform(click())
     }
@@ -332,12 +335,12 @@ class AppLoadsTest {
 
     private fun selectSecond() {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-        onView(withContentDescription("WebView 2, two.example, /embedded")).inRoot(isPlatformPopup()).perform(click())
+        onView(withContentDescription("WebView 2, two.example, /embedded")).inRoot(isDialog()).perform(click())
     }
 
     private fun selectFirst() {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-        onView(withContentDescription("WebView 1, one.example, /app-start")).inRoot(isPlatformPopup()).perform(click())
+        onView(withContentDescription("WebView 1, one.example, /app-start")).inRoot(isDialog()).perform(click())
     }
 
     private fun panelText(): String = ui { text(root.findViewById(R.id.wvi_app_loads_panel)) }

@@ -1,5 +1,36 @@
 # Standalone validation
 
+## Unreleased Live and Recent WebViews — 21 November 2026
+
+- The JDK 17 non-publishing gate passed with WebKit 1.15.0 and 1.16.0: root
+  formatting, 45 library and three sample JVM tests, Android Lint, seven-method
+  full/no-op facade parity, 34 publication/content guard tests, and independent
+  Java consumer debug, minified diagnostic and no-op release builds. Dependency
+  resolution and release-APK isolation checks passed. Both dependency lanes
+  produced identical full/no-op AAR hashes; publication still compiles against
+  and declares WebKit 1.15.0 as its minimum.
+- Each WebKit lane passed the explicitly selected API 24 emulator's 18 native and
+  three clipboard cases. API 36 passed its navigation prerequisite, 31 normal
+  cases, three clipboard cases, and the 23 light/16 dark cases at 320 dp and
+  160% font scale. Exact URL copying passed in the minified Java consumer and
+  the offline Afterframe showtime flow.
+- The new lifecycle cases use synthetic URLs and real Activity transitions.
+  They cover payment Activity destruction followed by a native confirmation
+  screen, helper-only captures that never became visible, saved URL/header
+  copying, separate instance identities, background/resume, clearing, disable
+  and uninstall. An authenticated payment/backend flow was not exercised.
+- Local API 36 validation uses official Chromium ARM64 158.0.8124.0, snapshot
+  revision 1726605, with recorded APK SHA-256
+  `e5f973811e59fdef875c258aa8798b112facec086174c0cd4474519229956168`.
+  Software-renderer attempts stalled inside the emulator graphics driver; the
+  completed lanes use the host GPU renderer. Original density, font, night mode,
+  keyboard and animation settings were checked against the saved originals.
+  API 36's original provider was reselected and both task-created emulators were
+  stopped after validation.
+- Evidence: `build/reports/webkit-compat/matrix-6qnstciy/` and
+  `build/reports/live-recent/`. Both WebKit lanes completed successfully. This
+  working-tree change has not been published.
+
 ## Published 0.4.2 — 15 November 2026
 
 Both artifacts are available on Maven Central. Anonymous downloads of the AARs,

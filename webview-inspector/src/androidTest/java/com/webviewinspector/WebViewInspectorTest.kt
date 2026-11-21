@@ -76,7 +76,7 @@ class WebViewInspectorTest {
         ActivityScenario.launch(ComposeInspectorHost::class.java).use { scenario ->
             lateinit var activity: ComposeInspectorHost
             scenario.onActivity { activity = it }
-            await { activity.views.size == 2 && header(activity).contains("of 2") }
+            await { activity.views.size == 2 && header(activity).contains("2 visible") }
             val originalClient =
                 if (android.os.Build.VERSION.SDK_INT >=
                     26
@@ -85,7 +85,7 @@ class WebViewInspectorTest {
                 } else {
                     null
                 }
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             selectTarget("WebView 2, two.example, /embedded")
             onView(withId(R.id.wvi_copy_url)).check(matches(withText("Copy URL · WebView 2")))
             screenshot("compose-sheet")
@@ -94,7 +94,7 @@ class WebViewInspectorTest {
             assertEquals(SECOND_URL, clipboard())
             clearClipboard()
             pressBack()
-            await { activity.hasWindowFocus() && header(activity).contains("WebView 2 of 2") }
+            await { activity.hasWindowFocus() && header(activity).contains("WebView 2 · 2 visible") }
             onView(withId(R.id.wvi_quick_copy)).perform(click())
             assertEquals(SECOND_URL, clipboard())
             if (android.os.Build.VERSION.SDK_INT >=
@@ -119,8 +119,8 @@ class WebViewInspectorTest {
         ActivityScenario.launch(XmlInspectorHost::class.java).use { scenario ->
             lateinit var activity: XmlInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
-            onView(withId(R.id.wvi_open)).perform(click())
+            await { header(activity).contains("2 visible") }
+            openInspectorDetails()
             selectTarget("WebView 2, two.example, /embedded")
             ui { activity.views[1].loadUrl(UPDATED_URL) }
             await { activity.views[1].url == UPDATED_URL }
@@ -134,17 +134,20 @@ class WebViewInspectorTest {
                 activity.container.addView(selected, 2)
             }
             Thread.sleep(1200)
-            onView(withId(R.id.wvi_copy_url)).check(matches(withText("Copy URL · WebView 1")))
+            onView(withId(R.id.wvi_copy_url)).check(matches(withText("Copy URL · WebView 2")))
             onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
             assertEquals(UPDATED_URL, clipboard())
             clearClipboard()
             ui { activity.container.removeView(activity.views[1]) }
             Thread.sleep(1200)
-            onView(withId(R.id.wvi_copy_url)).check(matches(not(isEnabled())))
+            onView(withId(R.id.wvi_copy_url)).check(matches(withText("Copy recorded URL")))
+            onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
+            assertEquals(UPDATED_URL, clipboard())
+            clearClipboard()
             pressBack()
             await { activity.hasWindowFocus() && header(activity).contains("Select WebView") }
             onView(withId(R.id.wvi_quick_copy)).check(matches(not(isEnabled())))
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             screenshot("unavailable-reopen")
             selectTarget("WebView 1, one.example, /full")
             onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
@@ -156,15 +159,15 @@ class WebViewInspectorTest {
         ActivityScenario.launch(XmlInspectorHost::class.java).use { scenario ->
             lateinit var activity: XmlInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             ui { activity.views[1].visibility = View.GONE }
-            await { header(activity).contains("of 1") }
+            await { header(activity).contains("1 visible") }
             ui { activity.addDelayed() }
-            await { header(activity).contains("of 2") }
-            onView(withId(R.id.wvi_open)).perform(click())
-            selectTarget("WebView 2, late.example, /card")
+            await { header(activity).contains("2 visible") }
+            openInspectorDetails()
+            selectTarget("WebView 3, late.example, /card")
             onView(withId(R.id.wvi_locate)).perform(scrollTo(), click())
-            await { activity.hasWindowFocus() && header(activity).contains("WebView 2 of 2") }
+            await { activity.hasWindowFocus() && header(activity).contains("WebView 3 · 2 visible") }
             assertTrue("Locate must draw an outline after its dialog closes", hasOutline(activity.views.last()))
             screenshot("locate")
             onView(withId(R.id.wvi_quick_copy)).perform(click())
@@ -179,7 +182,7 @@ class WebViewInspectorTest {
                 activity.setContentView(activity.views[0], ViewGroup.LayoutParams(-1, -1))
             }
             await { header(activity).contains("Select WebView · 1") }
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             selectTarget("WebView 1, one.example, /full")
             onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
             assertEquals(FIRST_URL, clipboard())
@@ -190,7 +193,7 @@ class WebViewInspectorTest {
         ActivityScenario.launch(XmlInspectorHost::class.java).use { scenario ->
             lateinit var activity: XmlInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             onView(withId(TestR.id.wvi_test_touch)).perform(click())
             assertEquals(1, ui { activity.touches })
             ui { WebViewInspector.showSettings(activity) }
@@ -201,18 +204,18 @@ class WebViewInspectorTest {
             onView(withId(R.id.wvi_enabled)).inRoot(isDialog()).perform(click())
             assertTrue(WebViewInspector.isEnabled())
             pressBack()
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             scenario.recreate()
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
-            onView(withId(R.id.wvi_open)).perform(click())
-            selectTarget("WebView 2, two.example, /embedded")
+            await { header(activity).contains("2 visible") }
+            openInspectorDetails()
+            selectTarget("WebView 4, two.example, /embedded")
             pressBack()
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             scenario.moveToState(Lifecycle.State.CREATED)
             assertNull(ui { activity.window.decorView.findViewById<View>(R.id.wvi_overlay) })
             scenario.moveToState(Lifecycle.State.RESUMED)
-            await { header(activity).contains("WebView 2 of 2") }
+            await { header(activity).contains("WebView 4 · 2 visible") }
             ui { WebViewInspector.uninstall() }
             assertNull(ui { activity.window.decorView.findViewById<View>(R.id.wvi_overlay) })
         }
@@ -222,7 +225,7 @@ class WebViewInspectorTest {
         ActivityScenario.launch(RecycledInspectorHost::class.java).use { scenario ->
             lateinit var activity: RecycledInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of ") }
+            await { header(activity).contains(" visible") }
             onView(withId(R.id.wvi_quick_copy)).perform(click())
             assertTrue(clipboard().startsWith("https://recycled.example/card/0"))
             clearClipboard()
@@ -252,7 +255,7 @@ class WebViewInspectorTest {
         ActivityScenario.launch(XmlInspectorHost::class.java).use { scenario ->
             lateinit var activity: XmlInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             onView(withContentDescription(application.getString(R.string.wvi_drag))).perform(
                 GeneralSwipeAction(
                     Swipe.SLOW,
@@ -281,7 +284,7 @@ class WebViewInspectorTest {
             assertTrue(before >= 0 && before < ui { activity.dp(30) })
             scenario.recreate()
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             val after =
                 ui {
                     activity.window.decorView
@@ -297,7 +300,7 @@ class WebViewInspectorTest {
         ActivityScenario.launch(XmlInspectorHost::class.java).use { scenario ->
             lateinit var activity: XmlInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
+            await { header(activity).contains("2 visible") }
             ui {
                 val grip =
                     activity.window.decorView
@@ -352,7 +355,7 @@ class WebViewInspectorTest {
             await {
                 activity.resources.configuration.orientation ==
                     android.content.res.Configuration.ORIENTATION_LANDSCAPE &&
-                    header(activity).contains("of 2")
+                    header(activity).contains("2 visible")
             }
             ui {
                 // Recreation can restore editor/IME state; the next check targets sheet copying.
@@ -364,7 +367,7 @@ class WebViewInspectorTest {
                     false
             }
             screenshot("landscape-before-sheet")
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             onView(withId(R.id.wvi_copy_url)).inRoot(isDialog()).perform(click())
             assertEquals(FIRST_URL, clipboard())
             screenshot("landscape")
@@ -377,8 +380,8 @@ class WebViewInspectorTest {
         ActivityScenario.launch(ComposeInspectorHost::class.java).use { scenario ->
             lateinit var activity: ComposeInspectorHost
             scenario.onActivity { activity = it }
-            await { header(activity).contains("of 2") }
-            onView(withId(R.id.wvi_open)).perform(click())
+            await { header(activity).contains("2 visible") }
+            openInspectorDetails()
             val point =
                 ui {
                     val top =
@@ -403,7 +406,7 @@ class WebViewInspectorTest {
                 event.recycle()
             }
             await { activity.hasWindowFocus() }
-            onView(withId(R.id.wvi_open)).perform(click())
+            openInspectorDetails()
             onView(withId(com.google.android.material.R.id.design_bottom_sheet)).perform(
                 GeneralSwipeAction(
                     Swipe.SLOW,
@@ -430,7 +433,7 @@ class WebViewInspectorTest {
 
     private fun selectTarget(description: String) {
         onView(withId(R.id.wvi_target_picker)).inRoot(isDialog()).perform(click())
-        onView(withContentDescription(description)).inRoot(isPlatformPopup()).perform(click())
+        onView(withContentDescription(description)).inRoot(isDialog()).perform(click())
     }
 
     private fun header(activity: Activity): String {

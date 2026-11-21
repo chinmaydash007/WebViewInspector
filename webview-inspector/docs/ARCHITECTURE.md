@@ -16,6 +16,10 @@ flowchart TD
     Controller --> Settings["SettingsSheet"]
     Controller --> Position["FloatingPosition: process memory"]
     Controller --> HistoryStore["NavigationHistoryStore: bounded process memory"]
+    Controller --> Archive["InspectorArchive: weak process identities and discovery latch"]
+    Archive --> HistoryStore
+    Archive --> CaptureStore
+    Archive --> Snapshot
     Session --> Monitor["InspectorMonitor: listeners and timers"]
     Monitor --> Detector["WebViewDetector: decor hierarchy"]
     Detector --> Registry["TargetRegistry: weak identities and selection"]
@@ -30,7 +34,8 @@ flowchart TD
     Events --> HistoryStore
     HistoryStore --> Snapshot
     Sheet --> Layout["InspectorSheetLayout: pinned regions and root drag gate"]
-    Sheet --> Picker["TargetPicker: visible instance dropdown"]
+    Sheet --> Picker["TargetPicker: return to WebViews"]
+    Sheet --> Chooser["WebViewsPanel: Live and Recent keyed rows"]
     Sheet --> Current["CurrentUrlPanel: URL and availability states"]
     Sheet --> Footer["InspectorFooter: copy and More actions"]
     Sheet --> HistoryPanel["HistoryPanel: stable native record rows"]
@@ -87,10 +92,10 @@ All package names below are relative to `com.webviewinspector.internal`.
 |---|---|---|
 | `core` | `InspectorController`, `InspectorSession`, `InspectorMonitor`, `NavigationHistoryObserver`, `AndroidXNavigationEventSource` | Own lifecycle, explicit-load capture, subscriptions, scheduling and coordination. Only the adapter imports experimental WebKit APIs. |
 | `detection` | `WebViewDetector` | Traverse the source Activity decor and validate visibility. No listeners, URL formatting, UI, or WebView mutations. |
-| `state` | `TargetRegistry`, `InspectorActivityState`, `NavigationHistoryStore`, `AppLoadStore`, immutable records and render/position values | Weak identity, Activity-scoped preferences and separate bounded navigation/app-load records. No live UI ownership. |
+| `state` | `InspectorArchive`, `TargetRegistry`, `InspectorActivityState`, `NavigationHistoryStore`, `AppLoadStore`, immutable records and render/position values | Weak identity, Activity-scoped preferences and separate bounded navigation/app-load records. No live UI ownership. |
 | `actions` | `UrlClipboardCopier`, `HistoryClipboardCopier`, `AppLoadClipboardCopier`, `LocateHighlighter` | Live copying/highlighting validates the selected view; saved copying reads explicit raw values. |
 | `ui.floating` | `FloatingOverlay`, `FloatingDragController` | Render the control/outline and handle movement, snapping, insets, keyboard, and accessibility movement. |
-| `ui.sheet` | `InspectorSheet`, `TargetPicker`, `CurrentUrlPanel`, `InspectorFooter`, `HistoryPanel`, `AppLoadsPanel`, `SettingsSheet` | Coordinate the Focused native UI, render immutable state and own transient child windows. Send actions through callbacks. |
+| `ui.sheet` | `InspectorSheet`, `WebViewsPanel`, `TargetPicker`, `CurrentUrlPanel`, `InspectorFooter`, `HistoryPanel`, `AppLoadsPanel`, `SettingsSheet` | Coordinate the Focused native UI, render immutable state and own transient child windows. Send actions through callbacks. |
 | `ui.common` | `BottomSheetFactory`, `InspectorSheetLayout`, `SheetDragGuard`, `SheetScrollView`, View extensions | Construct library-themed dialog chrome, coordinate content/sheet gestures, and share View styling and copy confirmation. No selection, polling, or URL access. |
 | `util` | `UrlPresentation`, `HistoryPresentation`, `AppLoadsPresentation` | Display-only URL/query formatting, date labels and saved-input text formatting. Raw URL/header strings are never decoded for copying. |
 
@@ -101,11 +106,11 @@ All package names below are relative to `com.webviewinspector.internal`.
 3. The session attaches its interactive overlay to `android.R.id.content`. Detection traverses the Activity **decor**, excluding that overlay. Attaching to content preserves compatibility with SDKs that route input directly to content; each discovery also repairs attachment after `setContentView` replaces it.
 4. `InspectorMonitor` performs initial discovery after posted attachment work, debounces layout/scroll discovery by **100 ms**, rescans every **1 second**, and requests URL/render sampling every **500 ms**. `WebViewDetector` includes visible native WebViews of every size and subclass, including Compose AndroidView and RecyclerView/Epoxy children.
 5. `TargetRegistry` compares instances using `===`, retains weak references, and preserves selection through reordering. The first discovered target is selected automatically. Once that selected instance disappears, another target must be explicitly selected, even if the list later becomes non-empty again.
-6. The session reads current URLs on the main thread into an immutable `InspectorState`. Both the control and sheet render the same selected identity. Numbers describe current hierarchy order; they are not permanent IDs. URL-only changes update existing sheet rows without removing their focus.
+6. The session reads current URLs on the main thread into an immutable `InspectorState`. Both the control and sheet render the same selected identity. Numbers are stable process-catalogue identities while retained; each new instance receives a new number. Explicit clearing or eviction of a Recent entry can retire that identity. URL-only changes update existing sheet rows without removing their focus.
 
 ## Central navigation history
 
-`InspectorController` owns one `NavigationHistoryStore` and weak Activity-keyed `InspectorActivityState` values. Each Activity receives a unique scope; history keys combine that scope and the registry's WebView identity. The registry's weak catalogue survives temporary visibility loss, while live selection still becomes unavailable and requires explicit reselection. Its last selection supplies saved-history context without retaining the WebView.
+`InspectorController` owns one `InspectorArchive`, `NavigationHistoryStore`, `AppLoadStore` and weak Activity-keyed `InspectorActivityState` values. The archive assigns process-unique WebView IDs at discovery or explicit helper capture. History keys retain the identity’s original Activity scope (zero for unknown ownership); later discovery in another Activity does not rekey or merge it. Scope is origin metadata, not a retention boundary. The registry's weak catalogue survives temporary visibility loss, while live selection still becomes unavailable and requires explicit reselection. Its last selection supplies saved-history context without retaining the WebView.
 
 `InspectorSession` reconciles visible targets with `NavigationHistoryObserver` on discovery. Each active target has exactly one subscription. `AndroidXNavigationEventSource` selects experimental `NAVIGATION_LISTENER_V1` when `Navigation` is an interface and stable `NAVIGATION_LISTENER` when it is a class. It caches public method lookups so an AAR compiled against WebKit 1.15 can also read the 1.16 navigation class. Its direct executor snapshots mutable navigation values at provider dispatch so fast redirects retain each URL. Immutable snapshots reach main-thread state, and inactive subscriptions reject queued delivery.
 
@@ -135,9 +140,13 @@ Current URL/quick-copy still uses `UrlClipboardCopier` and a freshly validated l
 
 The store evicts oldest whole records beyond 100 per target, 500 across the process or 2 MiB of UTF-8 URL text. It counts discarded records. Baseline comparisons retain fixed-size fingerprints instead of unbudgeted URL strings. Retired empty histories have bounded metadata. History contains no Activity, WebView or mutable Navigation references.
 
-Hidden/detached targets and inactive sessions remove subscriptions and mark a gap. The same Activity can resume its saved history; a destroyed Activity loses its scope, and a new WebView gets a new identity. Disable/uninstall clears all scopes. The History tab and expanded record IDs live in Activity presentation state. Rows and step Views are updated in place; inserting new records preserves an existing visible scroll anchor rather than rebuilding focused controls every sample.
+Hidden/detached targets and inactive sessions remove subscriptions and mark a gap. The same Activity can resume its saved history; a destroyed Activity releases its registry and UI while the archive retains view-free records. A new WebView gets a new identity. Disable/uninstall clears all scopes. The History tab and expanded record IDs live in Activity presentation state. Rows and step Views are updated in place; inserting new records preserves an existing visible scroll anchor rather than rebuilding focused controls every sample.
 
 ## Focused sheet composition
+
+### Live and Recent retention
+
+The archive holds only weak targets, original scope IDs, plain screen names and timestamps. It derives summaries from the two stores without another raw-text cache. Activity destruction removes its registry, overlay and subscriptions, while the record stores remain accessible through the process catalogue. Oldest inactive target eviction (500 entries) removes both histories and app loads. Clear recent WebViews removes non-live targets only. Disable/uninstall clears the catalogue, both record stores and the discovery latch.
 
 ### Advanced app-load capture
 
@@ -149,10 +158,10 @@ reach WebView's original thread/error behavior without capture.
 
 The controller owns `AppLoadStore`, independent of navigation history. Each entry weakly
 references an instance and may initially be pending. Context-wrapped Activity ownership
-allows pre-attachment cleanup; discovery binds the entry to the existing Activity scope
-and target ID without adding visible targets or altering selection. Unresolved pending
-entries remain bounded until discovery, collection or inspector cleanup. Collected
-pending entries are pruned; bound records remain available as Saved app loads.
+provides a source screen name. The controller immediately binds each helper call to its
+archive identity, without adding visible targets, activating the floating control or
+altering selection. Never-discovered instances remain available in Recent with an
+app-supplied-inputs label. The underlying store still prunes any unbound collected entries.
 
 The store snapshots header entries in iteration order and owns no original maps, Views
 or Activities in records. It budgets pending and bound calls together: 100 per instance,
@@ -160,7 +169,7 @@ or Activities in records. It budgets pending and bound calls together: 100 per i
 oldest calls are evicted; retired empty metadata is bounded to 500 entries. Live weak
 instances retain their Advanced marker after Clear even when other records are evicted.
 Clear app loads affects only its selected instance, retaining its Advanced marker.
-Activity destruction removes that scope; disable/uninstall removes all capture state.
+Activity destruction releases live resources but retains saved inputs; disable/uninstall removes all capture state.
 
 `AppLoadsPanel` renders keyed newest-first rows and lazily creates expanded raw-input
 details. Per-target expansion, scroll anchors and offsets contain no Views. Copies use
@@ -185,11 +194,11 @@ sequenceDiagram
     Store-->>Sheet: bounded snapshot after instance discovery
 ```
 
-`InspectorSheet` coordinates a pinned header/selector/tabs, a single nested content scroller, and a pinned action footer. `TargetPicker` owns a focusable native popup keyed by instance ID. `CurrentUrlPanel` renders selectable original URLs, display-only decoded query values, and distinct no-selection/unavailable/no-URL states. `HistoryPanel` owns keyed path-first rows, raw redirect details and local-date headings; it no longer owns global copy/clear controls. `InspectorFooter` owns the active copy action and More menu. About uses a library-themed native Material alert dialog.
+`InspectorSheet` coordinates a pinned header/selector/tabs, a single nested content scroller, and a pinned action footer. `WebViewsPanel` owns Live/Recent tabs and keyed native rows inside the existing sheet scroller. `TargetPicker` returns from details to the chooser. New Activities start on the chooser; existing Activity presentation survives dismissal. The chooser defaults to Recent when no WebViews are visible. Saved details show Last URL and use explicit recorded copying; helper-only targets default to App loads. Clear recent WebViews removes only non-live targets and their two sets of records. `CurrentUrlPanel` renders selectable original URLs, display-only decoded query values, and distinct no-selection/unavailable/no-URL states. `HistoryPanel` owns keyed path-first rows, raw redirect details and local-date headings; it no longer owns global copy/clear controls. `InspectorFooter` owns the active copy action and More menu. About uses a library-themed native Material alert dialog.
 
 `InspectorSheetLayout` measures pinned regions before bounding the scroller. History fills the existing 90% available-window cap. Current URL takes its content height and freezes that height across routine polling; user expansion, selection/availability changes, window/inset changes and tab changes explicitly request a new measurement. Presentation state stores only target IDs, record IDs, offsets and expansion flags, with a bounded per-Activity target-preference map. It never stores Views or another raw-URL cache.
 
-The session invokes `InspectorSheet.release()` through its existing dismissal listener and before host cleanup. This saves scroll preferences, removes pending restore work, and dismisses the picker, More popup and About dialog. Child-window Back/outside dismissal returns focus to the inspector. The source session continues monitoring while its inspector dialog is showing.
+The session invokes `InspectorSheet.release()` through its existing dismissal listener and before host cleanup. This saves scroll preferences, removes pending restore work, and dismisses the More popup and About dialog. Child-window Back/outside dismissal returns focus to the inspector. The source session continues monitoring while its inspector dialog is showing.
 
 ## Copy URL flow
 
@@ -259,14 +268,15 @@ The highlighter holds the WebView weakly. Layout/scroll events update its outlin
 | Activity focus listener | Controller `FocusWatch` | Weak Activity/root ownership; detached on pause/stop/destruction or uninstall. |
 | Selected target registry | Controller, keyed weakly by Activity | Survives pause/resume of the same Activity; discarded on destruction, disabling, or uninstall. Entries weakly reference WebViews. |
 | Navigation subscriptions | `NavigationHistoryObserver` / adapter | One per visible target; removed on disappearance, focus loss, pause/stop or disposal. Queued events are invalidated. |
-| Navigation history and budget | Controller `NavigationHistoryStore` | View-free process memory; Activity scope removed on destruction, all scopes cleared on disable/uninstall. |
-| App-load inputs and pending instances | Controller `AppLoadStore` | Independent bounded records and weak references. Collected pending entries pruned; known Activity scope removed on destruction; everything cleared on disable/uninstall. |
+| Navigation history and budget | Controller `NavigationHistoryStore` | View-free process memory; retained across Activity destruction, cleared on explicit clearing, eviction or disable/uninstall. |
+| Process catalogue and activation | Controller `InspectorArchive` | Weak instance identities, plain screen names and times; at most 500 inactive entries. Oldest inactive target eviction removes both record sets. First visible discovery latches floating availability until disable/uninstall; clearing records does not reset it. |
+| App-load inputs and pending instances | Controller `AppLoadStore` | Independent bounded records and weak references. Collected pending entries pruned; saved inputs retained across Activity destruction; everything cleared on disable/uninstall. |
 | Selected tab / expanded records | `InspectorActivityState` | Preserved through sheet dismissal and pause/resume, discarded with the Activity state. |
 | Floating position | Controller | Shared across sessions; reset by a fresh installation/process. |
 | Layout/scroll listeners and polling | `InspectorMonitor` | Poll only while active. Pause/stop/disabling/uninstall disposes the session and removes listeners/timers. |
 | Overlay and drag listeners | `InspectorSession` / overlay | Overlay removed when the session ends. Movement/insets listeners belong to its removed View tree. |
 | Inspector sheet | `InspectorSession` | Native dialog dismissal handled by Material; `release()` runs on dismissal/disposal. |
-| Target/More popups and About dialog | `InspectorSheet` and UI collaborators | Dismiss on parent dismissal or host exit; release focus callbacks with their owned windows. |
+| More popup and About dialog | `InspectorSheet` and UI collaborators | Dismiss on parent dismissal or host exit; release focus callbacks with their owned windows. |
 | Per-target scroll/query preferences | `InspectorSheetState` | View-free Activity state; survives navigation/dismissal, bounded to 500 preference entries; discarded with Activity state. |
 | Pending scroll corrections | Sheet / `HistoryPanel` | One-shot pre-draw work; removed on release or View detachment. |
 | Child-dialog focus restoration | `InspectorSheet` | One-shot parent-window focus observer and posted restore; removed after focus returns, before another child opens, or on release. |
@@ -303,6 +313,8 @@ Both sheets use `SheetScrollView`, a native AndroidX `NestedScrollView`. The Foc
 
 ## Production and inspection boundaries
 
-The sample uses the full inspector in debug and [no-op](../../webview-inspector-no-op/README.md) in its minified release. Consumer apps choose an artifact per variant. The no-op artifact supplies seven matching static methods and synchronous pass-through loading helpers without inspector implementation, UI or storage.
+The sample uses the full inspector in debug and [no-op](../../webview-inspector-no-op/README.md) in its minified release. Consumer apps choose an artifact per variant. The floating entry point is recreated on the current foreground Activity after first discovery, even when its live list and Recent are empty. It is not a system overlay and never remains over other apps. No WebView or Activity is retained for this purpose.
+
+The no-op artifact supplies seven matching static methods and synchronous pass-through loading helpers without inspector implementation, UI or storage.
 
 This is an Activity-hierarchy inspector with opt-in app-load snapshots, not a complete network trace. Separate windows, external browsers/UPI apps and iframe navigation are excluded. Events before discovery and during gaps cannot be reconstructed; sampling may miss redirects and failures. Commitment does not prove rendering or successful payment. Never replace clients/bridges, inject JavaScript or change settings to extend coverage. Only explicit helper inputs are captured: no implicit network/browser/response headers, automatic cookies or bodies. Inputs must not be logged, persisted, uploaded or sent to analytics.
