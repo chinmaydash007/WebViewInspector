@@ -2,6 +2,12 @@
 
 ## 0.5.0 release preparation — 21 November 2026
 
+- The README's four MP4/GIF pairs were refreshed from the reviewed recordings,
+  with a fifth pair demonstrating Live 0, Recent and saved inspection. The
+  recordings use the selected, already running API 37 sample emulator.
+  Candidate hashes matched before copying, and all ten exports decoded without
+  errors. System settings were unchanged; the endpoint's network address is
+  obscured in the Headers recording. Demo media remains outside Maven archives.
 - `VERSION_NAME` is 0.5.0 for both artifacts. The versioned JDK 17
   non-publishing gate passed: root formatting, 45 library and three sample JVM
   tests, Android Lint, seven-method facade parity, 34 publication/content guard
