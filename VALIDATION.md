@@ -15,7 +15,7 @@
   clipboard cases, plus 25 light/18 dark cases at 320 dp and 160% font scale.
   Both jobs retained device evidence and restored emulator settings.
 - Release notes are prepared in `docs/releases/0.5.0.md`, with a
-  [GitHub release draft](https://github.com/chinmaydash007/WebViewInspector/releases/tag/untagged-14d2ded309d31e3dc46e)
+  [GitHub release draft](https://github.com/chinmaydash007/WebViewInspector/releases)
   and [draft PR](https://github.com/chinmaydash007/WebViewInspector/pull/1).
   The source still needs to reach `main` and pass the signed dry run before
   tagging or publishing. Local API 36 graphics-driver limitations are recorded
