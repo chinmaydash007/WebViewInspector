@@ -1,46 +1,43 @@
 # Standalone validation
 
-## 0.5.0 release preparation — 21 November 2026
+## Published 0.5.0 — 22 November 2026
 
-- The README's four MP4/GIF pairs were refreshed from the reviewed recordings,
-  with a fifth pair demonstrating Live 0, Recent and saved inspection. The
-  recordings use the selected, already running API 37 sample emulator.
-  Candidate hashes matched before copying, and all ten exports decoded without
-  errors. System settings were unchanged; the endpoint's network address is
-  obscured in the Headers recording. Demo media remains outside Maven archives.
-- `VERSION_NAME` is 0.5.0 for both artifacts. The versioned JDK 17
-  non-publishing gate passed: root formatting, 45 library and three sample JVM
-  tests, Android Lint, seven-method facade parity, 34 publication/content guard
-  tests and independent Java consumer debug, minified diagnostic and no-op
-  release builds. Local evidence: `build/reports/segmented-motion/verify-0.5.0.log`.
-- [Standalone GitHub validation](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922105879)
-  passed for source `80477a23dc7761c35c60a7bd7f36b43518380981`.
-  [Cloud Android compatibility](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44922483769)
-  also passed on that source: API 24's 20 native and three clipboard cases;
-  API 36's keyboard preflight, navigation prerequisite, 33 normal and three
-  clipboard cases, plus 25 light/18 dark cases at 320 dp and 160% font scale.
-  Both jobs retained device evidence and restored emulator settings.
-- The [signed dry run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44928864265)
-  passed for the merged `main` source. [PR #1](https://github.com/chinmaydash007/WebViewInspector/pull/1)
-  is merged, and the annotated `v0.5.0` tag identifies source
-  `b43cb7d09fd892bf970c00f5fb69d77b4b7b5d16`.
-- The [GitHub release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.5.0)
-  was published at `2026-11-21T17:31:27Z`, before the Central workflow. Its
-  signed bundle, manifest and checksums match the verified dry-run assets.
-- Signed bundle SHA-256:
-  `ed015eb339e7ad5b127387eed0bfba8660c2aeda675f4aa8ba5f535b25ddb19d`.
-- Central accepted deployment `87c0a585-a2c9-4df7-a363-65d5dcbaaeff`
-  for both artifacts. The [release workflow](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44930514013)
-  passed standalone and API 24/36 gates. Both one-hour publication waits timed
-  out while Central remained `PUBLISHING`; the second attempt resumed the same
-  deployment without uploading again. At `2026-11-21T19:45:11Z`, Central was
-  still processing, and anonymous checks of both 0.5.0 POMs returned HTTP 404.
-  Publication, exact public-download verification and the subsequent public
-  Java consumer builds remain pending. Resume this deployment using its saved
-  receipt; do not upload a replacement bundle. Version 0.4.2 stays in the
-  installation examples until both coordinates are verified.
+Both artifacts are available on Maven Central. Anonymous downloads of the AARs,
+POMs, Gradle metadata, sources and documentation for both artifacts matched all
+ten SHA-256 checksums in the signed release manifest. The GitHub release was
+published first, at `2026-11-21T17:31:27Z`, before the Central workflow ran.
+Public files were verified at `2026-11-22T06:02:24Z`.
 
-## Unreleased segmented selection motion — 21 November 2026
+The [signed dry run](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44928864265)
+and [release workflow](https://github.com/chinmaydash007/WebViewInspector/actions/runs/44930514013)
+passed standalone validation and API 24/36 native gates on
+`b43cb7d09fd892bf970c00f5fb69d77b4b7b5d16`, tagged `v0.5.0`. API 24 passed
+20 native and three clipboard cases. API 36 passed keyboard and navigation
+prerequisites, 33 normal and three clipboard cases, plus 25 light/18 dark cases
+at 320 dp and 160% font scale. Emulator settings were restored.
+
+The release workflow reused the verified dry-run bundle in one Central deployment
+and built the independent Java consumer’s debug, minified diagnostic and no-op
+release variants from public repositories. The signed bundle, manifest, checksums
+and deployment receipt are attached to the
+[GitHub release](https://github.com/chinmaydash007/WebViewInspector/releases/tag/v0.5.0).
+
+The first two one-hour waits timed out while Central was `PUBLISHING`. The
+successful retry resumed the saved deployment receipt without uploading another
+bundle. The version tag and signed release assets were preserved.
+
+- Source commit: `b43cb7d09fd892bf970c00f5fb69d77b4b7b5d16`
+- Signed bundle SHA-256: `ed015eb339e7ad5b127387eed0bfba8660c2aeda675f4aa8ba5f535b25ddb19d`
+- Central deployment: `87c0a585-a2c9-4df7-a363-65d5dcbaaeff`
+
+The README’s five MP4/GIF pairs use the reviewed API 37 sample recordings.
+Candidate/public media hashes matched and all ten exports decoded without errors.
+System settings were unchanged; the endpoint’s network address is obscured in the
+Headers recording. Demo media remains outside Maven archives. The earlier local
+graphics-driver limitations below were covered by the completed cloud and release
+suites.
+
+## Segmented selection motion (0.5.0 pre-release) — 21 November 2026
 
 - The JDK 17 non-publishing gate passed with the final runtime: root formatting,
   45 library and three sample JVM tests, Android Lint, seven-method facade parity,
@@ -70,9 +67,9 @@
   temporary idle-sleep assertions ended with their processes.
 - Local evidence is in `build/reports/segmented-motion/`, including
   `verify-final.log`, motion logs, the sample video and the emulator/native
-  traces. This UI-only refinement remains unpublished.
+  traces. The subsequent cloud/release gates above cover this runtime.
 
-## Unreleased rounded Live/Recent tabs — 21 November 2026
+## Rounded Live/Recent tabs (0.5.0 pre-release) — 21 November 2026
 
 - The JDK 17 non-publishing gate passed after the final spacing correction:
   root formatting, 45 library and three sample JVM tests, Android Lint,
@@ -96,9 +93,9 @@
 - Evidence is retained in `build/reports/segmented-tabs/`, including
   `verify-spacing.log`, the full native suites, and the final focused layout
   matrix. No public API, dependency or navigation-compatibility changes were
-  made. This refinement remains unpublished.
+  made. The subsequent release gates above cover this refinement.
 
-## Unreleased Live and Recent WebViews — 21 November 2026
+## Live and Recent WebViews (0.5.0 pre-release) — 21 November 2026
 
 - The JDK 17 non-publishing gate passed with WebKit 1.15.0 and 1.16.0: root
   formatting, 45 library and three sample JVM tests, Android Lint, seven-method
@@ -126,8 +123,8 @@
   API 36's original provider was reselected and both task-created emulators were
   stopped after validation.
 - Evidence: `build/reports/webkit-compat/matrix-6qnstciy/` and
-  `build/reports/live-recent/`. Both WebKit lanes completed successfully. This
-  working-tree change has not been published.
+  `build/reports/live-recent/`. Both WebKit lanes completed successfully. The
+  release gates above tested the final runtime.
 
 ## Published 0.4.2 — 15 November 2026
 

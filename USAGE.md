@@ -6,9 +6,8 @@ Check the available versions on Maven Central for the [full inspector](https://r
 
 The GitHub repository, GitHub Releases and CI assets are **public**, as are Maven Central AARs, complete source JARs and documentation. No GitHub Pages site is configured.
 
-The Live/Recent behavior in this guide is prepared for **0.5.0**, whose publication
-is pending. The dependency examples below retain **0.4.2**, the latest version
-verified on Maven Central. See the [0.5.0 release notes](docs/releases/0.5.0.md).
+Live/Recent is available in **0.5.0**. Both matching artifacts are verified on
+Maven Central. See the [0.5.0 release notes](docs/releases/0.5.0.md).
 
 ## Integrate
 
@@ -16,8 +15,8 @@ Use `google()` and `mavenCentral()` for dependencies. Select exactly one artifac
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.2")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.2")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.5.0")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.5.0")
 }
 ```
 

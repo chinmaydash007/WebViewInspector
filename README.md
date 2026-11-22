@@ -4,8 +4,8 @@
 
 **See current URLs, navigation history, and app-supplied headers in your Android WebViews.**
 
-[Maven Central 0.4.2](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/0.4.2/)
-· [Production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/0.4.2/)
+[Maven Central 0.5.0](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector/0.5.0/)
+· [Production no-op](https://repo.maven.apache.org/maven2/io/github/chinmaydash007/webview-inspector-no-op/0.5.0/)
 · [Apache 2.0](LICENSE)
 
 </div>
@@ -42,8 +42,8 @@ WebView Inspector supports Android API 24 and later. Use `google()` and
 
 ```kotlin
 dependencies {
-    debugImplementation("io.github.chinmaydash007:webview-inspector:0.4.2")
-    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.4.2")
+    debugImplementation("io.github.chinmaydash007:webview-inspector:0.5.0")
+    releaseImplementation("io.github.chinmaydash007:webview-inspector-no-op:0.5.0")
 }
 ```
 
@@ -57,12 +57,11 @@ override fun onCreate() {
 }
 ```
 
-Open a screen with a WebView and tap the floating Inspector. The upcoming 0.5.0 Live/Recent
+Open a screen with a WebView and tap the floating Inspector. The Live/Recent
 chooser keeps captured history available across Activities after the first discovery,
-including screens without WebViews. Published 0.4.2 retains the earlier picker behavior.
-See the [0.5.0 release notes](docs/releases/0.5.0.md) for the pending release and its validation status.
-Use the optional load
-helper to see app-supplied inputs under **App loads**.
+including screens without WebViews. See the [0.5.0 release notes](docs/releases/0.5.0.md)
+for the changes and validation results. Use the optional load helper to see
+app-supplied inputs under **App loads**.
 
 ```kotlin
 WebViewInspector.loadUrl(webView, url, headers)
